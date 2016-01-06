@@ -53,7 +53,7 @@ class HostResource(Resource):
     def on_get(self, req, resp, address):
         # TODO: Verify input
         try:
-            host = self.store.get('/testing/hosts/{}'.format(address))
+            host = self.store.get('/testing/hosts/{0}'.format(address))
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
             return
@@ -65,7 +65,7 @@ class HostResource(Resource):
     def on_put(self, req, resp, address):
         # TODO: Verify input
         try:
-            host = self.store.get('/testing/hosts/{}'.format(address))
+            host = self.store.get('/testing/hosts/{0}'.format(address))
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
@@ -73,7 +73,7 @@ class HostResource(Resource):
             print(data.decode())
             host = Host(**json.loads(data.decode()))
             new_host = self.store.set(
-                '/testing/hosts/{}'.format(address), host.to_json())
+                '/testing/hosts/{0}'.format(address), host.to_json())
             resp.status = falcon.HTTP_201
             req.context['model'] = Host(**json.loads(new_host.value))
 
@@ -81,7 +81,7 @@ class HostResource(Resource):
         resp.body = '{}'
         try:
             host = self.store.delete(
-                '/testing/hosts/{}'.format(address))
+                '/testing/hosts/{0}'.format(address))
             falcon.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404

@@ -29,7 +29,7 @@ class Model:
             if key not in kwargs:
                 raise TypeError(
                     '__init__() missing 1 or more required '
-                    'keyword arguments: {}'.format(
+                    'keyword arguments: {0}'.format(
                         ', '.join(self._attributes)))
             setattr(self, key, kwargs[key])
 

@@ -7,6 +7,6 @@ install:
   - "pip install -r test-requirements.txt"
 script:
   - "pep8 -r src/"
-  - "nosetests test/"
+  - "nosetests -v --with-coverage --cover-package commissaire --cover-min-percentage 80 test/"
 notifications:
   email: false

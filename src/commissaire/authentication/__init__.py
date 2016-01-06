@@ -13,11 +13,39 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 
 class Authenticator:
+    """
+    Base class for authentication implementations.
+    """
+
+    #: Logger for authenticators
+    logger = logging.getLogger('authentication')
 
     def process_request(self, req, resp):
+        """
+        Falcon hook to inject authentication before the requests is
+        processed.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :raises: falcon.HTTPForbidden
+        """
         self.authenticate(req, resp)
 
     def authenticate(self, req, resp):
+        """
+        Method should be overriden with specific a specific authentication
+        call for an implementation.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :raises: falcon.HTTPForbidden
+        """
         raise falcon.HTTPForbidden()

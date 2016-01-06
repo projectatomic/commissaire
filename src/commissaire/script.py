@@ -30,7 +30,7 @@ from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIServer
 
 from commissaire.handlers.hosts import HostsResource, HostResource
-from commissaire.authentication.httpauth import HTTPAuthByFile
+from commissaire.authentication.httpauth import HTTPBasicAuthByFile
 
 
 ROUTER_QUEUE = Queue()
@@ -47,9 +47,9 @@ def host_watcher(q, c):
     while True:
         try:
             change = c.watch('/testing/hosts/', index=next_idx, recursive=True)
-            logger.debug('Got change {}'.format(change))
+            logger.debug('Got change {0}'.format(change))
             next_idx = change.etcd_index + 1
-            logger.debug('Last index: {}. Next index: {}'.format(
+            logger.debug('Last index: {0}. Next index: {1}'.format(
                 change.etcd_index, next_idx))
             q.put(change)
         except etcd.EtcdWatchTimedOut:
@@ -63,12 +63,12 @@ def router(q):
     while True:
         sent_to = 0
         change = q.get()
-        logger.debug('Got change {}'.format(change))
+        logger.debug('Got change {0}'.format(change))
         for all_q in QUEUES['ALL']:
             sent_to += 1
             all_q.put(change)
 
-        logger.debug('Change for {} is a "{}"'.format(
+        logger.debug('Change for {0} is a "{1}"'.format(
             change.etcd_index, change.action))
         if change.action == 'delete':
             address = json.loads(change._prev_node.value)['address']
@@ -77,17 +77,17 @@ def router(q):
                 data = json.loads(change.value)
                 address = data['address']
             except TypeError:
-                logger.debug('Empty value. Setting to "{}".')
+                logger.debug('Empty value. Setting to "{0}".')
                 data = {}
 
         if address in QUEUES.keys():
             for found_q in QUEUES[address]:
                 sent_to += 1
                 found_q.put(change)
-                logging.debug('Sent change for {} to queue for {}'.format(
+                logging.debug('Sent change for {0} to queue for {1}'.format(
                     change.etcd_index, address))
 
-        logger.info('Sent change for {} to {} queues.'.format(
+        logger.info('Sent change for {0} to {1} queues.'.format(
             change.etcd_index, sent_to))
 
 
@@ -103,7 +103,7 @@ def main():
     router_thread = gevent.spawn(router, ROUTER_QUEUE)
 
     # TODO: make the loading configurable
-    http_auth = HTTPAuthByFile('./conf/users.txt')
+    http_auth = HTTPBasicAuthByFile('./conf/users.yaml')
     app = falcon.API(middleware=[http_auth, JSONify()])
 
     # app.add_route('/streaming', HelloApp())

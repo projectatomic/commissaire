@@ -23,6 +23,16 @@ $ virtualenv /where/you/want/it/to/live
 ...
 ```
 
+(Optional): Run Unittests
+-------------------------
+From the repo root...
+
+```
+(virtualenv)$ pip install -r test-requirements.txt
+...
+(virtualenv)$ nosetests -v --with-coverage --cover-package commissaire --cover-min-percentage 80 test/
+```
+
 Running the service
 -------------------
 From the repo root...

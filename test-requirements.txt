@@ -1,3 +1,4 @@
 requests
 nose
 pep8
+coverage
