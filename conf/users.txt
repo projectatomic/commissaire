@@ -1,0 +1,2 @@
+# a: a
+a: $2b$12$PtOoiwTvFBAJPMfrZn7pXubcx5MBbQiLVEDv3LAVWGeKiZZiYRGlu
