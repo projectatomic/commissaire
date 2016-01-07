@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
    authentication
+   endpoints
+   statuses
 
 API Documentation:
 
