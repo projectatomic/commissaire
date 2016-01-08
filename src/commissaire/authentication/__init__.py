@@ -15,6 +15,8 @@
 
 import logging
 
+import falcon
+
 
 class Authenticator:
     """
@@ -48,4 +50,4 @@ class Authenticator:
         :type resp: falcon.Response
         :raises: falcon.HTTPForbidden
         """
-        raise falcon.HTTPForbidden()
+        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
