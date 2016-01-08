@@ -29,18 +29,22 @@ Retrieve a list of hosts.
 
    [
        {
-           "address": string,
-           "status":  enum(string),
-           "os": string,
-           "cpus": int,
-           "memory": int,
-           "space": int,
-           "last_check": string
+           "address": string,       // The IP address of the cluster host
+           "status":  enum(string), // The status of the cluster host
+           "os": enum(string),      // The OS name
+           "cpus": int,             // The number of CPUs on the cluster host
+           "memory": int,           // The memory of the cluster host in kilobytes
+           "space": int,            // The diskspace on the cluster host
+           "last_check": string     // ISO date format the cluster host was last checked
        }...
    ]
 
 .. note::
    See :ref:`host-statuses` for a list and description of host statuses.
+
+.. note::
+   See :ref:`host-os` for a list and description of host statuses.
+
 
 
 Example

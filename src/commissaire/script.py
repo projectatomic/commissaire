@@ -29,8 +29,9 @@ import gevent
 from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIServer
 
-from commissaire.handlers.hosts import HostsResource, HostResource
+from commissaire.handlers.hosts import HostsResource  # , HostResource
 from commissaire.authentication.httpauth import HTTPBasicAuthByFile
+from commissaire.middleware import JSONify
 
 
 ROUTER_QUEUE = Queue()
@@ -40,7 +41,7 @@ QUEUES = {
 }
 
 
-def host_watcher(q, c):
+def host_watcher(q, c):  # pragma: no cover
     logger = logging.getLogger('watcher')
     next_idx = None
     logger.info('Starting watcher from latest index')
@@ -57,7 +58,7 @@ def host_watcher(q, c):
 
 
 # TODO: multiprocess?
-def router(q):
+def router(q):  # pragma: no cover
     logger = logging.getLogger('router')
     logger.info('Starting router')
     while True:
@@ -91,32 +92,35 @@ def router(q):
             change.etcd_index, sent_to))
 
 
-def main():
+def create_app(ds):  # pragma: no cover
+    # TODO: make the loading configurable
+    http_auth = HTTPBasicAuthByFile('./conf/users.yaml')
+    app = falcon.API(middleware=[http_auth, JSONify()])
+
+    # app.add_route('/api/v0/hosts/{address}', HostResource(ds))
+    app.add_route('/api/v0/hosts', HostsResource(ds, ROUTER_QUEUE))
+    return app
+
+
+def main():  # pragma: no cover
     import yaml
-    from commissaire.middleware import JSONify
     # TODO: make the loading configurable
     logging.config.dictConfig(yaml.safe_load(open('./conf/logger.yaml', 'r')))
 
     ds = etcd.Client(port=2379)
 
-    watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
-    router_thread = gevent.spawn(router, ROUTER_QUEUE)
+    # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
+    # router_thread = gevent.spawn(router, ROUTER_QUEUE)
 
-    # TODO: make the loading configurable
-    http_auth = HTTPBasicAuthByFile('./conf/users.yaml')
-    app = falcon.API(middleware=[http_auth, JSONify()])
-
-    # app.add_route('/streaming', HelloApp())
-    app.add_route('/api/v0/hosts/{address}', HostResource(ds))
-    app.add_route('/api/v0/hosts', HostsResource(ds, ROUTER_QUEUE))
+    app = create_app(ds)
     try:
         WSGIServer(('127.0.0.1', 8000), app).serve_forever()
     except KeyboardInterrupt:
         pass
 
-    watch_thread.kill()
-    router_thread.kill()
+    # watch_thread.kill()
+    # router_thread.kill()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

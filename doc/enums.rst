@@ -1,10 +1,24 @@
+Enums
+=====
+
+.. _host-os:
+
+OS's
+----
+
+* **atomic**: http://www.projectatomic.io/
+* **rhel**:  http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux
+* **fedora**: https://getfedora.org/
+
+
+
 Statuses
-========
+--------
 
 .. _host-statuses:
 
 Host Statuses
--------------
+~~~~~~~~~~~~~
 
 * **investigating**: The host has passed credentials to commissaire which is now looking at the system.
 * **bootstrapping**: The host is going through changes to become active.

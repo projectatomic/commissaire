@@ -22,38 +22,78 @@ from commissaire.resource import Resource
 
 
 class Host(Model):
+    """
+    Representation of a Host.
+    """
     _json_type = dict
     _attributes = (
         'address', 'status', 'os', 'cpus', 'memory', 'space', 'last_check')
 
 
 class Hosts(Model):
+    """
+    Representation of a group of one or more Hosts.
+    """
     _json_type = list
     _attributes = ('hosts', )
 
 
 class HostsResource(Resource):
+    """
+    Resource for working with Hosts.
+    """
 
     def on_get(self, req, resp):
-        hosts_dir = self.store.get('/testing/hosts/')
+        """
+        Handles GET requests for Hosts.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        """
+        try:
+            hosts_dir = self.store.get('/commissaire/hosts/')
+        except etcd.EtcdKeyNotFound:
+            self.logger.warn(
+                'Etcd does not have any hosts. Returning [] and 404.')
+            resp.status = falcon.HTTP_404
+            req.context['model'] = None
+            return
         results = []
         # Don't let an empty host directory through
-        if hosts_dir.value is not None:
+        if len(hosts_dir._children):
             for host in hosts_dir.leaves:
                 results.append(Host(**json.loads(host.value)))
             resp.status = falcon.HTTP_200
             req.context['model'] = Hosts(hosts=results)
         else:
+            self.logger.debug(
+                'Etcd has a hosts directory but no content.')
             resp.status = falcon.HTTP_200
             req.context['model'] = None
 
-
+# TODO
+'''
 class HostResource(Resource):
+    """
+    Resource for working with a single Host.
+    """
 
     def on_get(self, req, resp, address):
+        """
+        Handles retrieval of an existing Host.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
         # TODO: Verify input
         try:
-            host = self.store.get('/testing/hosts/{0}'.format(address))
+            host = self.store.get('/commissaire/hosts/{0}'.format(address))
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
             return
@@ -63,9 +103,19 @@ class HostResource(Resource):
         req.context['model'] = Host(**json.loads(host.value))
 
     def on_put(self, req, resp, address):
+        """
+        Handles the creation of a new Host.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
         # TODO: Verify input
         try:
-            host = self.store.get('/testing/hosts/{0}'.format(address))
+            host = self.store.get('/commissaire/hosts/{0}'.format(address))
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
@@ -73,15 +123,26 @@ class HostResource(Resource):
             print(data.decode())
             host = Host(**json.loads(data.decode()))
             new_host = self.store.set(
-                '/testing/hosts/{0}'.format(address), host.to_json())
+                '/commissaire/hosts/{0}'.format(address), host.to_json())
             resp.status = falcon.HTTP_201
             req.context['model'] = Host(**json.loads(new_host.value))
 
     def on_delete(self, req, resp, address):
+        """
+        Handles the Deletion of a Host.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
         resp.body = '{}'
         try:
             host = self.store.delete(
-                '/testing/hosts/{0}'.format(address))
+                '/commissaire/hosts/{0}'.format(address))
             falcon.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
+'''

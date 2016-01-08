@@ -13,7 +13,7 @@ Contents:
 
    authentication
    endpoints
-   statuses
+   enums
 
 API Documentation:
 

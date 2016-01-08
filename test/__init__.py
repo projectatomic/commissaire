@@ -13,10 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest
+from falcon.testing import TestBase
 
 
-class TestCase(unittest.TestCase):
+class TestCase(TestBase):
     """
     Parent class for all unittests.
     """
