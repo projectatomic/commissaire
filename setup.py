@@ -33,7 +33,7 @@ test_require = extract_requirements('test-requirements.txt')
 setup(
     name='commissaire',
     version='0.0.0',
-    description='Simple cluster management',
+    description='Simple cluster host management',
     author='Steve Milner',
     url='https://github.com/projectatomic/commissaire',
     license="AGPLv3+",

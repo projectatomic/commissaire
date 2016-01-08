@@ -1,6 +1,6 @@
 Commissaire
 ===========
-A REST based cluster manager.
+A REST based cluster host manager.
 
 [![Documentation](https://readthedocs.org/projects/commissaire/badge/?version=latest)](http://commissaire.readthedocs.org/) [![Build Status](https://travis-ci.org/projectatomic/commissaire.svg)](https://travis-ci.org/projectatomic/commissaire)
 
@@ -49,27 +49,4 @@ From the repo root...
 ```
 (virtualenv)$ PYTHONPATH=`pwd`/src python src/commissaire/script.py &
 ...
-```
-
-
-Implemented Endpoints
-=====================
-
-
-/api/v0/host/$IP
-----------------
-
-GET
-~~~
-```json
-{
-    "address": string,
-    "cluster": string,
-    "status": string,
-    "os": string,
-    "cpus": int,
-    "memory": int,
-    "space": int,
-    "last_check": string
-}
 ```
