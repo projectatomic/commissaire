@@ -33,6 +33,15 @@ From the repo root...
 (virtualenv)$ nosetests -v --with-coverage --cover-package commissaire --cover-min-percentage 80 test/
 ```
 
+Adding a Host Manually
+----------------------
+Verify that etcd is running then execute...
+
+
+```
+(virtualenv)$ etcdctl set /commissaire/hosts/10.0.0.1 '{"address": "10.0.0.1","status": "available","os": "atomic","cpus": 2,"memory": 11989228,"space": 487652,"last_check": "2015-12-17T15:48:18.710454"}'
+```
+
 Running the service
 -------------------
 From the repo root...
