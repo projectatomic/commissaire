@@ -1,0 +1,37 @@
+{
+    "version": 1,
+    "formatters": {
+        "simple": {
+            "format": "%(asctime)s - %(name)s - %(process)d -  %(thread)d - %(levelname)s - %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+            "level": "DEBUG",
+            "stream": "ext://sys.stdout"
+        }
+    },
+    "loggers": {
+        "authentication": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        },
+        "resources": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        },
+        "watcher": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        }
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG"
+    }
+}

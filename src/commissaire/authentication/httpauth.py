@@ -15,8 +15,9 @@
 
 
 import bcrypt
+import etcd
 import falcon
-import yaml
+import json
 
 from commissaire.authentication import Authenticator
 from commissaire.compat.b64 import base64
@@ -49,14 +50,14 @@ class _HTTPBasicAuth(Authenticator):
 
 class HTTPBasicAuthByFile(_HTTPBasicAuth):
     """
-    HTTP Basic auth backed by a YAML file.
+    HTTP Basic auth backed by a JSON file.
     """
 
     def __init__(self, filepath):
         """
         Creates an instance of the HTTPBasicAuthByFile authenticator.
 
-        :param filepath: The file path to the YAML file backing authentication.
+        :param filepath: The file path to the JSON file backing authentication.
         :type filepath: string
         :returns: HTTPBasicAuthByFile
         """
@@ -66,15 +67,16 @@ class HTTPBasicAuthByFile(_HTTPBasicAuth):
 
     def load(self):
         """
-        Loads the authentication information from the YAML file.
+        Loads the authentication information from the JSON file.
         """
         try:
             with open(self.filepath, 'r') as afile:
-                self._data = yaml.safe_load(afile)
-        except (yaml.parser.ParserError, IOError) as pe:
+                self._data = json.load(afile)
+                self.logger.info('Loaded authentication data from local file.')
+        except (ValueError, IOError) as ve:
             self.logger.warn(
                 'Denying all access due to problem parsing '
-                'YAML file: {0}'.format(pe))
+                'JSON file: {0}'.format(ve))
             self._data = {}
 
     def authenticate(self, req, resp):
@@ -92,7 +94,66 @@ class HTTPBasicAuthByFile(_HTTPBasicAuth):
             if user in self._data.keys():
                 if bcrypt.hashpw(
                         passwd.encode('utf-8'),
-                        self._data[user].encode('utf-8')):
+                        self._data[user]['hash'].encode('utf-8')):
+                    return  # Authentication is good
+
+        # Forbid by default
+        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
+
+
+class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
+    """
+    HTTP Basic auth backed by Etcd JSON value.
+    """
+
+    def __init__(self, ds):
+        """
+        Creates an instance of the HTTPBasicAuthByEtcd authenticator.
+
+        :param datastore: The Etcd client to use.
+        :type datastore: etcd.Client
+        :returns: HTTPBasicAuthByEtcd
+        """
+        self.ds = ds
+        self._data = {}
+        self.load()
+
+    def load(self):
+        """
+        Loads the authentication information from etcd.
+        """
+        try:
+            d = self.ds.get(
+                '/commissaire/config/httpbasicauthbyuserlist')
+            self._data = json.loads(d.value)
+            self.logger.info('Loaded authentication data from Etcd.')
+            # TODO: Watch endpoint and reload on changes
+        except etcd.EtcdKeyNotFound as eknf:
+            self.logger.warn(
+                'User configuration not found in Etcd. Raising...')
+            self._data = {}
+            raise eknf
+        except ValueError as ve:
+            self.logger.warn(
+                'User configuration in Etcd is not valid JSON. Raising...')
+            raise ve
+
+    def authenticate(self, req, resp):
+        """
+        Implements the authentication logic.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :raises: falcon.HTTPForbidden
+        """
+        user, passwd = self._decode_basic_auth(req)
+        if user is not None and passwd is not None:
+            if user in self._data.keys():
+                if bcrypt.hashpw(
+                        passwd.encode('utf-8'),
+                        self._data[user]['hash'].encode('utf-8')):
                     return  # Authentication is good
 
         # Forbid by default

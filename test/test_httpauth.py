@@ -16,7 +16,9 @@
 Test cases for the commissaire.authentication.httpauth module.
 """
 
+import etcd
 import falcon
+import mock
 
 from . import TestCase
 from falcon.testing.helpers import create_environ
@@ -79,13 +81,13 @@ class TestHTTPBasicAuthByFile(TestCase):
         Sets up a fresh instance of the class before each run.
         """
         self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
-            './conf/users.yaml')
+            './conf/users.json')
 
     def test_load_with_non_parsable_file(self):
         """
-        Verify load gracefully loads no users when the YAML file does not exist.
+        Verify load gracefully loads no users when the JSON file does not exist.
         """
-        for bad_file in ('', 'test/bad.yaml'):
+        for bad_file in ('', 'test/bad.json'):
             self.http_basic_auth_by_file.filepath = bad_file
             self.http_basic_auth_by_file.load()
             self.assertEquals(
@@ -93,12 +95,12 @@ class TestHTTPBasicAuthByFile(TestCase):
                 self.http_basic_auth_by_file._data
             )
 
-    def test_autenticate_with_valid_user(self):
+    def test_authenticate_with_valid_user(self):
         """
-        Verify authenticate works with a proper YAML file, Authorization header, and a matching user.
+        Verify authenticate works with a proper JSON file, Authorization header, and a matching user.
         """
         self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
-            './conf/users.yaml')
+            './conf/users.json')
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic YTph'}))
         resp = falcon.Response()
@@ -106,11 +108,11 @@ class TestHTTPBasicAuthByFile(TestCase):
             None,
             self.http_basic_auth_by_file.authenticate(req, resp))
 
-    def test_autenticate_with_invalid_user(self):
+    def test_authenticate_with_invalid_user(self):
         """
-        Verify authenticate denies with a proper YAML file, Authorization header, and no matching user.
+        Verify authenticate denies with a proper JSON file, Authorization header, and no matching user.
         """
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile('./conf/users.yaml')
+        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile('./conf/users.json')
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic Yjpi'}))
         resp = falcon.Response()
@@ -118,3 +120,91 @@ class TestHTTPBasicAuthByFile(TestCase):
             falcon.HTTPForbidden,
             self.http_basic_auth_by_file.authenticate,
             req, resp)
+
+class TestHTTPBasicAuthByEtcd(TestCase):
+    """
+    Tests for the HTTPBasicAuthByEtcd class.
+    """
+
+    def setUp(self):
+        """
+        Sets up a fresh instance of the class before each run.
+        """
+        self.ds = mock.MagicMock(etcd.Client)
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        return_value.value = '{}'
+        self.ds.get.return_value = return_value
+
+        self.http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd(self.ds)
+        self.ds.get.reset_mock()
+
+    def test_load_with_non_key(self):
+        """
+        Verify load raises when the key does not exist in etcd.
+        """
+        self.ds.get.side_effect = etcd.EtcdKeyNotFound()
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        return_value.value = None
+        self.ds.get.return_value = return_value
+        self.assertRaises(
+            etcd.EtcdKeyNotFound,
+            self.http_basic_auth_by_etcd.load)
+        self.assertEquals(1, self.ds.get.call_count)
+
+    def test_load_with_bad_data(self):
+        """
+        Verify load raises when the data in Etcd is bad.
+        """
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        return_value.value = '{"a": {'
+        self.ds.get.return_value = return_value
+
+        self.assertRaises(
+            ValueError,
+            self.http_basic_auth_by_etcd.load)
+        self.assertEquals(1, self.ds.get.call_count)
+
+    def test_authenticate_with_valid_user(self):
+        """
+        Verify authenticate works with a proper JSON in Etcd, Authorization header, and a matching user.
+        """
+        # Mock the return of the Etcd get result
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        with open('conf/users.json', 'r') as users_file:
+            return_value.value = users_file.read()
+        self.ds.get.return_value = return_value
+
+        # Reload with the data from the mock'd Etcd
+        self.http_basic_auth_by_etcd.load()
+
+        # Test the call
+        req = falcon.Request(
+            create_environ(headers={'Authorization': 'basic YTph'}))
+        resp = falcon.Response()
+        self.assertEquals(
+            None,
+            self.http_basic_auth_by_etcd.authenticate(req, resp))
+        self.assertEquals(1, self.ds.get.call_count)
+
+    def test_authenticate_with_invalid_user(self):
+        """
+        Verify authenticate denies with a proper JSON in Etcd, Authorization header, and no matching user.
+        """
+        # Mock the return of the Etcd get result
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        with open('conf/users.json', 'r') as users_file:
+            return_value.value = users_file.read()
+        self.ds.get.return_value = return_value
+
+        # Reload with the data from the mock'd Etcd
+        self.http_basic_auth_by_etcd.load()
+
+        # Test the call
+        req = falcon.Request(
+            create_environ(headers={'Authorization': 'basic Yjpi'}))
+        resp = falcon.Response()
+        self.assertRaises(
+            falcon.HTTPForbidden,
+            self.http_basic_auth_by_etcd.authenticate,
+            req, resp)
+        self.assertEquals(1, self.ds.get.call_count)

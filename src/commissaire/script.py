@@ -30,7 +30,7 @@ from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIServer
 
 from commissaire.handlers.hosts import HostsResource  # , HostResource
-from commissaire.authentication.httpauth import HTTPBasicAuthByFile
+from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
 
 
@@ -93,8 +93,13 @@ def router(q):  # pragma: no cover
 
 
 def create_app(ds):  # pragma: no cover
-    # TODO: make the loading configurable
-    http_auth = HTTPBasicAuthByFile('./conf/users.yaml')
+    # TODO: Make this configurable
+    try:
+        http_auth = httpauth.HTTPBasicAuthByEtcd(ds)
+    except etcd.EtcdKeyNotFound:
+        # TODO: Fall back to empty users file instead
+        http_auth = httpauth.HTTPBasicAuthByFile('./conf/users.json')
+
     app = falcon.API(middleware=[http_auth, JSONify()])
 
     # app.add_route('/api/v0/hosts/{address}', HostResource(ds))
@@ -103,11 +108,32 @@ def create_app(ds):  # pragma: no cover
 
 
 def main():  # pragma: no cover
-    import yaml
-    # TODO: make the loading configurable
-    logging.config.dictConfig(yaml.safe_load(open('./conf/logger.yaml', 'r')))
+    import sys
+    import urlparse
 
-    ds = etcd.Client(port=2379)
+    # TODO: Use argparse
+    try:
+        etcd_uri = urlparse.urlparse(sys.argv[1])
+    except:
+        sys.stdout.write(
+            'You must provide an etcd url. EX: http://127.0.0.1:2379\n')
+        raise SystemExit(1)
+
+    ds = etcd.Client(host=etcd_uri.hostname, port=etcd_uri.port)
+
+    try:
+        logging.config.dictConfig(
+            json.loads(ds.get('/commissaire/config/logger').value))
+        logging.info('Using Etcd for logging configuration.')
+    except etcd.EtcdKeyNotFound:
+        with open('./conf/logger.json', 'r') as logging_default_cfg:
+            logging.config.dictConfig(json.loads(logging_default_cfg.read()))
+            logging.warn('No logger configuration in Etcd. Using defaults.')
+    except etcd.EtcdConnectionFailed as ecf:
+        err = 'Unable to connect to Etcd: {0}. Exiting ...'.format(ecf)
+        logging.fatal(err)
+        sys.stderr.write('{0}\n'.format(err))
+        raise SystemExit(1)
 
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
     # router_thread = gevent.spawn(router, ROUTER_QUEUE)
