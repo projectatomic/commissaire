@@ -53,6 +53,7 @@ class Test_Hosts(TestCase):
         # Make sure a Host is accepted as expected
         hosts_model = hosts.Hosts(
             hosts=[hosts.Host(
+                ssh_priv_key='dGVzdAo=',
                 address='127.0.0.1',
                 status='status',
                 os='atomic',
@@ -67,16 +68,21 @@ class Test_Hosts(TestCase):
         hosts_model = hosts.Hosts(hosts=[object()])
 
 
-
 class Test_HostsResource(TestCase):
     """
     Tests for the Hosts Resource.
     """
     # TODO: This test could use some work
 
-    ahost = ('{"address": "10.2.0.2", "status": "available", "os": "atomic",'
-        ' "cpus": 2, "memory": 11989228, "space": 487652,'
-        ' "last_check": "2015-12-17T15:48:18.710454"}')
+    ahost = ('{"address": "10.2.0.2",'
+             ' "status": "available", "os": "atomic",'
+             ' "cpus": 2, "memory": 11989228, "space": 487652,'
+             ' "last_check": "2015-12-17T15:48:18.710454"}')
+
+    etcd_host = ('{"address": "10.2.0.2", "ssh_priv_key": "dGVzdAo=",'
+                 ' "status": "available", "os": "atomic",'
+                 ' "cpus": 2, "memory": 11989228, "space": 487652,'
+                 ' "last_check": "2015-12-17T15:48:18.710454"}')
 
     def before(self):
         self.api = falcon.API(middleware = [JSONify()])
@@ -91,7 +97,7 @@ class Test_HostsResource(TestCase):
         """
         Verify listing hosts.
         """
-        child = MagicMock(value=self.ahost)
+        child = MagicMock(value=self.etcd_host)
         self.return_value._children = [child]
         self.return_value.leaves = self.return_value._children
 
@@ -128,3 +134,129 @@ class Test_HostsResource(TestCase):
         self.assertEquals(1, self.datasource.get.call_count)
         self.assertEqual(self.srmock.status, falcon.HTTP_404)
         self.assertEqual('{}', body[0])
+
+
+class Test_Host(TestCase):
+    """
+    Tests for the Host model.
+    """
+
+    def test_host_creation(self):
+        """
+        Verify host model
+        """
+        # Make sure it requires data
+        self.assertRaises(
+            TypeError,
+            hosts.Host
+        )
+
+        # Make sure a Host creates expected results
+        host_model = hosts.Host(
+            ssh_priv_key='dGVzdAo=',
+            address='127.0.0.1',
+            status='status',
+            os='atomic',
+            cpus=4,
+            memory=12345,
+            space=67890,
+            last_check='2016-01-07T15:09:29.944101')
+        self.assertEquals(type(str()), type(host_model.to_json()))
+
+
+class Test_HostResource(TestCase):
+    """
+    Tests for the Host Resource.
+    """
+    # TODO: This test could use some work
+
+    ahost = ('{"address": "10.2.0.2",'
+             ' "status": "available", "os": "atomic",'
+             ' "cpus": 2, "memory": 11989228, "space": 487652,'
+             ' "last_check": "2015-12-17T15:48:18.710454"}')
+
+    etcd_host = ('{"address": "10.2.0.2", "ssh_priv_key": "dGVzdAo=",'
+                 ' "status": "available", "os": "atomic",'
+                 ' "cpus": 2, "memory": 11989228, "space": 487652,'
+                 ' "last_check": "2015-12-17T15:48:18.710454"}')
+
+    def before(self):
+        self.api = falcon.API(middleware = [JSONify()])
+        self.datasource = etcd.Client()
+        self.return_value = MagicMock(etcd.EtcdResult)
+        self.datasource.get = MagicMock(name='get')
+        self.datasource.get.return_value = self.return_value
+        self.datasource.delete = MagicMock(name='delete')
+        self.datasource.delete.return_value = self.return_value
+        self.datasource.set = MagicMock(name='set')
+        self.datasource.set.return_value = self.return_value
+        self.resource = hosts.HostResource(self.datasource)
+        self.api.add_route('/api/v0/host/{address}', self.resource)
+
+    def test_host_retrieve(self):
+        """
+        Verify retrieving a host.
+        """
+        # Verify if the host exists the data is returned
+        self.return_value.value = self.etcd_host
+
+        body = self.simulate_request('/api/v0/host/10.2.0.2')
+        # datasource's get should have been called once
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+        self.assertEqual(
+            json.loads(self.ahost),
+            json.loads(body[0]))
+
+        # Verify no host returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+
+        body = self.simulate_request('/api/v0/host/10.9.9.9')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_404)
+        self.assertEqual({}, json.loads(body[0]))
+
+    def test_host_delete(self):
+        """
+        Verify deleting a host.
+        """
+        # Verify deleting of an existing host works
+        body = self.simulate_request('/api/v0/host/10.2.0.2', method='DELETE')
+        # datasource's delete should have been called once
+        self.assertEquals(1, self.datasource.delete.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_410)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify deleting of a non existing host returns the proper result
+        self.datasource.delete.reset_mock()
+        self.datasource.delete.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request('/api/v0/host/10.9.9.9', method='DELETE')
+        self.assertEquals(1, self.datasource.delete.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_404)
+        self.assertEqual({}, json.loads(body[0]))
+
+    def test_host_create(self):
+        """
+        Verify creation of a host.
+        """
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        self.return_value.value = self.etcd_host
+        data = '{"address": "10.2.0.2", "ssh_priv_key": "dGVzdAo=", "cluster": "testing"}'
+        body = self.simulate_request(
+            '/api/v0/host/10.2.0.2', method='PUT', body=data)
+        # datasource's set should have been called once
+        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_201)
+        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+
+        # Make sure that if the host exists creation doesn't happen
+        self.datasource.get.side_effect = None
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        body = self.simulate_request(
+            '/api/v0/host/10.2.0.2', method='PUT', body=data)
+        # datasource's set should not have been called once
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_409)
+        self.assertEqual({}, json.loads(body[0]))

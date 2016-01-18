@@ -23,6 +23,7 @@ class Model:
     """
     _json_type = None
     _attributes = ()
+    _hidden_attributes = ()
 
     def __init__(self, **kwargs):
         for key in self._attributes:
@@ -33,24 +34,27 @@ class Model:
                         ', '.join(self._attributes)))
             setattr(self, key, kwargs[key])
 
-    def _struct_for_json(self):
+    def _struct_for_json(self, secure=False):
         if self._json_type is dict:
-            return self._dict_for_json()
+            return self._dict_for_json(secure)
         elif self._json_type is list:
-            return self._list_for_json()
+            return self._list_for_json(secure)
 
-    def _list_for_json(self):
+    def _list_for_json(self, secure):
         if len(self._attributes) == 1:
             data = getattr(self, self._attributes[0])
         return data
 
-    def _dict_for_json(self):
+    def _dict_for_json(self, secure):
         data = {}
         for key in self._attributes:
-            data[key] = getattr(self, key)
+            if secure:
+                data[key] = getattr(self, key)
+            elif key not in self._hidden_attributes:
+                data[key] = getattr(self, key)
         return data
 
-    def to_json(self):
+    def to_json(self, secure=False):
         return json.dumps(
-            self._struct_for_json(),
-            default=lambda o: o._struct_for_json())
+            self._struct_for_json(secure=secure),
+            default=lambda o: o._struct_for_json(secure=secure))

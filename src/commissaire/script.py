@@ -18,6 +18,8 @@
 from gevent.monkey import patch_all
 patch_all()
 
+import datetime
+import base64
 import json
 import logging
 import logging.config
@@ -26,21 +28,61 @@ import etcd
 import falcon
 import gevent
 
-from gevent.queue import Queue, Empty
 from gevent.pywsgi import WSGIServer
 
-from commissaire.handlers.hosts import HostsResource  # , HostResource
+from commissaire.handlers.hosts import HostsResource, HostResource
+from commissaire.queues import *
 from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
 
 
-ROUTER_QUEUE = Queue()
-QUEUES = {
-    "ALL": [Queue(), Queue()],
-    "10.2.0.2": [Queue()],
-}
+# TODO: Move greenlet funcs to their own module
+def investigator(q, c):  # pragma: no cover
+    import tempfile
+    from commissaire.transport import ansibleapi
+    logger = logging.getLogger('investigator')
+    logger.info('Investigator started')
 
+    get_info = ansibleapi.Transport().get_info
 
+    while True:
+        to_investigate, ssh_priv_key = q.get()
+        address = to_investigate['address']
+        logger.info('Investigating {0}...'.format(address))
+        logger.debug('Investigation details: key={0}, data={1}'.format(
+            to_investigate, ssh_priv_key))
+
+        f = tempfile.NamedTemporaryFile(prefix='key', delete=False)
+        key_file = f.name
+        logger.debug(
+            'Using {0} as the temporary key location for {1}'.format(
+                key_file, address))
+        f.write(base64.decodestring(ssh_priv_key))
+        logger.debug('Wrote key for {0}'.format(address))
+        f.close()
+
+        result, facts = get_info(address, key_file)
+        try:
+            f.unlink(key_file)
+            logger.debug('Removed temporary key file {0}'.format(key_file))
+        except:
+            logger.warn(
+                'Unable to remove the temporary key file: {0}'.format(
+                    key_file))
+        uri = '/commissaire/hosts/{0}'.format(address)
+        data = json.loads(c.get(uri).value)
+        data.update(facts)
+        data['last_check'] = datetime.datetime.utcnow().isoformat()
+        data['status'] = 'bootstrapping'
+        logger.info('Facts for {0} retrieved'.format(address))
+
+        c.set(uri, json.dumps(data))
+        logging.debug('Investigation update for {0}: {1}'.format(
+            address, data))
+        logger.info(
+            'Finished and stored investigation for {0}'.format(address))
+
+'''
 def host_watcher(q, c):  # pragma: no cover
     logger = logging.getLogger('watcher')
     next_idx = None
@@ -91,6 +133,8 @@ def router(q):  # pragma: no cover
         logger.info('Sent change for {0} to {1} queues.'.format(
             change.etcd_index, sent_to))
 
+'''
+
 
 def create_app(ds):  # pragma: no cover
     # TODO: Make this configurable
@@ -102,8 +146,8 @@ def create_app(ds):  # pragma: no cover
 
     app = falcon.API(middleware=[http_auth, JSONify()])
 
-    # app.add_route('/api/v0/hosts/{address}', HostResource(ds))
-    app.add_route('/api/v0/hosts', HostsResource(ds, ROUTER_QUEUE))
+    app.add_route('/api/v0/host/{address}', HostResource(ds, None))
+    app.add_route('/api/v0/hosts', HostsResource(ds, None))
     return app
 
 
@@ -135,6 +179,7 @@ def main():  # pragma: no cover
         sys.stderr.write('{0}\n'.format(err))
         raise SystemExit(1)
 
+    investigator_thread = gevent.spawn(investigator, INVESTIGATE_QUEUE, ds)
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
     # router_thread = gevent.spawn(router, ROUTER_QUEUE)
 
@@ -144,6 +189,7 @@ def main():  # pragma: no cover
     except KeyboardInterrupt:
         pass
 
+    investigator_thread.kill()
     # watch_thread.kill()
     # router_thread.kill()
 
