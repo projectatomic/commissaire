@@ -14,6 +14,7 @@ Subpackages
     commissaire.authentication
     commissaire.compat
     commissaire.handlers
+    commissaire.transport
 
 Submodules
 ----------
@@ -22,6 +23,7 @@ Submodules
 
    commissaire.middleware
    commissaire.model
+   commissaire.queues
    commissaire.resource
    commissaire.script
 

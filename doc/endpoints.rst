@@ -8,12 +8,69 @@ Host
 
 GET
 ```
+Retrieve a specific host record.
+
+.. code-block:: javascript
+
+   {
+       "address": string,       // The IP address of the cluster host
+       "status":  enum(string), // The status of the cluster host
+       "os": enum(string),      // The OS name
+       "cpus": int,             // The number of CPUs on the cluster host
+       "memory": int,           // The memory of the cluster host in kilobytes
+       "space": int,            // The diskspace on the cluster host
+       "last_check": string     // ISO date format the cluster host was last checked
+   }
+
+.. note::
+   See :ref:`host-statuses` for a list and description of host statuses.
+
+.. note::
+   See :ref:`host-os` for a list and description of host statuses.
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "address": "192.168.100.50",
+       "status": "active",
+       "os": "atomic",
+       "cpus": 4,
+       "memory": 11989228,
+       "space": 487652,
+       "last_check": "2015-12-17T15:48:18.710454"
+   }
 
 PUT
 ```
+Creates a new host record.
+
+.. code-block:: javascript
+
+   {
+       "address": string      // The IP address of the cluster host
+       "ssh_priv_key": string // base64 encoded ssh private key
+   }
+
+.. note::
+   The rest of the host record will be filled out once the data has been pulled from the cluster host.
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "address": "192.168.100.50",
+       "ssh_priv_key": "dGVzdAo..."
+   }
 
 DELETE
 ``````
+Deletes a host record.
+
 
 Hosts
 -----

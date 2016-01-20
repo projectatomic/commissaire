@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import falcon
 import etcd
 import json
 
 from commissaire.model import Model
+from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.resource import Resource
 
 
@@ -27,7 +29,9 @@ class Host(Model):
     """
     _json_type = dict
     _attributes = (
-        'address', 'status', 'os', 'cpus', 'memory', 'space', 'last_check')
+        'address', 'status', 'os', 'cpus', 'memory',
+        'space', 'last_check', 'ssh_priv_key')
+    _hidden_attributes = ('ssh_priv_key', )
 
 
 class Hosts(Model):
@@ -73,8 +77,7 @@ class HostsResource(Resource):
             resp.status = falcon.HTTP_200
             req.context['model'] = None
 
-# TODO
-'''
+
 class HostResource(Resource):
     """
     Resource for working with a single Host.
@@ -119,11 +122,22 @@ class HostResource(Resource):
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
-            data = req.stream.read()
-            print(data.decode())
-            host = Host(**json.loads(data.decode()))
+            data = req.stream.read().decode()
+            host_creation = json.loads(data)
+            ssh_priv_key = host_creation['ssh_priv_key']
+            INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
+            host_creation['address'] = address
+            host_creation['os'] = ''
+            host_creation['status'] = 'investigating'
+            host_creation['cpus'] = -1
+            host_creation['memory'] = -1
+            host_creation['space'] = -1
+            host_creation['ssh_priv_key'] = ssh_priv_key
+            host_creation['last_check'] = datetime.datetime.min.isoformat()
+            host = Host(**host_creation)
             new_host = self.store.set(
-                '/commissaire/hosts/{0}'.format(address), host.to_json())
+                '/commissaire/hosts/{0}'.format(
+                    address), host.to_json(secure=True))
             resp.status = falcon.HTTP_201
             req.context['model'] = Host(**json.loads(new_host.value))
 
@@ -142,7 +156,6 @@ class HostResource(Resource):
         try:
             host = self.store.delete(
                 '/commissaire/hosts/{0}'.format(address))
-            falcon.status = falcon.HTTP_410
+            resp.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
-'''
