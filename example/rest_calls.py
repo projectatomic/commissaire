@@ -15,41 +15,49 @@
 
 import requests
 
+def expected_status(r, code):
+    if r.status_code == code:
+        print("SUCCESS!")
+    else:
+        print("FAILURE {0} != {1}".format(code, r.status_code))
+
+
 print("=> Listing Hosts Without Auth (Should Fail)")
 r = requests.get('http://127.0.0.1:8000/api/v0/hosts')
 print(r.json())
+expected_status(r, 403)
 
 print("=> Listing Hosts With Auth")
 r = requests.get('http://127.0.0.1:8000/api/v0/hosts', auth=('a', 'a'))
 print(r.json())
+expected_status(r, 200)
 
 print("=> Listing Existing Host 10.0.0.1")
 r = requests.get(
-    'http://127.0.0.1:8000/api/v0/hosts/10.0.0.1', auth=('a', 'a'))
+    'http://127.0.0.1:8000/api/v0/host/10.0.0.1', auth=('a', 'a'))
 print(r.json())
+expected_status(r, 200)
 
 print("=> Listing Non Existing Host 10.0.0.2")
 r = requests.get(
     'http://127.0.0.1:8000/api/v0/hosts/10.0.0.2', auth=('a', 'a'))
 print(r.json())
+expected_status(r, 404)
 
 print("=> Creating Host 10.2.0.2")
 r = requests.put(
-    'http://127.0.0.1:8000/api/v0/hosts/10.2.0.2',
+    'http://127.0.0.1:8000/api/v0/host/10.2.0.2',
     auth=('a', 'a'),
     json={
         "address": "10.2.0.2",
-        "status": "available",
-        "os": "atomic",
-        "cpus": 2,
-        "memory": 11989228,
-        "space": 487652,
-        "last_check": "2015-12-17T15:48:18.710454"})
+        "ssh_priv_key": "dGVzdAo=",
+    })
 print(r.json())
+expected_status(r, 201)
 
 print("=> Creating Host Again 10.2.0.2 (Should Fail)")
 r = requests.put(
-    'http://127.0.0.1:8000/api/v0/hosts/10.2.0.2',
+    'http://127.0.0.1:8000/api/v0/host/10.2.0.2',
     auth=('a', 'a'),
     json={
         "address": "10.2.0.2",
@@ -60,9 +68,11 @@ r = requests.put(
         "space": 487652,
         "last_check": "2015-12-17T15:48:18.710454"})
 print(r.json())
+expected_status(r, 409)
 
 print("=> Deleting Host 10.2.0.2")
 r = requests.delete(
-    'http://127.0.0.1:8000/api/v0/hosts/10.2.0.2',
+    'http://127.0.0.1:8000/api/v0/host/10.2.0.2',
     auth=('a', 'a'))
 print(r.json())
+expected_status(r, 410)
