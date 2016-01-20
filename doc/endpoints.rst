@@ -18,6 +18,31 @@ DELETE
 Hosts
 -----
 
+**Endpoint**: /api/v0/clusters
+
+
+GET
+```
+Retrieve a list of clusters.
+
+.. code-block:: javascript
+
+   [
+       string...
+   ]
+
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   [
+       "development",
+       "production"
+   ]
+
+
 **Endpoint**: /api/v0/hosts
 
 
