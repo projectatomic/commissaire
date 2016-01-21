@@ -11,5 +11,7 @@ Submodules
 
 .. toctree::
 
+   commissaire.handlers.clusters
    commissaire.handlers.hosts
+   commissaire.handlers.status
 
