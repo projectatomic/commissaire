@@ -156,7 +156,6 @@ class Transport:
             play_source,
             variable_manager=self.variable_manager,
             loader=self.loader)
-
         # actually run it
         tqm = None
         try:
