@@ -76,3 +76,13 @@ r = requests.delete(
     auth=('a', 'a'))
 print(r.json())
 expected_status(r, 410)
+
+print("=> Getting Status Without Auth (Should Fail)")
+r = requests.get('http://127.0.0.1:8000/api/v0/status')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Getting Status")
+r = requests.get('http://127.0.0.1:8000/api/v0/status', auth=('a', 'a'))
+print(r.json())
+expected_status(r, 200)

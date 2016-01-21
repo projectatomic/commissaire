@@ -63,14 +63,14 @@ def investigator(queue, store, run_once=False):
             logger.warn(
                 'Unable to remove the temporary key file: {0}'.format(
                     key_file))
-        uri = '/commissaire/hosts/{0}'.format(address)
-        data = json.loads(store.get(uri).value)
+        key = '/commissaire/hosts/{0}'.format(address)
+        data = json.loads(store.get(key).value)
         data.update(facts)
         data['last_check'] = datetime.datetime.utcnow().isoformat()
         data['status'] = 'bootstrapping'
         logger.info('Facts for {0} retrieved'.format(address))
 
-        store.set(uri, json.dumps(data))
+        store.set(key, json.dumps(data))
         logging.debug('Investigation update for {0}: {1}'.format(
             address, data))
         logger.info(

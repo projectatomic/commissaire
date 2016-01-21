@@ -35,3 +35,11 @@ Upgrade Statuses
 * **inprocess**: The cluster is currently upgrading hosts.
 * **finished**: The cluster successfully upgraded.
 * **failed**: The cluster could not upgrade.
+
+.. _status-statuses:
+
+Status Statuses
+~~~~~~~~~~~~~~~
+
+* **OK**: The status check is currently working.
+* **FAILED**: The status check is currently failing.

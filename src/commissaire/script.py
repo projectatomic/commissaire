@@ -31,7 +31,7 @@ import gevent
 from gevent.pywsgi import WSGIServer
 
 from commissaire.handlers.hosts import HostsResource, HostResource
-# from commissaire.handlers.status import StatusResource
+from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.jobs import POOLS
 from commissaire.jobs.investigator import investigator
@@ -106,7 +106,7 @@ def create_app(ds):  # pragma: no cover
 
     app = falcon.API(middleware=[http_auth, JSONify()])
 
-    # app.add_route('/api/v0/status', StatusResource(ds, None))
+    app.add_route('/api/v0/status', StatusResource(ds, None))
     app.add_route('/api/v0/host/{address}', HostResource(ds, None))
     app.add_route('/api/v0/hosts', HostsResource(ds, None))
     return app

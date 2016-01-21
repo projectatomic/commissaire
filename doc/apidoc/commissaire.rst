@@ -14,6 +14,7 @@ Subpackages
     commissaire.authentication
     commissaire.compat
     commissaire.handlers
+    commissaire.jobs
     commissaire.transport
 
 Submodules
