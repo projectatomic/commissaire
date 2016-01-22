@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.authentication.httpauth module.
+Test cases for the commissaire.jobs.investigator module.
 """
 
 import etcd
@@ -37,7 +37,7 @@ class Test_JobsInvestigator(TestCase):
 
     def test_investigator(self):
         """
-        Verify investigator ....
+        Verify the investigator.
         """
         with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
             _tp().get_info.return_value = (

@@ -32,7 +32,7 @@ class Test_LogForward(TestCase):
     Tests for the LogForward class.
     """
 
-    def setUp(self):
+    def before(self):
         """
         Sets up a fresh instance of the class before each run.
         """
@@ -87,7 +87,7 @@ class Test_Transport(TestCase):
 
     def test_get_info(self):
         """
-        Verify get_info works as expected.
+        Verify Transport().get_info works as expected.
         """
         with patch('commissaire.transport.ansibleapi.TaskQueueManager') as _tqm:
             _tqm().run.return_value = 0

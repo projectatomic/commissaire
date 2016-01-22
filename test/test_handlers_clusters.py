@@ -22,10 +22,8 @@ import etcd
 import falcon
 
 from . import TestCase
-from falcon.testing.helpers import create_environ
 from mock import MagicMock
 from commissaire.handlers import clusters
-from commissaire.script import create_app
 from commissaire.middleware import JSONify
 
 
@@ -85,7 +83,7 @@ class Test_ClustersResource(TestCase):
 
     def test_clusters_listing(self):
         """
-        Verify listing clusters.
+        Verify listing Clusters.
         """
         child = MagicMock(value=self.acluster)
         self.return_value._children = [child]
@@ -99,11 +97,10 @@ class Test_ClustersResource(TestCase):
             [json.loads(self.acluster)],
             json.loads(body[0]))
 
-    def test_clusters_listing_with_no_hosts(self):
+    def test_clusters_listing_with_no_clusters(self):
         """
-        Verify listing clusters.
+        Verify listing Clusters when no clusters exist.
         """
-        child = MagicMock(value=self.acluster)
         self.return_value._children = []
         self.return_value.leaves = self.return_value._children
 
@@ -115,7 +112,7 @@ class Test_ClustersResource(TestCase):
 
     def test_clusters_listing_with_no_etcd_result(self):
         """
-        Verify listing clusters handles no etcd result properly.
+        Verify listing Clusters handles no etcd result properly.
         """
         self.datasource.get.side_effect = etcd.EtcdKeyNotFound
 
