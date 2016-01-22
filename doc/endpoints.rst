@@ -1,6 +1,32 @@
 REST Endpoints
 ==============
 
+Clusters
+--------
+**Endpoint**: /api/v0/cluster/{IP}
+
+GET
+```
+Retrieve a list of all clusters.
+
+.. code-block:: javascript
+
+   [
+       string,...
+   ]
+
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   [
+      "mycluster",
+   ]
+
+
+
 Host
 ----
 
