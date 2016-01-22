@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.handlers.clusters module.
+Test cases for the commissaire.handlers.status module.
 """
 
 import json
@@ -66,7 +66,7 @@ class Test_StatusResource(TestCase):
 
     def test_status_retrieve(self):
         """
-        Verify retrieving status.
+        Verify retrieving Status.
         """
         child = MagicMock(value='')
         self.return_value._children = [child]
@@ -81,7 +81,6 @@ class Test_StatusResource(TestCase):
         # datasource's get should have been called once
         self.assertEquals(1, self.datasource.get.call_count)
         self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        print json.loads(body[0])
         self.assertEqual(
             json.loads(self.astatus),
             json.loads(body[0]))

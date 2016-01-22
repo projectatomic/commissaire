@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.authentication.httpauth module.
+Test cases for the commissaire.handlers.hosts module.
 """
 
 import json
@@ -22,10 +22,8 @@ import etcd
 import falcon
 
 from . import TestCase
-from falcon.testing.helpers import create_environ
 from mock import MagicMock
 from commissaire.handlers import hosts
-from commissaire.script import create_app
 from commissaire.middleware import JSONify
 
 
@@ -36,7 +34,7 @@ class Test_Hosts(TestCase):
 
     def test_hosts_creation(self):
         """
-        Verify hosts model
+        Verify Hosts model.
         """
         # Make sure hosts is required
         self.assertRaises(
@@ -95,7 +93,7 @@ class Test_HostsResource(TestCase):
 
     def test_hosts_listing(self):
         """
-        Verify listing hosts.
+        Verify listing Hosts.
         """
         child = MagicMock(value=self.etcd_host)
         self.return_value._children = [child]
@@ -111,9 +109,8 @@ class Test_HostsResource(TestCase):
 
     def test_hosts_listing_with_no_hosts(self):
         """
-        Verify listing hosts.
+        Verify listing Hosts when no hosts exists.
         """
-        child = MagicMock(value=self.ahost)
         self.return_value._children = []
         self.return_value.leaves = self.return_value._children
 
@@ -195,7 +192,7 @@ class Test_HostResource(TestCase):
 
     def test_host_retrieve(self):
         """
-        Verify retrieving a host.
+        Verify retrieving a Host.
         """
         # Verify if the host exists the data is returned
         self.return_value.value = self.etcd_host
@@ -219,7 +216,7 @@ class Test_HostResource(TestCase):
 
     def test_host_delete(self):
         """
-        Verify deleting a host.
+        Verify deleting a Host.
         """
         # Verify deleting of an existing host works
         body = self.simulate_request('/api/v0/host/10.2.0.2', method='DELETE')
@@ -238,7 +235,7 @@ class Test_HostResource(TestCase):
 
     def test_host_create(self):
         """
-        Verify creation of a host.
+        Verify creation of a Host.
         """
         self.datasource.get.side_effect = etcd.EtcdKeyNotFound
         self.return_value.value = self.etcd_host

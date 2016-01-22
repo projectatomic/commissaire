@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.authentication.httpauth module.
+Test cases for the commissaire.authentication module.
 """
 
 import falcon
@@ -28,7 +28,7 @@ class Test_Authenticator(TestCase):
     Tests for the Authenticator class.
     """
 
-    def setUp(self):
+    def before(self):
         """
         Sets up a fresh instance of the class before each run.
         """

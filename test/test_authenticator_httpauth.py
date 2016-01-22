@@ -112,7 +112,8 @@ class TestHTTPBasicAuthByFile(TestCase):
         """
         Verify authenticate denies with a proper JSON file, Authorization header, and no matching user.
         """
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile('./conf/users.json')
+        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+            './conf/users.json')
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic Yjpi'}))
         resp = falcon.Response()
@@ -120,6 +121,7 @@ class TestHTTPBasicAuthByFile(TestCase):
             falcon.HTTPForbidden,
             self.http_basic_auth_by_file.authenticate,
             req, resp)
+
 
 class TestHTTPBasicAuthByEtcd(TestCase):
     """
