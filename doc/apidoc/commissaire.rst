@@ -15,6 +15,7 @@ Subpackages
     commissaire.compat
     commissaire.handlers
     commissaire.jobs
+    commissaire.oscmd
     commissaire.transport
 
 Submodules
