@@ -12,14 +12,18 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://
-from gevent.queue import Queue, Empty
+"""
+All global queues.
+"""
 
+from gevent.queue import Queue
 
+#: Input queue for the investigator thread(s)
 INVESTIGATE_QUEUE = Queue()
-'''
-ROUTER_QUEUE = Queue()
-QUEUES = {
-    "ALL": [Queue(), Queue()],
-    "10.2.0.2": [Queue()],
-}
-'''
+
+
+# ROUTER_QUEUE = Queue()
+# QUEUES = {
+#     "ALL": [Queue(), Queue()],
+#     "10.2.0.2": [Queue()],
+# }

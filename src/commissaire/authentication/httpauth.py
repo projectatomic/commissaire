@@ -35,6 +35,7 @@ class _HTTPBasicAuth(Authenticator):
         :param req: Request instance that will be passed through.
         :type req: falcon.Request
         :returns: tuple -- (username, passphrase) or (None, None) if empty.
+        :rtype: tuple
         """
         if req.auth is not None:
             if req.auth.lower().startswith('basic '):

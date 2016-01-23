@@ -25,4 +25,5 @@ if __python_version__ == '2':
     _patched_b64.decodebytes = _patched_b64.decodestring
 
 
+#: Version of base64 which will work for Python 2 and 3
 base64 = _patched_b64

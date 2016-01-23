@@ -49,8 +49,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'commissaire'
-copyright = u'2016, Steve Milner, Chris Murphy, Ryan Cook'
-author = u'Steve Milner, Chris Murphy, Ryan Cook'
+author = 'Matthew Barnes, Ryan Cook, Steve Milner, and Chris Murphy'
+copyright = u'2016, {0}'.format(author)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

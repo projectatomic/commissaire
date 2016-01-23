@@ -96,23 +96,34 @@ def router(q):  # pragma: no cover
 '''
 
 
-def create_app(ds):  # pragma: no cover
+def create_app(store):  # pragma: no cover
+    """
+    Creates a new WSGI compliant commissaire application.
+
+    :param store: The etcd client to for storing/retrieving data.
+    :type store: etcd.Client
+    :returns: The commissaire application.
+    :rtype: falcon.API
+    """
     # TODO: Make this configurable
     try:
-        http_auth = httpauth.HTTPBasicAuthByEtcd(ds)
+        http_auth = httpauth.HTTPBasicAuthByEtcd(store)
     except etcd.EtcdKeyNotFound:
         # TODO: Fall back to empty users file instead
         http_auth = httpauth.HTTPBasicAuthByFile('./conf/users.json')
 
     app = falcon.API(middleware=[http_auth, JSONify()])
 
-    app.add_route('/api/v0/status', StatusResource(ds, None))
-    app.add_route('/api/v0/host/{address}', HostResource(ds, None))
-    app.add_route('/api/v0/hosts', HostsResource(ds, None))
+    app.add_route('/api/v0/status', StatusResource(store, None))
+    app.add_route('/api/v0/host/{address}', HostResource(store, None))
+    app.add_route('/api/v0/hosts', HostsResource(store, None))
     return app
 
 
 def main():  # pragma: no cover
+    """
+    Main script entry point.
+    """
     import sys
     import urlparse
 
