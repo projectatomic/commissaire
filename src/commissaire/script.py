@@ -30,6 +30,7 @@ import gevent
 
 from gevent.pywsgi import WSGIServer
 
+from commissaire.handlers.clusters import ClustersResource, ClusterResource
 from commissaire.handlers.hosts import HostsResource, HostResource
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
@@ -115,6 +116,8 @@ def create_app(store):  # pragma: no cover
     app = falcon.API(middleware=[http_auth, JSONify()])
 
     app.add_route('/api/v0/status', StatusResource(store, None))
+    app.add_route('/api/v0/cluster/{name}', ClusterResource(store, None))
+    app.add_route('/api/v0/clusters', ClustersResource(store, None))
     app.add_route('/api/v0/host/{address}', HostResource(store, None))
     app.add_route('/api/v0/hosts', HostsResource(store, None))
     return app

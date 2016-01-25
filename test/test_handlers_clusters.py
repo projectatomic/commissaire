@@ -121,3 +121,75 @@ class Test_ClustersResource(TestCase):
         self.assertEquals(1, self.datasource.get.call_count)
         self.assertEqual(self.srmock.status, falcon.HTTP_404)
         self.assertEqual('{}', body[0])
+
+
+class Test_Cluster(TestCase):
+    """
+    Tests for the Cluster model.
+    """
+    # XXX: Based on Test_Host
+
+    def test_cluster_creation(self):
+        """
+        Verify cluster model.
+        """
+        # Make sure it requires data
+        self.assertRaises(
+            TypeError,
+            clusters.Cluster)
+
+        # Make sure a Cluster creates expected results
+        cluster_model = clusters.Cluster(status='OK')
+        self.assertEquals(type(str()), type(cluster_model.to_json()))
+        self.assertIn('total', cluster_model.hosts)
+        self.assertIn('available', cluster_model.hosts)
+        self.assertIn('unavailable', cluster_model.hosts)
+
+
+class Test_ClusterResource(TestCase):
+    """
+    Tests for the Cluster resource.
+    """
+    # Based on Test_HostResource
+
+    acluster = ('{"status": "ok",'
+                ' "hosts": {"total": 1,'
+                '           "available": 1,'
+                '           "unavailable":0}}')
+
+    etcd_cluster = '{"status": "ok"}'
+
+    def before(self):
+        self.api = falcon.API(middleware=[JSONify()])
+        self.datasource = etcd.Client()
+        self.return_value = MagicMock(etcd.EtcdResult)
+        self.datasource.get = MagicMock(name='get')
+        self.datasource.get.return_value = self.return_value
+        self.datasource.delete = MagicMock(name='delete')
+        self.datasource.delete.return_value = self.return_value
+        self.resource = clusters.ClusterResource(self.datasource)
+        self.api.add_route('/api/v0/cluster/{name}', self.resource)
+
+    def test_cluster_retrieve(self):
+        """
+        Verify retrieving a cluster.
+        """
+        # Verify if the cluster exists the data is returned
+        self.return_value.value = self.etcd_cluster
+
+        body = self.simulate_request('/api/v0/cluster/development')
+        # datasource's get should have been called once
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+        self.assertEqual(
+            json.loads(self.acluster),
+            json.loads(body[0]))
+
+        # Verify no cluster returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+
+        body = self.simulate_request('/api/v0/cluster/bogus')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_404)
+        self.assertEqual({}, json.loads(body[0]))

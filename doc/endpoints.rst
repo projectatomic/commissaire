@@ -1,6 +1,47 @@
 REST Endpoints
 ==============
 
+Cluster
+-------
+**Endpoint**: /api/v0/cluster/{NAME}
+
+GET
+```
+Retrieve the status of the cluster.
+
+.. code-block:: javascript
+
+   {
+       "status" string,
+       "hosts": {
+           "total": int,
+           "available": int,
+           "unavailable": int
+       }
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "status": "ok",
+       "hosts": {
+           "total": 3,
+           "available": 3,
+           "unavailable": 0
+       }
+   }
+
+PUT
+```
+Creates a new cluster.
+
+No body.
+
+
+
 Clusters
 --------
 **Endpoint**: /api/v0/cluster/{IP}
