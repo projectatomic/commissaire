@@ -22,6 +22,7 @@ import json
 
 from commissaire.model import Model
 from commissaire.resource import Resource
+#from commissaire.jobs import clusterexec
 
 
 class Cluster(Model):
@@ -45,6 +46,28 @@ class Cluster(Model):
             data[key] = getattr(self, key)
         data['hosts'] = self.hosts
         return json.dumps(data)
+
+
+class ClusterRestart(Model):
+    """
+    Representation of a Cluster restart operation.
+    """
+
+    _json_type = dict
+    _attributes = (
+        'status', 'restarted', 'in_process',
+        'started_at', 'finished_at')
+
+
+class ClusterUpgrade(Model):
+    """
+    Representation of a Cluster upgrade operation.
+    """
+
+    _json_type = dict
+    _attributes = (
+        'status', 'upgrade_to', 'upgraded', 'in_process',
+        'started_at', 'finished_at')
 
 
 class Clusters(Model):
@@ -186,3 +209,117 @@ class ClusterResource(Resource):
             resp.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
+
+
+class ClusterRestartResource(Resource):
+    """
+    Resource for initiating or querying a Cluster restart.
+    """
+
+    def on_get(self, req, resp, name):
+        """
+        Handles GET (or "status") requests for a Cluster restart.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being restarted.
+        :type name: str
+        """
+        key = '/commissaire/cluster/{0}/restart'.format(name)
+        try:
+            status = self.store.get(key)
+        except etcd.EtcdKeyNotFound:
+            # Return "204 No Content" if we have no status,
+            # meaning no restart is in progress.  The client
+            # can't be expected to know that, so it's not a
+            # client error (4xx).
+            resp.status = falcon.HTTP_204
+            return
+
+        resp.status = falcon.HTTP_200
+        req.context['model'] = ClusterRestart(**json.loads(status.value))
+
+    def on_put(self, req, resp, name):
+        """
+        Handles PUT (or "initiate") requests for a Cluster restart.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being restarted.
+        :type name: str
+        """
+        #clusterexec(name, 'restart', self.store)
+        key = '/commissaire/cluster/{0}/restart'.format(name)
+        try:
+            status = self.store.get(key)
+        except etcd.EtcdKeyNotFound:
+            resp.status = falcon.HTTP_404
+            return
+
+        resp.status = falcon.HTTP_200
+        req.context['model'] = ClusterRestart(**json.loads(status.value))
+
+
+class ClusterUpgradeResource(Resource):
+    """
+    Resource for initiating or querying a Cluster upgrade.
+    """
+
+    def on_get(self, req, resp, name):
+        """
+        Handles GET (or "status") requests for a Cluster upgrade.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being upgraded.
+        :type name: str
+        """
+        key = '/commissaire/cluster/{0}/upgrade'.format(name)
+        try:
+            status = self.store.get(key)
+        except etcd.EtcdKeyNotFound:
+            # Return "204 No Content" if we have no status,
+            # meaning no upgrade is in progress.  The client
+            # can't be expected to know that, so it's not a
+            # client error (4xx).
+            resp.status = falcon.HTTP_204
+            return
+
+        resp.status = falcon.HTTP_200
+        req.context['model'] = ClusterUpgrade(**json.loads(status.value))
+
+    def on_put(self, req, resp, name):
+        """
+        Handles PUT (or "initiate") requests for a Cluster upgrade.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being upgraded.
+        :type name: str
+        """
+        data = req.stream.read().decode()
+        args = json.loads(data)
+        try:
+            upgrade_to = args['upgrade_to']
+        except KeyError:
+            resp.status = falcon.HTTP_400
+            return
+        # FIXME: How do I pass 'upgrade_to'?
+        #clusterexec(name, 'upgrade', self.store)
+        key = '/commissaire/cluster/{0}/upgrade'.format(name)
+        try:
+            status = self.store.get(key)
+        except etcd.EtcdKeyNotFound:
+            resp.status = falcon.HTTP_404
+            return
+
+        resp.status = falcon.HTTP_200
+        req.context['model'] = ClusterUpgrade(**json.loads(status.value))
