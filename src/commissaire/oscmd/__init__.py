@@ -25,14 +25,14 @@ class OSCmdBase:
     #: The type of Operating System
     os_type = None
 
-    def reboot(self):
+    def restart(self):
         """
-        Reboot command. Must be overriden.
+        Restart command. Must be overriden.
 
         :return: The command to execute as a list
         :rtype: list
         """
-        raise NotImplementedError('{0}.reboot() must be overriden.'.format(
+        raise NotImplementedError('{0}.restart() must be overriden.'.format(
             self.__class__.__name__))
 
     def upgrade(self):

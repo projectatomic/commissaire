@@ -72,7 +72,7 @@ Example
        "upgraded": [{...}],
        "in_process": [{...}],
        "started_at": "2015-12-17T15:48:18.710454",
-       "finished_at": "0001-01-01T00:00:00"
+       "finished_at": null
    }
 
 PUT
@@ -105,7 +105,7 @@ Example Response
        "upgraded": [{...}],
        "in_process": [{...}],
        "started_at": "2015-12-17T15:48:18.710454",
-       "finished_at": "0001-01-01T00:00:00"
+       "finished_at": null
    }
 
 
@@ -138,7 +138,7 @@ Example
        "restarted": [{...}],
        "in_process": [{...}],
        "started_at": "2015-12-17T15:48:18.710454",
-       "finished_at": "0001-01-01T00:00:00"
+       "finished_at": null
    }
 
 PUT
@@ -155,7 +155,7 @@ Example Response
        "restarted": [{...}],
        "in_process": [{...}],
        "started_at": "2015-12-17T15:48:18.710454",
-       "finished_at": "0001-01-01T00:00:00"
+       "finished_at": null
    }
 
 

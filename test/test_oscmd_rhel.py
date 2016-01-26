@@ -31,11 +31,11 @@ class Test_RHEL_OSCmd(TestCase):
         """
         self.instance = rhel.OSCmd()
 
-    def test_rhel_oscmd_reboot(self):
+    def test_rhel_oscmd_restart(self):
         """
-        Verify RHEL's OSCmd returns proper data on reboot.
+        Verify RHEL's OSCmd returns proper data on restart.
         """
-        cmd = self.instance.reboot()
+        cmd = self.instance.restart()
         self.assertEquals(
             list,
             type(cmd))

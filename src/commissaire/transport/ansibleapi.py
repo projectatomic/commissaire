@@ -46,7 +46,7 @@ class LogForward(CallbackBase):
         Creates the instance and sets the logger.
         """
         super(LogForward, self).__init__()
-        self.log = logging.getLogger()
+        self.log = logging.getLogger('transport')
 
     def v2_runner_on_failed(self, result, *args, **kwargs):
         """
@@ -59,8 +59,9 @@ class LogForward(CallbackBase):
         :param kwargs: All other ignored keyword arguments.
         :type kwargs: dict
         """
+        exception = result._result.get('exception', 'No Exception')
         self.log.warn(
-            'An exception occurred: {0}\n'.format(result._result['exception']))
+            'An exception occurred: {0}\n'.format(exception))
 
     def v2_runner_on_ok(self, result):
         """
@@ -102,6 +103,7 @@ class Transport:
         """
         Creates an instance of the Transport.
         """
+        self.logger = logging.getLogger('transport')
         self.Options = namedtuple(
             'Options', ['connection', 'module_path', 'forks', 'remote_user',
                         'private_key_file', 'ssh_common_args',
@@ -113,19 +115,22 @@ class Transport:
         self.loader = DataLoader()
         self.passwords = {}
 
-    def get_info(self, ip, key_file):
+    def _run(self, ip, key_file, play_source):
         """
-        Get's information from the host via ansible.
+        Common code used for each run.
 
         :param ip: IP address to check.
         :type ip: str
         :param key_file: Full path the the file holding the private SSH key.
-        :type key_file: str
-        :returns: tuple -- (exitcode(int), facts(dict)).
+        :type key_file: string
+        :param play_source: Ansible play.
+        :type play_source: dict
+        :returns: Ansible exit code
+        :type: int
         """
         options = self.Options(
             connection='ssh', module_path=None, forks=1,
-            remote_user='steve', private_key_file=key_file,
+            remote_user='root', private_key_file=key_file,
             ssh_common_args=None, ssh_extra_args=None,
             sftp_extra_args=None, scp_extra_args=None,
             become=None, become_method=None, become_user=None,
@@ -135,7 +140,6 @@ class Transport:
             loader=self.loader,
             variable_manager=self.variable_manager,
             host_list=ip)
-
         # TODO: Fix this ... weird but works
         group = Group(ip)
         group.add_host(Host(ip, 22))
@@ -143,15 +147,6 @@ class Transport:
         # ---
 
         self.variable_manager.set_inventory(inventory)
-
-        # create play with tasks
-        play_source = {
-            'name': 'gather',
-            'hosts': ip,
-            'gather_facts': 'yes',
-            'tasks': []
-
-        }
         play = Play().load(
             play_source,
             variable_manager=self.variable_manager,
@@ -168,6 +163,94 @@ class Transport:
                 stdout_callback=LogForward(),
             )
             result = tqm.run(play)
+        finally:
+            if tqm is not None:
+                tqm.cleanup()
+        return result
+
+    def upgrade(self, ip, key_file, oscmd):
+        """
+        Upgrades a host via ansible.
+
+        :param ip: IP address to upgrade.
+        :type ip: str
+        :param key_file: Full path the the file holding the private SSH key.
+        :param oscmd: OSCmd instance to use
+        :type oscmd: commissaire.oscmd.OSCmdBase
+        :type key_file: str
+        :returns: tuple -- (exitcode(int), facts(dict)).
+        """
+        # TODO: Use ansible to do multiple hosts...
+        play_source = {
+            'name': 'upgrade',
+            'hosts': ip,
+            'gather_facts': 'no',
+            'tasks': [{
+                'action': {
+                    'module': 'command',
+                    'args': " ".join(oscmd.upgrade())
+                }
+            }]
+        }
+        result = self._run(ip, key_file, play_source)
+        if result == 0:
+            fact_cache = self.variable_manager._fact_cache[ip] = {}
+            return (result, fact_cache)
+        # TODO: Do something :-)
+        raise Exception('Can not upgrade {0}'.format(ip))
+
+    def restart(self, ip, key_file, oscmd):
+        """
+        Restarts a host via ansible.
+
+        :param ip: IP address to reboot.
+        :type ip: str
+        :param key_file: Full path the the file holding the private SSH key.
+        :type key_file: str
+        :param oscmd: OSCmd instance to use
+        :type oscmd: commissaire.oscmd.OSCmdBase
+        :returns: tuple -- (exitcode(int), facts(dict)).
+        """
+        # TODO: Use ansible to do multiple hosts...
+        play_source = {
+            'name': 'reboot',
+            'hosts': ip,
+            'gather_facts': 'no',
+            'tasks': [{
+                'action': {
+                    'module': 'command',
+                    'args': " ".join(oscmd.restart())
+                }
+            }]
+        }
+        result = self._run(ip, key_file, play_source)
+        if result in (0, 2):  # OK and Connection broken
+            result = 0  # Set result to 0 as it actually did reboot
+            fact_cache = self.variable_manager._fact_cache[ip] = {}
+            return (result, fact_cache)
+        # TODO: Do something :-)
+        raise Exception('Can not reboot {0}'.format(ip))
+
+    def get_info(self, ip, key_file):
+        """
+        Get's information from the host via ansible.
+
+        :param ip: IP address to check.
+        :type ip: str
+        :param key_file: Full path the the file holding the private SSH key.
+        :type key_file: str
+        :returns: tuple -- (exitcode(int), facts(dict)).
+        """
+        # create play with tasks
+        play_source = {
+            'name': 'gather',
+            'hosts': ip,
+            'gather_facts': 'yes',
+            'tasks': []
+
+        }
+        result = self._run(ip, key_file, play_source)
+        if result == 0:
             fact_cache = self.variable_manager._fact_cache[ip]
             facts = {}
             facts['os'] = fact_cache['ansible_distribution'].lower()
@@ -179,6 +262,4 @@ class Transport:
             facts['space'] = space
 
             return (result, facts)
-        finally:
-            if tqm is not None:
-                tqm.cleanup()
+        raise Exception('Can not get info for {0}'.format(ip))

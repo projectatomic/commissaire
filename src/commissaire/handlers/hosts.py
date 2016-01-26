@@ -136,7 +136,7 @@ class HostResource(Resource):
             host_creation['memory'] = -1
             host_creation['space'] = -1
             host_creation['ssh_priv_key'] = ssh_priv_key
-            host_creation['last_check'] = datetime.datetime.min.isoformat()
+            host_creation['last_check'] = None
             host = Host(**host_creation)
             new_host = self.store.set(
                 '/commissaire/hosts/{0}'.format(

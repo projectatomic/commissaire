@@ -27,9 +27,9 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'rhel'
 
-    def reboot(self):
+    def restart(self):
         """
-        RHEL reboot command.
+        RHEL restart command.
 
         :return: The command to execute as a list
         :rtype: list

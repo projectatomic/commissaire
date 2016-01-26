@@ -24,7 +24,7 @@ import json
 from commissaire.model import Model
 from commissaire.resource import Resource
 from commissaire.handlers.hosts import Host
-# from commissaire.jobs import clusterexec
+from commissaire.jobs import POOLS, clusterexec
 
 
 class Cluster(Model):
@@ -279,14 +279,15 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
-        # clusterexec(name, 'restart', self.store)
+        POOLS['clusterexec'].spawn(
+            clusterexec.clusterexec, name, 'restart', self.store)
         key = '/commissaire/cluster/{0}/restart'.format(name)
         cluster_restart_default = {
             'status': 'in_process',
             'restarted': [],
             'in_process': [],
             'started_at': datetime.datetime.utcnow().isoformat(),
-            'finished_at': datetime.datetime.min.isoformat()
+            'finished_at': None
         }
         cluster_restart = ClusterRestart(**cluster_restart_default)
         self.store.set(key, cluster_restart.to_json())
@@ -349,7 +350,8 @@ class ClusterUpgradeResource(Resource):
             resp.status = falcon.HTTP_400
             return
         # FIXME: How do I pass 'upgrade_to'?
-        # clusterexec(name, 'upgrade', self.store)
+        POOLS['clusterexec'].spawn(
+            clusterexec.clusterexec, name, 'upgrade', self.store)
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         cluster_upgrade_default = {
             'status': 'in_process',
@@ -357,7 +359,7 @@ class ClusterUpgradeResource(Resource):
             'upgraded': [],
             'in_process': [],
             'started_at': datetime.datetime.utcnow().isoformat(),
-            'finished_at': datetime.datetime.min.isoformat()
+            'finished_at': None
         }
         cluster_upgrade = ClusterUpgrade(**cluster_upgrade_default)
         self.store.set(key, cluster_upgrade.to_json())

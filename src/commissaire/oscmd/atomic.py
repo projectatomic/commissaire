@@ -27,9 +27,9 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'atomic'
 
-    def reboot(self):
+    def restart(self):
         """
-        Atomic reboot command.
+        Atomic restart command.
 
         :return: The command to execute as a list
         :rtype: list

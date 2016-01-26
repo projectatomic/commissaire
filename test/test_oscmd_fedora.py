@@ -31,11 +31,11 @@ class Test_Fedora_OSCmd(TestCase):
         """
         self.instance = fedora.OSCmd()
 
-    def test_fedora_oscmd_reboot(self):
+    def test_fedora_oscmd_restart(self):
         """
-        Verify Fedora's OSCmd returns proper data on reboot.
+        Verify Fedora's OSCmd returns proper data on restart.
         """
-        cmd = self.instance.reboot()
+        cmd = self.instance.restart()
         self.assertEquals(
             list,
             type(cmd))

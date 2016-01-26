@@ -27,9 +27,9 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'fedora'
 
-    def reboot(self):
+    def restart(self):
         """
-        Fedora reboot command.
+        Fedora restart command.
 
         :return: The command to execute as a list
         :rtype: list

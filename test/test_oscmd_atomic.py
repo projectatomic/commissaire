@@ -31,11 +31,11 @@ class Test_Atomic_OSCmd(TestCase):
         """
         self.instance = atomic.OSCmd()
 
-    def test_atomic_oscmd_reboot(self):
+    def test_atomic_oscmd_restart(self):
         """
-        Verify Atomic's OSCmd returns proper data on reboot.
+        Verify Atomic's OSCmd returns proper data on restart.
         """
-        cmd = self.instance.reboot()
+        cmd = self.instance.restart()
         self.assertEquals(
             list,
             type(cmd))

@@ -21,4 +21,5 @@ from gevent.pool import Pool
 #: All green pools
 POOLS = {
     'investigator': Pool(1),
+    'clusterexec': Pool(5),
 }

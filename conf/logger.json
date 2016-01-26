@@ -19,12 +19,22 @@
             "level": "DEBUG",
             "propagate": false
         },
+        "clusterexec": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        },
         "investigator": {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": false
         },
         "resources": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        },
+        "transport": {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": false

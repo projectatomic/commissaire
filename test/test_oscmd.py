@@ -31,13 +31,13 @@ class Test_OSCmdBase(TestCase):
         """
         self.instance = oscmd.OSCmdBase()
 
-    def test_oscmd_base_reboot_raises(self):
+    def test_oscmd_base_restart_raises(self):
         """
-        Verify OSCmdBase's raises on reboot.
+        Verify OSCmdBase's raises on restart.
         """
         self.assertRaises(
             NotImplementedError,
-            self.instance.reboot)
+            self.instance.restart)
 
     def test_oscmd_base_upgrade_raises(self):
         """
