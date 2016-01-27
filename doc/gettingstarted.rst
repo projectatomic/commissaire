@@ -11,6 +11,7 @@ To test out the current development code you will need the following installed:
 * Python2.7
 * virtualenv
 * etcd2 (running)
+* (Optional) docker (running)
 
 Set up virtualenv
 `````````````````
@@ -59,4 +60,16 @@ From the repo root...
 .. code-block:: shell
 
    (virtualenv)$ PYTHONPATH=`pwd`/src python src/commissaire/script.py http://127.0.0.1:2379 &
+   ...
+Building and Running commissaire in a container
+```````````````````````````````````````````````
+From the repo root build the image...
+
+.. code-block:: shell
+    docker build --tag commissaire .
+    ...
+To run the image specify the ETCD variable pointing towards the running etcd service.
+.. code-block:: shell
+
+    docker run -d -e ETCD=http://192.168.1.100:2379 commissaire
    ...
