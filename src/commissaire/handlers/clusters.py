@@ -16,13 +16,15 @@
 Cluster(s) handlers.
 """
 
+import datetime
 import falcon
 import etcd
 import json
 
 from commissaire.model import Model
 from commissaire.resource import Resource
-#from commissaire.jobs import clusterexec
+from commissaire.handlers.hosts import Host
+# from commissaire.jobs import clusterexec
 
 
 class Cluster(Model):
@@ -104,7 +106,7 @@ class ClustersResource(Resource):
         # Don't let an empty clusters directory through
         if len(clusters_dir._children):
             for cluster in clusters_dir.leaves:
-                results.append(Cluster(**json.loads(cluster.value)))
+                results.append(cluster.key.split('/')[-1])
             resp.status = falcon.HTTP_200
             req.context['model'] = Clusters(clusters=results)
         else:
@@ -120,7 +122,16 @@ class ClusterResource(Resource):
     """
 
     def _calculate_hosts(self, cluster):
+        """
+        Calculates the hosts metadata for the cluster.
+
+        :param cluster: The name of the cluster.
+        :type cluster: str
+        """
         try:
+            # TODO: This needs to be updated to only view hosts in
+            # it's own cluster. Since we are only dealing with
+            # a single cluster for MVP we will tag this as tech debt
             etcd_resp = self.store.get('/commissaire/hosts')
         except etcd.EtcdKeyNotFound:
             self.logger.warn(
@@ -129,15 +140,14 @@ class ClusterResource(Resource):
             return
 
         available = unavailable = 0
-        total = len(etcd_resp.node.children)
-        for child in etcd_resp.node.children:
-            host = Host(**json.loads(child.value))
+        for child in etcd_resp._children:
+            host = Host(**json.loads(child['value']))
             if host.status == 'active':
                 available += 1
             else:
                 unavailable += 1
 
-        cluster.hosts['total'] = total
+        cluster.hosts['total'] = len(etcd_resp._children)
         cluster.hosts['available'] = available
         cluster.hosts['unavailable'] = unavailable
 
@@ -155,7 +165,12 @@ class ClusterResource(Resource):
         key = '/commissaire/clusters/{0}'.format(name)
         try:
             etcd_resp = self.store.get(key)
+            self.logger.info(
+                'Request for cluster {0}.'.format(name))
+            self.logger.debug('{0}'.format(etcd_resp))
         except etcd.EtcdKeyNotFound:
+            self.logger.info(
+                'Request of non-existent cluster {0} requested.'.format(name))
             resp.status = falcon.HTTP_404
             return
 
@@ -182,13 +197,15 @@ class ClusterResource(Resource):
         key = '/commissaire/clusters/{0}'.format(name)
         try:
             etcd_resp = self.store.get(key)
+            self.logger.info(
+                'Creation of already exisiting cluster {0} requested.'.format(
+                    name))
         except etcd.EtcdKeyNotFound:
             cluster = Cluster(status='ok')
-            etcd_resp = self.store_set(key, cluster.to_json(secure=True))
+            etcd_resp = self.store.set(key, cluster.to_json(secure=True))
+            self.logger.info(
+                'Created cluster {0} per request.'.format(name))
         cluster = Cluster(**json.loads(etcd_resp.value))
-        self._calculate_hosts(cluster)
-        # Have to set resp.body explictly to include Hosts.
-        resp.body = cluster.to_json_with_hosts()
         resp.status = falcon.HTTP_201
 
     def on_delete(self, req, resp, name):
@@ -205,9 +222,14 @@ class ClusterResource(Resource):
         key = '/commissaire/clusters/{0}'.format(name)
         resp.body = '{}'
         try:
-            cluster = self.store.delete(key)
+            self.store.delete(key)
             resp.status = falcon.HTTP_410
+            self.logger.info(
+                'Deleted cluster {0} per request.'.format(name))
         except etcd.EtcdKeyNotFound:
+            self.logger.info(
+                'Deleting for non-existent cluster {0} requested.'.format(
+                    name))
             resp.status = falcon.HTTP_404
 
 
@@ -227,8 +249,14 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
+        cluster_key = '/commissaire/clusters/{0}'.format(name)
         key = '/commissaire/cluster/{0}/restart'.format(name)
         try:
+            try:
+                self.store.get(cluster_key)
+            except etcd.EtcdKeyNotFound:
+                resp.status = falcon.HTTP_404
+                return
             status = self.store.get(key)
         except etcd.EtcdKeyNotFound:
             # Return "204 No Content" if we have no status,
@@ -237,7 +265,6 @@ class ClusterRestartResource(Resource):
             # client error (4xx).
             resp.status = falcon.HTTP_204
             return
-
         resp.status = falcon.HTTP_200
         req.context['model'] = ClusterRestart(**json.loads(status.value))
 
@@ -252,16 +279,19 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
-        #clusterexec(name, 'restart', self.store)
+        # clusterexec(name, 'restart', self.store)
         key = '/commissaire/cluster/{0}/restart'.format(name)
-        try:
-            status = self.store.get(key)
-        except etcd.EtcdKeyNotFound:
-            resp.status = falcon.HTTP_404
-            return
-
-        resp.status = falcon.HTTP_200
-        req.context['model'] = ClusterRestart(**json.loads(status.value))
+        cluster_restart_default = {
+            'status': 'in_process',
+            'restarted': [],
+            'in_process': [],
+            'started_at': datetime.datetime.utcnow().isoformat(),
+            'finished_at': datetime.datetime.min.isoformat()
+        }
+        cluster_restart = ClusterRestart(**cluster_restart_default)
+        self.store.set(key, cluster_restart.to_json())
+        resp.status = falcon.HTTP_201
+        req.context['model'] = cluster_restart
 
 
 class ClusterUpgradeResource(Resource):
@@ -280,8 +310,14 @@ class ClusterUpgradeResource(Resource):
         :param name: The name of the Cluster being upgraded.
         :type name: str
         """
+        cluster_key = '/commissaire/clusters/{0}'.format(name)
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         try:
+            try:
+                self.store.get(cluster_key)
+            except etcd.EtcdKeyNotFound:
+                resp.status = falcon.HTTP_404
+                return
             status = self.store.get(key)
         except etcd.EtcdKeyNotFound:
             # Return "204 No Content" if we have no status,
@@ -306,20 +342,24 @@ class ClusterUpgradeResource(Resource):
         :type name: str
         """
         data = req.stream.read().decode()
-        args = json.loads(data)
         try:
+            args = json.loads(data)
             upgrade_to = args['upgrade_to']
-        except KeyError:
+        except (KeyError, ValueError):
             resp.status = falcon.HTTP_400
             return
         # FIXME: How do I pass 'upgrade_to'?
-        #clusterexec(name, 'upgrade', self.store)
+        # clusterexec(name, 'upgrade', self.store)
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
-        try:
-            status = self.store.get(key)
-        except etcd.EtcdKeyNotFound:
-            resp.status = falcon.HTTP_404
-            return
-
-        resp.status = falcon.HTTP_200
-        req.context['model'] = ClusterUpgrade(**json.loads(status.value))
+        cluster_upgrade_default = {
+            'status': 'in_process',
+            'upgrade_to': upgrade_to,
+            'upgraded': [],
+            'in_process': [],
+            'started_at': datetime.datetime.utcnow().isoformat(),
+            'finished_at': datetime.datetime.min.isoformat()
+        }
+        cluster_upgrade = ClusterUpgrade(**cluster_upgrade_default)
+        self.store.set(key, cluster_upgrade.to_json())
+        resp.status = falcon.HTTP_201
+        req.context['model'] = cluster_upgrade

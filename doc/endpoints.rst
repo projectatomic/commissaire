@@ -162,7 +162,7 @@ Example Response
 
 Clusters
 --------
-**Endpoint**: /api/v0/cluster/{IP}
+**Endpoint**: /api/v0/cluster/
 
 GET
 ```
