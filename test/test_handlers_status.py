@@ -44,7 +44,7 @@ class Test_Status(TestCase):
         )
 
         # Make sure a Cluster is accepted as expected
-        status_model = status.Status(etcd={}, investigator={})
+        status_model = status.Status(etcd={}, investigator={}, clusterexecpool={})
         self.assertEquals(type(str()), type(status_model.to_json()))
 
 
@@ -53,7 +53,9 @@ class Test_StatusResource(TestCase):
     Tests for the Status resource.
     """
     astatus = ('{"etcd": {"status": "OK"}, "investigator": {"status": '
-               '"OK", "info": {"size": 1, "in_use": 1, "errors": []}}}')
+               '"OK", "info": {"size": 1, "in_use": 1, "errors": []}}, '
+               '"clusterexecpool": {"status": "OK", "info": '
+               '{"size": 1, "in_use": 1, "errors": []}}}')
 
     def before(self):
         self.api = falcon.API(middleware=[JSONify()])
@@ -72,11 +74,13 @@ class Test_StatusResource(TestCase):
         self.return_value._children = [child]
         self.return_value.leaves = self.return_value._children
 
-        POOLS['investigator'] = MagicMock(
-            'gevent.pool.Pool',
-            size=1,
-            free_count=lambda: 0,
-            greenlets=[])
+        for pool in ('investigator', 'clusterexecpool'):
+            POOLS[pool] = MagicMock(
+                'gevent.pool.Pool',
+                size=1,
+                free_count=lambda: 0,
+                greenlets=[])
+
         body = self.simulate_request('/api/v0/status')
         # datasource's get should have been called once
         self.assertEquals(1, self.datasource.get.call_count)

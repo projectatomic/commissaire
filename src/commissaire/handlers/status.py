@@ -30,7 +30,7 @@ class Status(Model):
     """
     _json_type = dict
     _attributes = (
-        'etcd', 'investigator')
+        'etcd', 'investigator', 'clusterexecpool')
 
 
 class StatusResource(Resource):
@@ -58,6 +58,14 @@ class StatusResource(Resource):
                     'size': 0,
                     'in_use': 0,
                     'errors': [],
+                },
+            },
+            'clusterexecpool': {
+                'status': 'FAILED',
+                'info': {
+                    'size': 0,
+                    'in_use': 0,
+                    'errors': [],
                 }
             },
         }
@@ -70,21 +78,27 @@ class StatusResource(Resource):
         except etcd.EtcdKeyNotFound:
             kwargs['etcd']['status'] = 'FAILED'
 
-        # Check the investigator pool
-        kwargs['investigator']['info']['size'] = POOLS['investigator'].size
-        kwargs['investigator']['info']['in_use'] = (
-            POOLS['investigator'].size - POOLS['investigator'].free_count())
+        # Check all the pools
+        def populate_pool_info(pool):
+            # Append the pool information
+            kwargs[pool]['info']['size'] = POOLS[pool].size
+            kwargs[pool]['info']['in_use'] = (
+                POOLS[pool].size - POOLS[pool].free_count())
 
-        exceptions = False
-        for thread in POOLS['investigator'].greenlets:
-            if thread.exception:
-                exceptions = True
-                POOLS['investigator']['info']['errors'].append(
-                    thread.exception)
+        map(populate_pool_info, POOLS.keys())
 
-        if POOLS['investigator'].free_count() == 0:
+        def populate_exceptions(pool):
+            exceptions = False
+            for thread in POOLS[pool].greenlets:
+                if thread.exception:
+                    exceptions = True
+                    POOLS[pool]['info']['errors'].append(
+                        thread.exception)
             if not exceptions:
-                kwargs['investigator']['status'] = 'OK'
+                kwargs[pool]['status'] = 'OK'
+            return exceptions
+
+        map(populate_exceptions, POOLS.keys())
 
         resp.status = falcon.HTTP_200
         req.context['model'] = Status(**kwargs)

@@ -279,7 +279,7 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
-        POOLS['clusterexec'].spawn(
+        POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'restart', self.store)
         key = '/commissaire/cluster/{0}/restart'.format(name)
         cluster_restart_default = {
@@ -350,7 +350,7 @@ class ClusterUpgradeResource(Resource):
             resp.status = falcon.HTTP_400
             return
         # FIXME: How do I pass 'upgrade_to'?
-        POOLS['clusterexec'].spawn(
+        POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'upgrade', self.store)
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         cluster_upgrade_default = {
