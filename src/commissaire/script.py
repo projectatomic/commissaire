@@ -168,7 +168,7 @@ def main():  # pragma: no cover
 
     app = create_app(ds)
     try:
-        WSGIServer(('127.0.0.1', 8000), app).serve_forever()
+        WSGIServer(('0.0.0.0', 8000), app).serve_forever()
     except KeyboardInterrupt:
         pass
 
