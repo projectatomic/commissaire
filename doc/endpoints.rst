@@ -1,9 +1,168 @@
 REST Endpoints
 ==============
 
+Cluster
+-------
+**Endpoint**: /api/v0/cluster/{NAME}
+
+GET
+```
+Retrieve the status of the cluster.
+
+.. code-block:: javascript
+
+   {
+       "status" string,
+       "hosts": {
+           "total": int,
+           "available": int,
+           "unavailable": int
+       }
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "status": "ok",
+       "hosts": {
+           "total": 3,
+           "available": 3,
+           "unavailable": 0
+       }
+   }
+
+PUT
+```
+Creates a new cluster.
+
+No body.
+
+
+
+Cluster Operations: Upgrade
+---------------------------
+**Endpoint**: /api/v0/cluster/{NAME}/upgrade
+
+GET
+```
+Retrieve the current status of upgrades.
+
+.. code-block:: javascript
+
+   {
+       "status": string,
+       "upgrade_to": string,
+       "upgraded": HOST_LIST,
+       "in_process": HOST_LIST,
+       "started_at": string,
+       "finished_at": string
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "status": "in_process",
+       "upgrade_to": "7.2.1",
+       "upgraded": [{...}],
+       "in_process": [{...}],
+       "started_at": "2015-12-17T15:48:18.710454",
+       "finished_at": "0001-01-01T00:00:00"
+   }
+
+PUT
+```
+Start a new upgrade.
+
+.. code-block:: javascript
+
+   {
+       "upgrade_to": string
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "upgrade_to": "7.2.1"
+   }
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "status": "in_process",
+       "upgrade_to": "7.2.1",
+       "upgraded": [{...}],
+       "in_process": [{...}],
+       "started_at": "2015-12-17T15:48:18.710454",
+       "finished_at": "0001-01-01T00:00:00"
+   }
+
+
+
+Cluster Operations: Restart
+---------------------------
+**Endpoint**: /api/v0/cluster/{NAME}/restart
+
+GET
+```
+Retrieve the status of a restart.
+
+.. code-block:: javascript
+
+   {
+       "status": string,
+       "restarted": HOST_LIST,
+       "in_process": HOST_LIST,
+       "started_at": string,
+       "finished_at": string
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "status": "in_process",
+       "restarted": [{...}],
+       "in_process": [{...}],
+       "started_at": "2015-12-17T15:48:18.710454",
+       "finished_at": "0001-01-01T00:00:00"
+   }
+
+PUT
+```
+Create a new restart.
+
+No body.
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+   {
+       "status": "in_process",
+       "restarted": [{...}],
+       "in_process": [{...}],
+       "started_at": "2015-12-17T15:48:18.710454",
+       "finished_at": "0001-01-01T00:00:00"
+   }
+
+
+
 Clusters
 --------
-**Endpoint**: /api/v0/cluster/{IP}
+**Endpoint**: /api/v0/cluster/
 
 GET
 ```
