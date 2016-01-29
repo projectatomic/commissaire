@@ -262,4 +262,5 @@ class Transport:
             facts['space'] = space
 
             return (result, facts)
+        # TODO: Make specific exceptions
         raise Exception('Can not get info for {0}'.format(ip))

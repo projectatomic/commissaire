@@ -39,42 +39,44 @@ class Test_JobsClusterExec(TestCase):
         """
         Verify the clusterexec.
         """
-        with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
-            _tp().restart.return_value = (0, {})
+        for cmd in ('restart', 'upgrade'):
+            with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
+                getattr(_tp(), cmd).return_value = (0, {})
 
-            child = {'value': self.etcd_host}
-            return_value = MagicMock(_children=[child])
-            return_value.leaves = return_value._children
+                child = {'value': self.etcd_host}
+                return_value = MagicMock(_children=[child])
+                return_value.leaves = return_value._children
 
-            store = etcd.Client()
-            store.get = MagicMock('get')
-            store.get.return_value = return_value
-            store.set = MagicMock('set')
+                store = etcd.Client()
+                store.get = MagicMock('get')
+                store.get.return_value = return_value
+                store.set = MagicMock('set')
 
-            clusterexec('default', 'restart', store)
+                clusterexec('default', cmd, store)
 
-            self.assertEquals(1, store.get.call_count)
-            # We should have 4 sets for 1 host
-            self.assertEquals(4, store.set.call_count)
+                self.assertEquals(1, store.get.call_count)
+                # We should have 4 sets for 1 host
+                self.assertEquals(4, store.set.call_count)
 
     def test_clusterexec_stops_on_failure(self):
         """
         Verify the clusterexec will stop on first failure.
         """
-        with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
-            _tp().restart.return_value = (1, {})
+        for cmd in ('restart', 'upgrade'):
+            with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
+                getattr(_tp(), cmd).return_value = (1, {})
 
-            child = {'value': self.etcd_host}
-            return_value = MagicMock(_children=[child])
-            return_value.leaves = return_value._children
+                child = {'value': self.etcd_host}
+                return_value = MagicMock(_children=[child])
+                return_value.leaves = return_value._children
 
-            store = etcd.Client()
-            store.get = MagicMock('get')
-            store.get.return_value = return_value
-            store.set = MagicMock('set')
+                store = etcd.Client()
+                store.get = MagicMock('get')
+                store.get.return_value = return_value
+                store.set = MagicMock('set')
 
-            clusterexec('default', 'restart', store)
+                clusterexec('default', cmd, store)
 
-            self.assertEquals(1, store.get.call_count)
-            # We should have 4 sets for 1 host
-            self.assertEquals(3, store.set.call_count)
+                self.assertEquals(1, store.get.call_count)
+                # We should have 4 sets for 1 host
+                self.assertEquals(3, store.set.call_count)

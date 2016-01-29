@@ -55,26 +55,31 @@ def investigator(queue, store, run_once=False):
         logger.debug('Wrote key for {0}'.format(address))
         f.close()
 
-        result, facts = transport.get_info(address, key_file)
-        try:
-            f.unlink(key_file)
-            logger.debug('Removed temporary key file {0}'.format(key_file))
-        except:
-            logger.warn(
-                'Unable to remove the temporary key file: {0}'.format(
-                    key_file))
         key = '/commissaire/hosts/{0}'.format(address)
         data = json.loads(store.get(key).value)
-        data.update(facts)
-        data['last_check'] = datetime.datetime.utcnow().isoformat()
-        data['status'] = 'bootstrapping'
-        logger.info('Facts for {0} retrieved'.format(address))
 
+        try:
+            result, facts = transport.get_info(address, key_file)
+            data.update(facts)
+            data['last_check'] = datetime.datetime.utcnow().isoformat()
+            data['status'] = 'bootstrapping'
+            logger.info('Facts for {0} retrieved'.format(address))
+        except:
+            logger.warn('Getting info failed for {0}'.format(address))
+            data['status'] = 'failed'
+        finally:
+            try:
+                f.unlink(key_file)
+                logger.debug('Removed temporary key file {0}'.format(key_file))
+            except:
+                logger.warn(
+                    'Unable to remove the temporary key file: {0}'.format(
+                        key_file))
         store.set(key, json.dumps(data))
-        logging.debug('Investigation update for {0}: {1}'.format(
+        logging.debug('Finished investigation update for {0}: {1}'.format(
             address, data))
         logger.info(
-            'Finished and stored investigation for {0}'.format(address))
+            'Finished and stored investigation data for {0}'.format(address))
 
         if run_once:
             logger.info('Exiting due to run_once request.')
