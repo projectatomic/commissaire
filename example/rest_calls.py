@@ -18,6 +18,13 @@ import requests
 SERVER = 'http://127.0.0.1:8000'
 AUTH = ('a', 'a')
 
+def expected_json(actual, expect):
+    if actual != expect:
+        print ("FAILURE {0} != {1}".format(actual, expect))
+        return False
+    else:
+        return True
+
 def expected_status(r, code):
     if r.status_code == code:
         print("SUCCESS!")
@@ -83,3 +90,125 @@ print("=> Getting Status")
 r = requests.get(SERVER + '/api/v0/status', auth=AUTH)
 print(r.json())
 expected_status(r, 200)
+
+#------------
+#  Clusters
+#------------
+
+print("=> Creating Cluster 'honeynut' Without Auth (Should Fail)")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Creating Cluster 'honeynut' With Auth")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expected_status(r, 201)
+
+print("=> Creating Cluster 'honeynut' Again (Should Be Idempotent)")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expected_status(r, 201)
+
+print("=> Listing Clusters Without Auth (Should Fail)")
+r = requests.get(SERVER + '/api/v0/clusters')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Listing Clusters With Auth")
+r = requests.get(SERVER + '/api/v0/clusters', auth=AUTH)
+print(r.json())
+expect = ['honeynut']
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Examining Cluster 'honeynut' Without Auth (Should Fail)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Examining Cluster 'honeynut' With Auth")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expect = {'status': 'ok', 'hosts': {'total': 0, 'available': 0, 'unavailable': 0}}
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Creating Host 10.2.0.2")
+r = requests.put(
+    SERVER + '/api/v0/host/10.2.0.2', auth=AUTH,
+    json={
+        "address": "10.2.0.2",
+        "ssh_priv_key": "dGVzdAo="
+    })
+print(r.json())
+expected_status(r, 201)
+
+print("=> Examining Cluster 'honeynut' (All Hosts Implicitly Added)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expect = {'status': 'ok', 'hosts': {'total': 1, 'available': 0, 'unavailable': 1}}
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+# FIXME: Verify membership of host in cluster,
+#        once clusters have explicit members.
+
+print("=> Deleting Host 10.2.0.2")
+r = requests.delete(SERVER + '/api/v0/host/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 410)
+
+# FIXME: Verify no remaining hosts in cluster,
+#        once clusters have explicit members.
+
+print("=> Initiate Cluster Upgrade Without Auth (Should Fail)")
+r = requests.put(
+    SERVER + '/api/v0/cluster/honeynut/upgrade',
+    json={"upgrade_to": "7.2.1"})
+print(r.json())
+expected_status(r, 403)
+
+print("=> Initiate Cluster Upgrade With Auth")
+r = requests.put(
+    SERVER + '/api/v0/cluster/honeynut/upgrade', auth=AUTH,
+    json={"upgrade_to": "7.2.1"})
+actual = r.json()
+print(actual)
+del actual['started_at']  # Disregard timestamp
+expect = {'status': 'in_process', 'upgrade_to': '7.2.1', 'upgraded': [], 'in_process': [], 'finished_at': None}
+expected_json(actual, expect) and expected_status(r, 201)
+
+print("=> Query Cluster Upgrade Status Without Auth (Should Fail)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/upgrade')
+print(r.json())
+expected_status(r, 403)
+
+# FIXME: Skip GET upgrade status test for now; too racy.
+
+print("=> Initiate Cluster Restart Without Auth (Should Fail)")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut/restart')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Initiate Cluster Restart With Auth")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut/restart', auth=AUTH)
+actual = r.json()
+print(actual)
+del actual['started_at']  # Disregard timestamp
+expect = {'status': 'in_process', 'restarted': [], 'in_process': [], 'finished_at': None}
+expected_json(actual, expect) and expected_status(r, 201)
+
+print("=> Query Cluster Restart Status Without Auth (Should Fail)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/restart')
+print(r.json())
+expected_status(r, 403)
+
+# FIXME: Skip GET restart status test for now; too racy.
+
+print("=> Deleting Cluster 'honeynut' Without Auth (Should Fail)")
+r = requests.delete(SERVER + '/api/v0/cluster/honeynut')
+print(r.json())
+expected_status(r, 403)
+
+print("=> Deleting Cluster 'honeynut' With Auth")
+r = requests.delete(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expected_status(r, 410)
