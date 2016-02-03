@@ -99,7 +99,7 @@ def router(q):  # pragma: no cover
 '''
 
 
-def create_app(store):  # pragma: no cover
+def create_app(store):
     """
     Creates a new WSGI compliant commissaire application.
 
@@ -131,20 +131,59 @@ def create_app(store):  # pragma: no cover
     return app
 
 
+def cli_etcd_or_default(name, cli, default, ds):
+    """
+    Returns the value for an option in the following order:
+    CLI switch, etcd value, default.
+
+    :param name: The name of the switch/etcd key.
+    :type name: str
+    :param cli: The argparse value.
+    :type cli: list
+    :param default: The default value if CLI and etcd have no values.
+    :param ds: Etcd client
+    :type ds: etcd.Client
+    """
+    result = None
+    if cli:
+        result = cli[0]
+        logging.info('Using CLI for {0} configuration.'.format(name))
+    else:
+        try:
+            result = ds.get('/commissaire/config/{0}'.format(name)).value
+            logging.info('Using Etcd for {0} configuration.'.format(name))
+        except etcd.EtcdKeyNotFound:
+            logging.info(
+                'No CLI or etcd defined for {0}.'
+                ' Using default of {1}.'.format(name, default))
+            result = default
+    return result
+
+
 def main():  # pragma: no cover
     """
     Main script entry point.
     """
-    import sys
+    import argparse
     import urlparse
 
-    # TODO: Use argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--listen-interface', '-i', type=str, help='Interface to listen on')
+    parser.add_argument(
+        '--listen-port', '-p', type=int, help='Port to listen on')
+    parser.add_argument(
+        'etcd_uri', type=str, nargs=1, help='Full URI for etcd')
+    args = parser.parse_args()
+
     try:
-        etcd_uri = urlparse.urlparse(sys.argv[1])
+        etcd_uri = urlparse.urlparse(args.etcd_uri[0])
+        # Verify we have what we need
+        if None in (etcd_uri.port, etcd_uri.hostname, etcd_uri.scheme):
+            raise Exception
     except:
-        sys.stdout.write(
-            'You must provide an etcd url. EX: http://127.0.0.1:2379\n')
-        raise SystemExit(1)
+        parser.error(
+            'You must provide a full etcd URI. EX: http://127.0.0.1:2379')
 
     ds = etcd.Client(host=etcd_uri.hostname, port=etcd_uri.port)
 
@@ -159,8 +198,12 @@ def main():  # pragma: no cover
     except etcd.EtcdConnectionFailed as ecf:
         err = 'Unable to connect to Etcd: {0}. Exiting ...'.format(ecf)
         logging.fatal(err)
-        sys.stderr.write('{0}\n'.format(err))
+        parser.error('{0}\n'.format(err))
         raise SystemExit(1)
+
+    interface = cli_etcd_or_default(
+        'listeninterface', args.listen_interface, '0.0.0.0', ds)
+    port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
 
     POOLS['investigator'].spawn(investigator, INVESTIGATE_QUEUE, ds)
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
@@ -168,7 +211,7 @@ def main():  # pragma: no cover
 
     app = create_app(ds)
     try:
-        WSGIServer(('0.0.0.0', 8000), app).serve_forever()
+        WSGIServer((interface, int(port)), app).serve_forever()
     except KeyboardInterrupt:
         pass
 
