@@ -21,28 +21,9 @@ import falcon
 import etcd
 import json
 
-from commissaire.model import Model
 from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.resource import Resource
-
-
-class Host(Model):
-    """
-    Representation of a Host.
-    """
-    _json_type = dict
-    _attributes = (
-        'address', 'status', 'os', 'cpus', 'memory',
-        'space', 'last_check', 'ssh_priv_key')
-    _hidden_attributes = ('ssh_priv_key', )
-
-
-class Hosts(Model):
-    """
-    Representation of a group of one or more Hosts.
-    """
-    _json_type = list
-    _attributes = ('hosts', )
+from commissaire.handlers.models import Cluster, Host, Hosts
 
 
 class HostsResource(Resource):

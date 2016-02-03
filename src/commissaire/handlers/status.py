@@ -19,18 +19,9 @@ Status handlers.
 import falcon
 import etcd
 
-from commissaire.model import Model
 from commissaire.jobs import POOLS
 from commissaire.resource import Resource
-
-
-class Status(Model):
-    """
-    Representation of a Host.
-    """
-    _json_type = dict
-    _attributes = (
-        'etcd', 'investigator', 'clusterexecpool')
+from commissaire.handlers.models import Status
 
 
 class StatusResource(Resource):
