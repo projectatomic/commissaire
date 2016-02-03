@@ -143,3 +143,19 @@ class HostResource(Resource):
             resp.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
+
+        # Also remove the host from all clusters.
+        # Note: We've done all we need to for the host deletion,
+        #       so if an error occurs from here just log it and
+        #       return.
+        try:
+            clusters_dir = self.store.get('/commissaire/clusters')
+        except etcd.EtcdKeyNotFound:
+            self.logger.warn('Etcd does not have any clusters')
+            return
+        if len(clusters_dir._children):
+            for etcd_resp in clusters_dir.leaves:
+                cluster = Cluster(**json.loads(etcd_resp.value))
+                if address in cluster.hostset:
+                    cluster.hostset.remove(address)
+                    self.store.set(etcd_resp.key, cluster.to_json(secure=True))

@@ -76,9 +76,10 @@ class ClusterResource(Resource):
         :type cluster: str
         """
         try:
-            # TODO: This needs to be updated to only view hosts in
-            # it's own cluster. Since we are only dealing with
-            # a single cluster for MVP we will tag this as tech debt
+            # XXX: Not sure which wil be more efficient: fetch all
+            #      the host data in one etcd call and sort through
+            #      them, or fetch the ones we need individually.
+            #      For the MVP phase, fetch all is better.
             etcd_resp = self.store.get('/commissaire/hosts')
         except etcd.EtcdKeyNotFound:
             self.logger.warn(
@@ -86,15 +87,17 @@ class ClusterResource(Resource):
                 'Cannot determine cluster stats.')
             return
 
-        available = unavailable = 0
+        available = unavailable = total = 0
         for child in etcd_resp._children:
             host = Host(**json.loads(child['value']))
-            if host.status == 'active':
-                available += 1
-            else:
-                unavailable += 1
+            if host.address in cluster.hostset:
+                total += 1
+                if host.status == 'active':
+                    available += 1
+                else:
+                    unavailable += 1
 
-        cluster.hosts['total'] = len(etcd_resp._children)
+        cluster.hosts['total'] = total
         cluster.hosts['available'] = available
         cluster.hosts['unavailable'] = unavailable
 
@@ -148,7 +151,7 @@ class ClusterResource(Resource):
                 'Creation of already exisiting cluster {0} requested.'.format(
                     name))
         except etcd.EtcdKeyNotFound:
-            cluster = Cluster(status='ok')
+            cluster = Cluster(status='ok', hostset=[])
             etcd_resp = self.store.set(key, cluster.to_json(secure=True))
             self.logger.info(
                 'Created cluster {0} per request.'.format(name))
@@ -178,6 +181,198 @@ class ClusterResource(Resource):
                 'Deleting for non-existent cluster {0} requested.'.format(
                     name))
             resp.status = falcon.HTTP_404
+
+
+class ClusterHostsResource(Resource):
+    """
+    Resource for managing host membership in a Cluster.
+    """
+
+    def get_cluster_model(self, name):
+        """
+        Returns a Cluster instance from the etcd record for the given
+        cluster name, if it exists, or else None.
+
+        :param name: Name of a cluster
+        :type name: str
+        """
+        key = '/commissaire/clusters/{0}'.format(name)
+        try:
+            etcd_resp = self.store.get(key)
+            self.logger.info(
+                'Request for cluster {0}.'.format(name))
+            self.logger.debug('{0}'.format(etcd_resp))
+        except etcd.EtcdKeyNotFound:
+            self.logger.info(
+                'Request of non-existent cluster {0} requested.'.format(name))
+            return None
+        return Cluster(**json.loads(etcd_resp.value))
+
+    def on_get(self, req, resp, name):
+        """
+        Handles GET requests for Cluster hosts.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being requested.
+        :type name: str
+        """
+        cluster = self.get_cluster_model(name)
+        if not cluster:
+            resp.status = falcon.HTTP_404
+            return
+
+        resp.body = json.dumps(cluster.hostset)
+        resp.status = falcon.HTTP_200
+
+    def on_put(self, req, resp, name):
+        """
+        Handles PUT requests for Cluster hosts.
+        This replaces the entire host list for a Cluster.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being requested.
+        :type name: str
+        """
+        try:
+            req_body = json.loads(req.stream.read().decode())
+            old_hosts = set(req_body['old'])  # Ensures no duplicates
+            new_hosts = set(req_body['new'])  # Ensures no duplicates
+        except (KeyError, TypeError):
+            self.logger.info(
+                'Bad client PUT request for cluster {0}: {1}'.
+                format(name, req_body))
+            resp.status = falcon.HTTP_400
+            return
+
+        cluster = self.get_cluster_model(name)
+        if not cluster:
+            resp.status = falcon.HTTP_404
+            return
+
+        # old_hosts must match current hosts to accept new_hosts.
+        # Note: Order doesn't matter, so etcd's atomic comparison
+        #       of the raw values would be too strict.
+        if old_hosts != set(cluster.hostset):
+            self.logger.info(
+                'Conflict setting hosts for cluster {0}'.format(name))
+            resp.status = falcon.HTTP_409
+            return
+
+        # FIXME: Need input validation.  For each new host,
+        #        - Does the host exist at /commissaire/hosts/{IP}?
+        #        - Does the host already belong to another cluster?
+
+        # FIXME: Should guard against races here, since we're fetching
+        #        the cluster record and writing it back with some parts
+        #        unmodified.  Use either locking or a conditional write
+        #        with the etcd 'modifiedIndex'.  Deferring for now.
+
+        key = '/commissaire/clusters/{0}'.format(name)
+        cluster.hostset = list(new_hosts)
+        self.store.set(key, cluster.to_json(secure=True))
+        resp.status = falcon.HTTP_200
+
+
+class ClusterSingleHostResource(ClusterHostsResource):
+    """
+    Resource for managing a single host's membership in a Cluster.
+    """
+
+    def on_get(self, req, resp, name, address):
+        """
+        Handles GET requests for individual hosts in a Cluster.
+        This is a membership test, returning 200 OK if the host
+        address is part of the cluster, or else 404 Not Found.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being requested.
+        :type name: str
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
+        cluster = self.get_cluster_model(name)
+        if not cluster:
+            resp.status = falcon.HTTP_404
+            return
+
+        if address in cluster.hostset:
+            resp.status = falcon.HTTP_200
+        else:
+            resp.status = falcon.HTTP_404
+
+    def on_put(self, req, resp, name, address):
+        """
+        Handles PUT requests for individual hosts in a Cluster.
+        This adds a single host to the cluster, idempotently.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being requested.
+        :type name: str
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
+        cluster = self.get_cluster_model(name)
+        if not cluster:
+            resp.status = falcon.HTTP_404
+            return
+
+        # FIXME: Need input validation.
+        #        - Does the host exist at /commissaire/hosts/{IP}?
+        #        - Does the host already belong to another cluster?
+
+        # FIXME: Should guard against races here, since we're fetching
+        #        the cluster record and writing it back with some parts
+        #        unmodified.  Use either locking or a conditional write
+        #        with the etcd 'modifiedIndex'.  Deferring for now.
+
+        key = '/commissaire/clusters/{0}'.format(name)
+        hostset = set(cluster.hostset)
+        hostset.add(address)  # Ensures no duplicates
+        cluster.hostset = list(hostset)
+        self.store.set(key, cluster.to_json(secure=True))
+        resp.status = falcon.HTTP_200
+
+    def on_delete(self, req, resp, name, address):
+        """
+        Handles DELETE requests for individual hosts in a Cluster.
+        This removes a single host from the cluster, idempotently.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :param name: The name of the Cluster being requested.
+        :type name: str
+        :param address: The address of the Host being requested.
+        :type address: str
+        """
+        cluster = self.get_cluster_model(name)
+        if not cluster:
+            resp.status = falcon.HTTP_404
+            return
+
+        # FIXME: Should guard against races here, since we're fetching
+        #        the cluster record and writing it back with some parts
+        #        unmodified.  Use either locking or a conditional write
+        #        with the etcd 'modifiedIndex'.  Deferring for now.
+
+        key = '/commissaire/clusters/{0}'.format(name)
+        if address in cluster.hostset:
+            cluster.hostset.remove(address)
+            self.store.set(key, cluster.to_json(secure=True))
+        resp.status = falcon.HTTP_200
 
 
 class ClusterRestartResource(Resource):

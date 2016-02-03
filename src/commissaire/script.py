@@ -30,9 +30,10 @@ import gevent
 
 from gevent.pywsgi import WSGIServer
 
-from commissaire.handlers.clusters import \
-    ClustersResource, ClusterResource, \
-    ClusterRestartResource, ClusterUpgradeResource
+from commissaire.handlers.clusters import (
+    ClustersResource, ClusterResource,
+    ClusterHostsResource, ClusterSingleHostResource,
+    ClusterRestartResource, ClusterUpgradeResource)
 from commissaire.handlers.hosts import HostsResource, HostResource
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
@@ -119,6 +120,12 @@ def create_app(store):
 
     app.add_route('/api/v0/status', StatusResource(store, None))
     app.add_route('/api/v0/cluster/{name}', ClusterResource(store, None))
+    app.add_route(
+        '/api/v0/cluster/{name}/hosts',
+        ClusterHostsResource(store, None))
+    app.add_route(
+        '/api/v0/cluster/{name}/hosts/{address}',
+        ClusterSingleHostResource(store, None))
     app.add_route(
         '/api/v0/cluster/{name}/restart',
         ClusterRestartResource(store, None))

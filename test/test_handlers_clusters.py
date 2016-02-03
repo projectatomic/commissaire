@@ -51,11 +51,7 @@ class Test_Clusters(TestCase):
 
         # Make sure a Cluster is accepted as expected
         clusters_model = clusters.Clusters(
-            clusters=[clusters.Cluster(
-                status='ok',
-                hosts={'total': 1,
-                       'available': 1,
-                       'unavailable': 0})])
+            clusters=[clusters.Cluster(status='ok', hostset=[])])
         self.assertEquals(1, len(clusters_model.clusters))
         self.assertEquals(type(str()), type(clusters_model.to_json()))
 
@@ -141,7 +137,7 @@ class Test_Cluster(TestCase):
             clusters.Cluster)
 
         # Make sure a Cluster creates expected results
-        cluster_model = clusters.Cluster(status='OK')
+        cluster_model = clusters.Cluster(status='OK', hostset=[])
         self.assertEquals(type(str()), type(cluster_model.to_json()))
         self.assertIn('total', cluster_model.hosts)
         self.assertIn('available', cluster_model.hosts)
@@ -159,7 +155,7 @@ class Test_ClusterResource(TestCase):
                 '           "available": 1,'
                 '           "unavailable": 0}}')
 
-    etcd_cluster = '{"status": "ok"}'
+    etcd_cluster = '{"status": "ok", "hostset": ["10.2.0.2"]}'
     etcd_host = ('{"address": "10.2.0.2", "ssh_priv_key": "dGVzdAo=",'
                  ' "status": "active", "os": "atomic",'
                  ' "cpus": 2, "memory": 11989228, "space": 487652,'
@@ -169,9 +165,13 @@ class Test_ClusterResource(TestCase):
     def before(self):
         self.api = falcon.API(middleware=[JSONify()])
         self.datasource = MagicMock(etcd.Client)
+        self.return_value = MagicMock(etcd.EtcdResult)
         self.datasource.get = MagicMock(name='get')
+        self.datasource.get.return_value = self.return_value
         self.datasource.set = MagicMock(name='set')
+        self.datasource.set.return_value = self.return_value
         self.datasource.delete = MagicMock(name='delete')
+        self.datasource.delete.return_value = self.return_value
         self.resource = clusters.ClusterResource(self.datasource)
         self.api.add_route('/api/v0/cluster/{name}', self.resource)
 
@@ -184,9 +184,9 @@ class Test_ClusterResource(TestCase):
         hosts_return_value = MagicMock(
             etcd.EtcdResult, leaves=[child],
             value=child, _children=[child])
-        # First call return is acluster, second is the host_return_value
+        # First call return is etcd_cluster, second is the host_return_value
         self.datasource.get.side_effect = (
-            MagicMock(value=self.acluster), hosts_return_value)
+            MagicMock(value=self.etcd_cluster), hosts_return_value)
 
         body = self.simulate_request('/api/v0/cluster/development')
         # datasource's get should have been called once
@@ -314,6 +314,216 @@ class Test_ClusterRestartResource(TestCase):
         self.assertEquals('in_process', result['status'])
         self.assertEquals([], result['restarted'])
         self.assertEquals([], result['in_process'])
+
+
+class Test_ClusterHostsResource(TestCase):
+    """
+    Tests for the ClusterHosts resource.
+    """
+
+    ahostset = '["10.2.0.2"]'
+
+    etcd_cluster = '{"status": "ok", "hostset": ["10.2.0.2"]}'
+
+    def before(self):
+        self.api = falcon.API(middleware=[JSONify()])
+        self.datasource = MagicMock(etcd.Client)
+        self.return_value = MagicMock(etcd.EtcdResult)
+        self.datasource.get = MagicMock(name='get')
+        self.datasource.get.return_value = self.return_value
+        self.datasource.set = MagicMock(name='set')
+        self.datasource.set.return_value = self.return_value
+        self.resource = clusters.ClusterHostsResource(self.datasource)
+        self.api.add_route('/api/v0/cluster/{name}/hosts', self.resource)
+
+    def test_cluster_hosts_retrieve(self):
+        """
+        Verify retrieving a cluster host list.
+        """
+
+        # Verify if the cluster exists the host list is returned
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request('/api/v0/cluster/development/hosts')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(falcon.HTTP_200, self.srmock.status)
+        self.assertEqual(
+            json.loads(self.ahostset),
+            json.loads(body[0]))
+
+        # Verify bad cluster name returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request('/api/v0/cluster/bogus/hosts')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+    def test_cluster_hosts_overwrite(self):
+        """
+        Verify overwriting a cluster host list.
+        """
+
+        # Verify setting host list works with a proper request
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts', method='PUT',
+            body='{"old": ["10.2.0.2"], "new": ["10.2.0.2", "10.2.0.3"]}')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_200, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad request (KeyError) returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts', method='PUT',
+            body='{"new": ["10.2.0.2", "10.2.0.3"]}')
+        self.assertEquals(0, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad request (TypeError) returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts', method='PUT',
+            body='["10.2.0.2", "10.2.0.3"]')
+        self.assertEquals(0, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad cluster name returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request(
+            '/api/v0/cluster/bogus/hosts', method='PUT',
+            body='{"old": ["10.2.0.2"], "new": ["10.2.0.2", "10.2.0.3"]}')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify host list conflict returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.side_effect = None
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts', method='PUT',
+            body='{"old": [], "new": ["10.2.0.2", "10.2.0.3"]}')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_409, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+
+class Test_ClusterSingleHostResource(TestCase):
+    """
+    Tests for the ClusterSingleHost resource.
+    """
+
+    ahostset = '["10.2.0.2"]'
+
+    etcd_cluster = '{"status": "ok", "hostset": ["10.2.0.2"]}'
+
+    def before(self):
+        self.api = falcon.API(middleware=[JSONify()])
+        self.datasource = MagicMock(etcd.Client)
+        self.return_value = MagicMock(etcd.EtcdResult)
+        self.datasource.get = MagicMock(name='get')
+        self.datasource.get.return_value = self.return_value
+        self.datasource.set = MagicMock(name='set')
+        self.datasource.set.return_value = self.return_value
+        self.resource = clusters.ClusterSingleHostResource(self.datasource)
+        self.api.add_route(
+            '/api/v0/cluster/{name}/hosts/{address}', self.resource)
+
+    def test_cluster_host_membership(self):
+        """
+        Verify host membership in a cluster.
+        """
+
+        # Verify member host returns the proper result
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts/10.2.0.2')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(falcon.HTTP_200, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify non-member host returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts/10.9.9.9')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad cluster name returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request(
+            '/api/v0/cluster/bogus/hosts/10.2.0.2')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+    def test_cluster_host_insert(self):
+        """
+        Verify insertion of host in a cluster.
+        """
+
+        # Verify inserting host returns the proper result
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/developent/hosts/10.2.0.3', method='PUT')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_200, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad cluster name returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request(
+            '/api/v0/cluster/bogus/hosts/10.2.0.3', method='PUT')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+    def test_cluster_host_delete(self):
+        """
+        Verify deletion of host in a cluster.
+        """
+
+        # Verify deleting host returns the proper result
+        self.datasource.get.return_value = MagicMock(value=self.etcd_cluster)
+        body = self.simulate_request(
+            '/api/v0/cluster/development/hosts/10.2.0.2', method='DELETE')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_200, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
+
+        # Verify bad cluster name returns the proper result
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+        body = self.simulate_request(
+            '/api/v0/cluster/bogus/hosts/10.2.0.2', method='DELETE')
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(falcon.HTTP_404, self.srmock.status)
+        self.assertEqual({}, json.loads(body[0]))
 
 
 class Test_ClusterUpgrade(TestCase):

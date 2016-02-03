@@ -142,22 +142,115 @@ r = requests.put(
 print(r.json())
 expected_status(r, 201)
 
-print("=> Examining Cluster 'honeynut' (All Hosts Implicitly Added)")
+print("=> Examining Cluster 'honeynut' (No Hosts)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expect = {'status': 'ok', 'hosts': {'total': 0, 'available': 0, 'unavailable': 0}}
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Verify Host List for Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH)
+print(r.json())
+expected_json(r.json(), []) and expected_status(r, 200)
+
+print("=> Verify Host 10.2.0.2 Not In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 404)
+
+print("=> Adding Host 10.2.0.2 to Cluster 'honeynut'")
+r = requests.put(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 200)
+
+print("=> Examining Cluster 'honeynut' (1 Host)")
 r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
 print(r.json())
 expect = {'status': 'ok', 'hosts': {'total': 1, 'available': 0, 'unavailable': 1}}
 expected_json(r.json(), expect) and expected_status(r, 200)
 
-# FIXME: Verify membership of host in cluster,
-#        once clusters have explicit members.
+print("=> Verify Host List for Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH)
+print(r.json())
+expected_json(r.json(), ['10.2.0.2']) and expected_status(r, 200)
 
-print("=> Deleting Host 10.2.0.2")
+print("=> Verify Host 10.2.0.2 In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 200)
+
+print("=> Deleting Host 10.2.0.2 from Cluster 'honeynut'")
+r = requests.delete(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 200)
+
+print("=> Examining Cluster 'honeynut' (No Hosts)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expect = {'status': 'ok', 'hosts': {'total': 0, 'available': 0, 'unavailable': 0}}
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Verify Host List for Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH)
+print(r.json())
+expected_json(r.json(), []) and expected_status(r, 200)
+
+print("=> Verify Host 10.2.0.2 Not In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 404)
+
+print("=> Directly Set Host List for Cluster 'honeynut' (w/ Malformed Request)")
+r = requests.put(
+    SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH,
+    json='Part of this nutritious breakfast!')
+print(r.json())
+expected_status(r, 400)
+
+print("=> Directly Set Host List for Cluster 'honeynut' (w/ Wrong Prev Value)")
+r = requests.put(
+    SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH,
+    json={"old": ["bogus"], "new": ["10.2.0.2"]})
+print(r.json())
+expected_status(r, 409)
+
+print("=> Verify Host 10.2.0.2 Not In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 404)
+
+print("=> Directly Set Host List for Cluster 'honeynut'")
+r = requests.put(
+    SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH,
+    json={"old": [], "new": ["10.2.0.2"]})
+print(r.json())
+expected_status(r, 200)
+
+print("=> Verify Host 10.2.0.2 In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 200)
+
+print("=> Deleting Host 10.2.0.2 (Implicitly Deleted From Cluster)")
 r = requests.delete(SERVER + '/api/v0/host/10.2.0.2', auth=AUTH)
 print(r.json())
 expected_status(r, 410)
 
-# FIXME: Verify no remaining hosts in cluster,
-#        once clusters have explicit members.
+print("=> Examining Cluster 'honeynut' (No Hosts)")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut', auth=AUTH)
+print(r.json())
+expect = {'status': 'ok', 'hosts': {'total': 0, 'available': 0, 'unavailable': 0}}
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Verify Host List for Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts', auth=AUTH)
+print(r.json())
+expected_json(r.json(), []) and expected_status(r, 200)
+
+print("=> Verify Host 10.2.0.2 Not In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
+print(r.json())
+expected_status(r, 404)
 
 print("=> Initiate Cluster Upgrade Without Auth (Should Fail)")
 r = requests.put(

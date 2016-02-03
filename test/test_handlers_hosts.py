@@ -218,6 +218,14 @@ class Test_HostResource(TestCase):
         """
         Verify deleting a Host.
         """
+
+        clusters_return_value = MagicMock(
+            etcd.EtcdResult, leaves=[],
+            value={'value': None}, _children=[])
+        # First call return is etcd_host, second is the clusters_return_value
+        self.datasource.get.side_effect = (
+            MagicMock(value=self.etcd_host), clusters_return_value)
+
         # Verify deleting of an existing host works
         body = self.simulate_request('/api/v0/host/10.2.0.2', method='DELETE')
         # datasource's delete should have been called once

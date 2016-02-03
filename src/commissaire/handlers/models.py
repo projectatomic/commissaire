@@ -26,7 +26,8 @@ class Cluster(Model):
     Representation of a Cluster.
     """
     _json_type = dict
-    _attributes = ('status',)
+    _attributes = ('status', 'hostset')
+    _hidden_attributes = ('hostset',)
 
     def __init__(self, **kwargs):
         Model.__init__(self, **kwargs)
@@ -36,10 +37,13 @@ class Cluster(Model):
                       'unavailable': 0}
 
     # FIXME Generalize and move to Model?
-    def to_json_with_hosts(self):
+    def to_json_with_hosts(self, secure=False):
         data = {}
         for key in self._attributes:
-            data[key] = getattr(self, key)
+            if secure:
+                data[key] = getattr(self, key)
+            elif key not in self._hidden_attributes:
+                data[key] = getattr(self, key)
         data['hosts'] = self.hosts
         return json.dumps(data)
 
@@ -48,7 +52,6 @@ class ClusterRestart(Model):
     """
     Representation of a Cluster restart operation.
     """
-
     _json_type = dict
     _attributes = (
         'status', 'restarted', 'in_process',
@@ -59,7 +62,6 @@ class ClusterUpgrade(Model):
     """
     Representation of a Cluster upgrade operation.
     """
-
     _json_type = dict
     _attributes = (
         'status', 'upgrade_to', 'upgraded', 'in_process',

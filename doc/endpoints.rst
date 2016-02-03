@@ -42,6 +42,75 @@ No body.
 
 
 
+Cluster Members
+---------------
+**Endpoint**: /api/v0/cluster/{NAME}/hosts
+
+GET
+```
+Retrieve the host list for a cluster.
+
+.. code-block:: javascript
+
+   [
+       host_address,...
+   ]
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   [
+       "192.168.100.50",
+       "192.168.100.51"
+   ]
+
+PUT
+```
+Replace the host list for a cluster.  The "old" list must match the
+current host list.
+
+.. code-block:: javascript
+
+   {
+       "old": [host_address,...]
+       "new": [host_address,...]
+   }
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "old": ["192.168.100.50"],
+       "new": ["192.168.100.50", "192.168.100.51"]
+   }
+
+
+Cluster Members (Individual)
+----------------------------
+**Endpoint**: /api/v0/cluster/{NAME}/hosts/{IP}
+
+GET
+```
+Membership test.  Returns 200 if host {IP} is in cluster, else 404.
+
+PUT
+```
+Adds host {IP} to cluster. (Idempotent)
+
+No body.
+
+DELETE
+``````
+Removes host {IP} from cluster. (Idempotent)
+
+No body.
+
+
+
 Cluster Operations: Upgrade
 ---------------------------
 **Endpoint**: /api/v0/cluster/{NAME}/upgrade
