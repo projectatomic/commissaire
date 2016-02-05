@@ -132,7 +132,7 @@ class Test_Transport(TestCase):
             transport.variable_manager._fact_cache = {}
             oscmd = MagicMock(OSCmdBase)
             result, facts = transport.bootstrap(
-                '10.2.0.2', 'test/fake_key', oscmd)
+                '10.2.0.2', 'test/fake_key', ('127.0.0.1', 8080), oscmd)
             # We should have a successful response
             self.assertEquals(0, result)
             # We should see expected calls

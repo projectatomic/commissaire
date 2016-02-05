@@ -108,7 +108,8 @@ def investigator(queue, store, run_once=False):
         logger.info('{0} is now in bootstrapping'.format(address))
         oscmd = get_oscmd(data['os'])()
         try:
-            result, facts = transport.bootstrap(address, key_file, oscmd)
+            result, facts = transport.bootstrap(
+                address, key_file, (store.host, store.port), oscmd)
             data['status'] = 'inactive'
             store.set(key, json.dumps(data))
         except:

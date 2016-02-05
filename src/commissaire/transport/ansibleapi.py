@@ -275,7 +275,7 @@ class Transport:
 
         return (result, facts)
 
-    def bootstrap(self, ip, key_file, oscmd):
+    def bootstrap(self, ip, key_file, etcd_data, oscmd):
         """
         Bootstraps a host via ansible.
 
@@ -283,6 +283,8 @@ class Transport:
         :type ip: str
         :param key_file: Full path the the file holding the private SSH key.
         :type key_file: str
+        :param etcd_data: Host/port for etcd connections.
+        :type etcd_data: tuple(str, int)
         :param oscmd: OSCmd instance to use
         :type oscmd: commissaire.oscmd.OSCmdBase
         :returns: tuple -- (exitcode(int), facts(dict)).
@@ -302,10 +304,13 @@ class Transport:
             'kubernetes_api_server_port': '8080',
             'docker_registry_host': '127.0.0.1',
             'docker_registry_port': 8080,
+            'etcd_host': etcd_data[0],
+            'etcd_port': etcd_data[1],
+            'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
         }
         tpl_env = jinja2.Environment()
         configs = {}
-        for tpl_name in ('docker', 'kubelet', 'kube_config'):
+        for tpl_name in ('docker', 'flanneld', 'kubelet', 'kube_config'):
             f = tempfile.NamedTemporaryFile(prefix=tpl_name, delete=False)
             f.write(tpl_loader.load(tpl_env, tpl_name).render(tpl_vars))
             f.close()
@@ -318,6 +323,27 @@ class Transport:
             'hosts': ip,
             'gather_facts': 'no',
             'tasks': [
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.install_flannel()),
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.flanneld_config,
+                            'src': configs['flanneld']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.start_flannel())
+                    }
+                },
                 {
                     'action': {
                         'module': 'command',

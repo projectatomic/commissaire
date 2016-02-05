@@ -63,6 +63,24 @@ class OSCmd(OSCmdBase):
         """
         return ['systemctl', 'start', 'docker']
 
+    def install_flannel(self):
+        """
+        Atomic install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['true']
+
+    def start_flannel(self):
+        """
+        Atomic start flannel command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'flanneld']
+
     def install_kube(self):
         """
         Atomic install Kube command.

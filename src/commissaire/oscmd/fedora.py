@@ -63,6 +63,24 @@ class OSCmd(OSCmdBase):
         """
         return ['systemctl', 'start', 'docker']
 
+    def install_flannel(self):
+        """
+        Fedora install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['dnf', 'install', '-y', 'flannel']
+
+    def start_flannel(self):
+        """
+        Fedora start flannel command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'flanneld']
+
     def install_kube(self):
         """
         Fedora install Kube command.

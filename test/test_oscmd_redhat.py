@@ -36,6 +36,7 @@ class Test_Red_Hat_OSCmd(TestCase):
         Verify RHEL's OSCmd returns proper data on restart.
         """
         for meth in ('restart', 'upgrade', 'install_docker',
-                     'start_docker', 'install_kube', 'start_kube'):
+                     'start_docker', 'install_flannel', 'start_flannel',
+                     'install_kube', 'start_kube'):
             cmd = getattr(self.instance, meth)()
             self.assertEquals(list, type(cmd))

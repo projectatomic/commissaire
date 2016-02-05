@@ -53,3 +53,12 @@ class OSCmd(OSCmdBase):
         :rtype: list
         """
         return ['yum', 'install', '-y', 'kubernetes-node']
+
+    def install_flannel(self):
+        """
+        Atomic install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['yum', 'install', '-y', 'flannel']

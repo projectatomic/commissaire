@@ -26,6 +26,8 @@ class OSCmdBase:
     os_type = None
     #: Full path to docker configuration file
     docker_config = '/etc/sysconfig/docker'
+    #: Full path to the flanneld configuration file
+    flanneld_config = '/etc/sysconfig/flanneld'
     #: Full path to kubernetes configuration file
     kubernetes_config = '/etc/kubernetes/config'
     #: Full path to kubelet configuration file
@@ -71,6 +73,28 @@ class OSCmdBase:
         """
         raise NotImplementedError(
             '{0}.start_docker() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def install_flannel(self):
+        """
+        Install Flannel command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.install_flannel() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def start_flannel(self):
+        """
+        Start Flannel command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.start_flannel() must be overriden.'.format(
                 self.__class__.__name__))
 
     def install_kube(self):
