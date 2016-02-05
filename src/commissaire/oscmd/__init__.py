@@ -24,6 +24,12 @@ class OSCmdBase:
 
     #: The type of Operating System
     os_type = None
+    #: Full path to docker configuration file
+    docker_config = '/etc/sysconfig/docker'
+    #: Full path to kubernetes configuration file
+    kubernetes_config = '/etc/kubernetes/config'
+    #: Full path to kubelet configuration file
+    kubelet_config = '/etc/kubernetes/kubelet'
 
     def restart(self):
         """
@@ -44,6 +50,50 @@ class OSCmdBase:
         """
         raise NotImplementedError('{0}.upgrade() must be overriden.'.format(
             self.__class__.__name__))
+
+    def install_docker(self):
+        """
+        Install Docker command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.install_docker() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def start_docker(self):
+        """
+        Start Docker command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.start_docker() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def install_kube(self):
+        """
+        Install Kube command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.install_kube() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def start_kube(self):
+        """
+        Start Kube command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.start_kube() must be overriden.'.format(
+                self.__class__.__name__))
 
 
 def get_oscmd(os_type):

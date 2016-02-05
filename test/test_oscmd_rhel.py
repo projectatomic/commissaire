@@ -31,20 +31,11 @@ class Test_RHEL_OSCmd(TestCase):
         """
         self.instance = rhel.OSCmd()
 
-    def test_rhel_oscmd_restart(self):
+    def test_rhel_oscmd_commands(self):
         """
         Verify RHEL's OSCmd returns proper data on restart.
         """
-        cmd = self.instance.restart()
-        self.assertEquals(
-            list,
-            type(cmd))
-
-    def test_rhel_oscmd_base_upgrade(self):
-        """
-        Verify RHEL's OSCmd returns proper data on upgrade.
-        """
-        cmd = self.instance.upgrade()
-        self.assertEquals(
-            list,
-            type(cmd))
+        for meth in ('restart', 'upgrade', 'install_docker',
+                     'start_docker', 'install_kube', 'start_kube'):
+            cmd = getattr(self.instance, meth)()
+            self.assertEquals(list, type(cmd))

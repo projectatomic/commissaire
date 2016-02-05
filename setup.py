@@ -42,6 +42,9 @@ setup(
     tests_require=test_require,
     package_dir={'': 'src'},
     packages=find_packages('src'),
+    package_data={
+        '': ['data/templates/*'],
+    },
     entry_points={
         'console_scripts': [
             'commissaire = commissaire.script:main',

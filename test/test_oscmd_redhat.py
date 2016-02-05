@@ -13,49 +13,29 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.oscmd module.
+Test cases for the commissaire.oscmd.redhat module.
 """
 
 from . import TestCase
-from commissaire import oscmd
+from commissaire.oscmd import redhat
 
 
-class Test_OSCmdBase(TestCase):
+class Test_Red_Hat_OSCmd(TestCase):
     """
-    Tests for the OSCmdBase class.
+    Tests for the OSCmd class for 'Red Hat'.
     """
 
     def before(self):
         """
         Sets up a fresh instance of the class before each run.
         """
-        self.instance = oscmd.OSCmdBase()
+        self.instance = redhat.OSCmd()
 
-    def test_oscmd_base_methods(self):
+    def test_redhat_oscmd_commands(self):
         """
-        Verify OSCmdBase base methods all raises.
+        Verify RHEL's OSCmd returns proper data on restart.
         """
         for meth in ('restart', 'upgrade', 'install_docker',
                      'start_docker', 'install_kube', 'start_kube'):
-            self.assertRaises(
-                NotImplementedError,
-                getattr(self.instance, meth))
-
-
-class Test_get_oscmd(TestCase):
-
-    def test_get_oscmd_with_valid_os_types(self):
-        """
-        Verify get_oscmd returns proper modules.
-        """
-        for os_type in ('atomic', 'fedora', 'rhel'):
-            self.assertEquals(
-                'commissaire.oscmd.{0}'.format(os_type),
-                oscmd.get_oscmd(os_type).__module__)
-
-    def test_get_oscmd_with_invalid_os_types(self):
-        """
-        Verify get_oscmd errors when the os_type does not exist.
-        """
-
-        self.assertRaises(Exception, oscmd.get_oscmd, 'not_a_real_os_type')
+            cmd = getattr(self.instance, meth)()
+            self.assertEquals(list, type(cmd))

@@ -1,0 +1,2 @@
+OPTIONS='--registry-mirror=http://{{ docker_registry_host }}:{{ docker_registry_port }} --selinux-enabled --log-driver=journald'
+DOCKER_CERT_PATH=/etc/docker

@@ -1,0 +1,3 @@
+KUBELET_ADDRESS="--address={{ bootstrap_ip }}"
+KUBELET_HOSTNAME="--hostname_override={{ bootstrap_ip }}"
+KUBELET_API_SERVER="--api_servers=http://{{ kubernetes_api_server_host }}:{{ kubernetes_api_server_port }}"
