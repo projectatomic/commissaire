@@ -1,0 +1,1 @@
+KUBE_MASTER="--master=http://{{ kubernetes_api_server_host }}:{{ kubernetes_api_server_port }}"

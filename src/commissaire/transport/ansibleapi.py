@@ -16,9 +16,13 @@
 Ansible API transport.
 """
 
+import jinja2
 import logging
+import os
+import tempfile
 
 from collections import namedtuple
+from pkg_resources import resource_filename
 
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
@@ -115,7 +119,7 @@ class Transport:
         self.loader = DataLoader()
         self.passwords = {}
 
-    def _run(self, ip, key_file, play_source):
+    def _run(self, ip, key_file, play_source, expected_results=[0]):
         """
         Common code used for each run.
 
@@ -125,6 +129,8 @@ class Transport:
         :type key_file: string
         :param play_source: Ansible play.
         :type play_source: dict
+        :param expected_results: List of expected return codes. Default: [0]
+        :type expected_results: list
         :returns: Ansible exit code
         :type: int
         """
@@ -166,7 +172,15 @@ class Transport:
         finally:
             if tqm is not None:
                 tqm.cleanup()
-        return result
+
+        if result in expected_results:
+            self.logger.debug('{0}: Good result {1}'.format(ip, result))
+            fact_cache = self.variable_manager._fact_cache.get(ip, {})
+            return (result, fact_cache)
+
+        # TODO: Do something :-)
+        self.logger.debug('{0}: Bad result {1}'.format(ip, result))
+        raise Exception('Can not run for {0}'.format(ip))
 
     def upgrade(self, ip, key_file, oscmd):
         """
@@ -192,12 +206,7 @@ class Transport:
                 }
             }]
         }
-        result = self._run(ip, key_file, play_source)
-        if result == 0:
-            fact_cache = self.variable_manager._fact_cache[ip] = {}
-            return (result, fact_cache)
-        # TODO: Do something :-)
-        raise Exception('Can not upgrade {0}'.format(ip))
+        return self._run(ip, key_file, play_source)
 
     def restart(self, ip, key_file, oscmd):
         """
@@ -223,13 +232,7 @@ class Transport:
                 }
             }]
         }
-        result = self._run(ip, key_file, play_source)
-        if result in (0, 2):  # OK and Connection broken
-            result = 0  # Set result to 0 as it actually did reboot
-            fact_cache = self.variable_manager._fact_cache[ip] = {}
-            return (result, fact_cache)
-        # TODO: Do something :-)
-        raise Exception('Can not reboot {0}'.format(ip))
+        return self._run(ip, key_file, play_source, [0, 2])
 
     def get_info(self, ip, key_file):
         """
@@ -249,18 +252,155 @@ class Transport:
             'tasks': []
 
         }
-        result = self._run(ip, key_file, play_source)
-        if result == 0:
-            fact_cache = self.variable_manager._fact_cache[ip]
-            facts = {}
-            facts['os'] = fact_cache['ansible_distribution'].lower()
-            facts['cpus'] = fact_cache['ansible_processor_cores']
-            facts['memory'] = fact_cache['ansible_memory_mb']['real']['total']
-            space = 0
-            for x in fact_cache['ansible_mounts']:
-                space += x['size_total']
-            facts['space'] = space
+        result, fact_cache = self._run(ip, key_file, play_source)
+        facts = {}
+        facts['os'] = fact_cache['ansible_distribution'].lower()
+        facts['cpus'] = fact_cache['ansible_processor_cores']
+        facts['memory'] = fact_cache['ansible_memory_mb']['real']['total']
+        space = 0
+        for x in fact_cache['ansible_mounts']:
+            space += x['size_total']
+        facts['space'] = space
 
-            return (result, facts)
-        # TODO: Make specific exceptions
-        raise Exception('Can not get info for {0}'.format(ip))
+        # Special case for atomic: Since Atomic doesn't advertise itself and
+        # instead calls itself 'redhat' we need to check for 'atomicos'
+        # in other ansible_cmdline facts
+        if facts['os'] == 'redhat':
+            boot_image = fact_cache.get(
+                'ansible_cmdline', {}).get('BOOT_IMAGE', '')
+            root_mapper = fact_cache.get('ansible_cmdline', {}).get('root', '')
+            if (boot_image.startswith('/ostree/rhel-atomic-host') or
+                    'atomicos' in root_mapper):
+                facts['os'] = 'atomic'
+
+        return (result, facts)
+
+    def bootstrap(self, ip, key_file, etcd_data, oscmd):
+        """
+        Bootstraps a host via ansible.
+
+        :param ip: IP address to reboot.
+        :type ip: str
+        :param key_file: Full path the the file holding the private SSH key.
+        :type key_file: str
+        :param etcd_data: Host/port for etcd connections.
+        :type etcd_data: tuple(str, int)
+        :param oscmd: OSCmd instance to use
+        :type oscmd: commissaire.oscmd.OSCmdBase
+        :returns: tuple -- (exitcode(int), facts(dict)).
+        """
+        # TODO: Use ansible to do multiple hosts...
+        self.logger.debug('Using {0} as the oscmd class for {1}'.format(
+            oscmd.os_type, ip))
+
+        # TODO: I'd love to use ansibles "template" but it, as well as copy
+        # always fails when used in tasks in 2.0.0.2.
+        # Fill out templates
+        tpl_loader = jinja2.loaders.FileSystemLoader(
+            resource_filename('commissaire', 'data/templates/'))
+        tpl_vars = {
+            'bootstrap_ip': ip,
+            'kubernetes_api_server_host': '127.0.0.1',
+            'kubernetes_api_server_port': '8080',
+            'docker_registry_host': '127.0.0.1',
+            'docker_registry_port': 8080,
+            'etcd_host': etcd_data[0],
+            'etcd_port': etcd_data[1],
+            'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
+        }
+        tpl_env = jinja2.Environment()
+        configs = {}
+        for tpl_name in ('docker', 'flanneld', 'kubelet', 'kube_config'):
+            f = tempfile.NamedTemporaryFile(prefix=tpl_name, delete=False)
+            f.write(tpl_loader.load(tpl_env, tpl_name).render(tpl_vars))
+            f.close()
+            configs[tpl_name] = f.name
+
+        # ---
+
+        play_source = {
+            'name': 'bootstrap',
+            'hosts': ip,
+            'gather_facts': 'no',
+            'tasks': [
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.install_flannel()),
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.flanneld_config,
+                            'src': configs['flanneld']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.start_flannel())
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.install_docker()),
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.docker_config,
+                            'src': configs['docker']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.start_docker())
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.install_kube())
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.kubernetes_config,
+                            'src': configs['kube_config']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.kubelet_config,
+                            'src': configs['kubelet']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.start_kube())
+                    }
+                },
+            ]
+        }
+
+        results = self._run(ip, key_file, play_source, [0])
+
+        # Clean out the temporary configs
+        map(os.unlink, configs.values())
+
+        return results

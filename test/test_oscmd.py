@@ -31,21 +31,15 @@ class Test_OSCmdBase(TestCase):
         """
         self.instance = oscmd.OSCmdBase()
 
-    def test_oscmd_base_restart_raises(self):
+    def test_oscmd_base_methods(self):
         """
-        Verify OSCmdBase's raises on restart.
+        Verify OSCmdBase base methods all raises.
         """
-        self.assertRaises(
-            NotImplementedError,
-            self.instance.restart)
-
-    def test_oscmd_base_upgrade_raises(self):
-        """
-        Verify OSCmdBase's raises on upgrade.
-        """
-        self.assertRaises(
-            NotImplementedError,
-            self.instance.upgrade)
+        for meth in ('restart', 'upgrade', 'install_docker',
+                     'start_docker', 'install_kube', 'start_kube'):
+            self.assertRaises(
+                NotImplementedError,
+                getattr(self.instance, meth))
 
 
 class Test_get_oscmd(TestCase):

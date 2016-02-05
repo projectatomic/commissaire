@@ -19,10 +19,31 @@ The investigator job.
 import datetime
 import json
 import logging
+import os
+import sys
 import tempfile
 
-from commissaire.transport import ansibleapi
 from commissaire.compat.b64 import base64
+from commissaire.oscmd import get_oscmd
+from commissaire.transport import ansibleapi
+
+
+def clean_up_key(key_file):
+    """
+    Remove the key file.
+
+    :param key_file: Full path to the key_file
+    :type key_file: str
+    """
+    logger = logging.getLogger('investigator')
+    try:
+        os.unlink(key_file)
+        logger.debug('Removed temporary key file {0}'.format(key_file))
+    except:
+        exc_type, exc_msg, tb = sys.exc_info()
+        logger.warn(
+            'Unable to remove the temporary key file: '
+            '{0}. Exception:{1}'.format(key_file, exc_msg))
 
 
 def investigator(queue, store, run_once=False):
@@ -34,15 +55,18 @@ def investigator(queue, store, run_once=False):
     :param store: Data store to place results.
     :type store: etcd.Client
     """
-    # TODO: Add coverage and testing.
+    # TODO: Change this to be watch and etcd "queue" and kick off a function
+    #       similar to clusterpoolexec
     logger = logging.getLogger('investigator')
     logger.info('Investigator started')
 
     transport = ansibleapi.Transport()
     while True:
+        # Statuses follow:
+        # http://commissaire.readthedocs.org/en/latest/enums.html#host-statuses
         to_investigate, ssh_priv_key = queue.get()
         address = to_investigate['address']
-        logger.info('Investigating {0}...'.format(address))
+        logger.info('{0} is now in investigating.'.format(address))
         logger.debug('Investigation details: key={0}, data={1}'.format(
             to_investigate, ssh_priv_key))
 
@@ -67,20 +91,54 @@ def investigator(queue, store, run_once=False):
         except:
             logger.warn('Getting info failed for {0}'.format(address))
             data['status'] = 'failed'
-        finally:
-            try:
-                f.unlink(key_file)
-                logger.debug('Removed temporary key file {0}'.format(key_file))
-            except:
-                logger.warn(
-                    'Unable to remove the temporary key file: {0}'.format(
-                        key_file))
+            store.set(key, json.dumps(data))
+            exc_type, exc_msg, tb = sys.exc_info()
+            logger.debug('{0} Exception: {1}'.format(address, exc_msg))
+            clean_up_key(key_file)
+            if run_once:
+                break
+            continue
+
         store.set(key, json.dumps(data))
-        logging.debug('Finished investigation update for {0}: {1}'.format(
-            address, data))
         logger.info(
             'Finished and stored investigation data for {0}'.format(address))
+        logger.debug('Finished investigation update for {0}: {1}'.format(
+            address, data))
+        # --
+        logger.info('{0} is now in bootstrapping'.format(address))
+        oscmd = get_oscmd(data['os'])()
+        try:
+            result, facts = transport.bootstrap(
+                address, key_file, (store.host, store.port), oscmd)
+            data['status'] = 'inactive'
+            store.set(key, json.dumps(data))
+        except:
+            logger.warn('Unable to bootstrap {0}'.format(address))
+            exc_type, exc_msg, tb = sys.exc_info()
+            logger.debug('{0} Exception: {1}'.format(address, exc_msg))
+            data['status'] = 'disassociated'
+            store.set(key, json.dumps(data))
+            clean_up_key(key_file)
+            if run_once:
+                break
+            continue
+        # # Associate with the container manager
+        # try:
+        #     result, facts = transport.associate(address, key_file, oscmd)
+        #     data['status'] = 'active'
+        # except:
+        #     logger.warn('Unable to bootstrap {0}'.format(address))
+        #     exc = sys.exc_info()[0]
+        #     logger.debug('{0} Exception: {1}'.format(address, exc))
+        #     data['status'] = 'inactive'
+        # store.set(key, json.dumps(data))
+        # logger.info(
+        #     'Finished bootstrapping for {0}'.format(address))
+        # logging.debug('Finished bootstrapping for {0}: {1}'.format(
+        #     address, data))
+        # # ---
 
+        clean_up_key(key_file)
         if run_once:
             logger.info('Exiting due to run_once request.')
             break

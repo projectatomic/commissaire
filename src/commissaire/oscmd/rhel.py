@@ -16,7 +16,7 @@
 RHEL commands.
 """
 
-from commissaire.oscmd import OSCmdBase
+from commissaire.oscmd.fedora import OSCmd as OSCmdBase
 
 
 class OSCmd(OSCmdBase):
@@ -27,15 +27,6 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'rhel'
 
-    def restart(self):
-        """
-        RHEL restart command.
-
-        :return: The command to execute as a list
-        :rtype: list
-        """
-        return ['systemctl', 'reboot']
-
     def upgrade(self):
         """
         RHEL upgrade command.
@@ -44,3 +35,30 @@ class OSCmd(OSCmdBase):
         :rtype: list
         """
         return ['yum', 'update', '-y']
+
+    def install_docker(self):
+        """
+        RHEL install Docker command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['yum', 'install', '-y', 'docker']
+
+    def install_kube(self):
+        """
+        RHEL start Kube command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['yum', 'install', '-y', 'kubernetes-node']
+
+    def install_flannel(self):
+        """
+        Atomic install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['yum', 'install', '-y', 'flannel']

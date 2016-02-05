@@ -44,3 +44,57 @@ class OSCmd(OSCmdBase):
         :rtype: list
         """
         return ['dnf', 'update', '-y']
+
+    def install_docker(self):
+        """
+        Fedora install docker command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['dnf', 'install', '-y', 'docker']
+
+    def start_docker(self):
+        """
+        Fedora start docker command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'docker']
+
+    def install_flannel(self):
+        """
+        Fedora install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['dnf', 'install', '-y', 'flannel']
+
+    def start_flannel(self):
+        """
+        Fedora start flannel command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'flanneld']
+
+    def install_kube(self):
+        """
+        Fedora install Kube command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['dnf', 'install', '-y', 'kubernetes-node']
+
+    def start_kube(self):
+        """
+        Fedora start kube command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'kubelet']

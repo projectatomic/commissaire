@@ -31,20 +31,12 @@ class Test_Atomic_OSCmd(TestCase):
         """
         self.instance = atomic.OSCmd()
 
-    def test_atomic_oscmd_restart(self):
+    def test_atomic_oscmd_commands(self):
         """
-        Verify Atomic's OSCmd returns proper data on restart.
+        Verify Fedora's OSCmd returns proper data on restart.
         """
-        cmd = self.instance.restart()
-        self.assertEquals(
-            list,
-            type(cmd))
-
-    def test_atomic_oscmd_base_upgrade(self):
-        """
-        Verify Atomic's OSCmd returns proper data on upgrade.
-        """
-        cmd = self.instance.upgrade()
-        self.assertEquals(
-            list,
-            type(cmd))
+        for meth in ('restart', 'upgrade', 'install_docker',
+                     'start_docker', 'install_flannel', 'start_flannel',
+                     'install_kube', 'start_kube'):
+            cmd = getattr(self.instance, meth)()
+            self.assertEquals(list, type(cmd))

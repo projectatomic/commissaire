@@ -24,6 +24,7 @@ from ansible.executor.task_result import TaskResult
 from ansible.inventory import Host
 from ansible.playbook.task import Task
 from commissaire.transport import ansibleapi
+from commissaire.oscmd import OSCmdBase
 from mock import MagicMock, patch
 
 
@@ -119,3 +120,23 @@ class Test_Transport(TestCase):
                 },
                 facts
             )
+
+    def test_bootstrap(self):
+        """
+        Verify Transport().bootstrap works as expected.
+        """
+        with patch('commissaire.transport.ansibleapi.TaskQueueManager') as _tqm:
+            _tqm().run.return_value = 0
+
+            transport = ansibleapi.Transport()
+            transport.variable_manager._fact_cache = {}
+            oscmd = MagicMock(OSCmdBase)
+            result, facts = transport.bootstrap(
+                '10.2.0.2', 'test/fake_key', ('127.0.0.1', 8080), oscmd)
+            # We should have a successful response
+            self.assertEquals(0, result)
+            # We should see expected calls
+            self.assertEquals(1, oscmd.install_docker.call_count)
+            self.assertEquals(1, oscmd.start_docker.call_count)
+            self.assertEquals(1, oscmd.install_kube.call_count)
+            self.assertEquals(1, oscmd.start_kube.call_count)

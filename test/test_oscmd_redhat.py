@@ -13,27 +13,27 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.oscmd.fedora module.
+Test cases for the commissaire.oscmd.redhat module.
 """
 
 from . import TestCase
-from commissaire.oscmd import fedora
+from commissaire.oscmd import redhat
 
 
-class Test_Fedora_OSCmd(TestCase):
+class Test_Red_Hat_OSCmd(TestCase):
     """
-    Tests for the OSCmd class for Fedora.
+    Tests for the OSCmd class for 'Red Hat'.
     """
 
     def before(self):
         """
         Sets up a fresh instance of the class before each run.
         """
-        self.instance = fedora.OSCmd()
+        self.instance = redhat.OSCmd()
 
-    def test_fedora_oscmd_commands(self):
+    def test_redhat_oscmd_commands(self):
         """
-        Verify Fedora's OSCmd returns proper data on restart.
+        Verify RHEL's OSCmd returns proper data on restart.
         """
         for meth in ('restart', 'upgrade', 'install_docker',
                      'start_docker', 'install_flannel', 'start_flannel',

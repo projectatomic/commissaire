@@ -44,3 +44,57 @@ class OSCmd(OSCmdBase):
         :rtype: list
         """
         return ['rpm-ostree', 'upgrade']
+
+    def install_docker(self):
+        """
+        Atomic install docker command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['true']
+
+    def start_docker(self):
+        """
+        Atomic start docker command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'docker']
+
+    def install_flannel(self):
+        """
+        Atomic install flannel command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['true']
+
+    def start_flannel(self):
+        """
+        Atomic start flannel command..
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'flanneld']
+
+    def install_kube(self):
+        """
+        Atomic install Kube command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['true']
+
+    def start_kube(self):
+        """
+        Atomic start kube command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'kubelet']

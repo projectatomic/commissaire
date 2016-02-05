@@ -1,0 +1,2 @@
+FLANNEL_ETCD="http://{{ etcd_host }}:{{ etcd_port }}"
+FLANNEL_ETCD_KEY="{{ flannel_key }}"
