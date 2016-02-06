@@ -1,7 +1,7 @@
 FROM fedora
 MAINTAINER Red Hat, Inc. <container-tools@redhat.com>
 
-RUN dnf -y update && dnf -y install --setopt=tsflags=nodocs redhat-rpm-config python-pip python-virtualenv git gcc libffi-devel ; dnf clean all
+RUN dnf -y update && dnf -y install --setopt=tsflags=nodocs openssh-clients redhat-rpm-config python-pip python-virtualenv git gcc libffi-devel ; dnf clean all
 
 ENV MHM_RELEASE v0.0.0
 ENV PYTHONPATH  /commissaire/src/
