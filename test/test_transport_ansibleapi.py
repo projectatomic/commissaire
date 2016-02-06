@@ -18,7 +18,7 @@ Test cases for the commissaire.transport.ansibleapi module.
 
 import logging
 
-from . import TestCase
+from . import TestCase, get_fixture_file_path
 
 from ansible.executor.task_result import TaskResult
 from ansible.inventory import Host
@@ -107,7 +107,7 @@ class Test_Transport(TestCase):
                 },
             }
             transport.variable_manager._fact_cache = fact_cache
-            result, facts = transport.get_info('10.2.0.2', 'test/fake_key')
+            result, facts = transport.get_info('10.2.0.2', get_fixture_file_path('test/fake_key'))
             # We should have a successful response
             self.assertEquals(0, result)
             # We should match the expected facts

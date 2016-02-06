@@ -32,7 +32,7 @@ From the repo root...
 
    (virtualenv)$ pip install -r test-requirements.txt
    ...
-   (virtualenv)$ nosetests -v --with-coverage --cover-package commissaire --cover-min-percentage 80 test/
+   (virtualenv)$ python setup.py nosetests
 
 Adding a Host Manually
 ``````````````````````
