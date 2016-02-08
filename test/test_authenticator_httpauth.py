@@ -20,7 +20,7 @@ import etcd
 import falcon
 import mock
 
-from . import TestCase
+from . import TestCase, get_fixture_file_path
 from falcon.testing.helpers import create_environ
 from commissaire.authentication import httpauth
 
@@ -80,14 +80,15 @@ class TestHTTPBasicAuthByFile(TestCase):
         """
         Sets up a fresh instance of the class before each run.
         """
+        self.user_config = get_fixture_file_path('conf/users.json')
         self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
-            './conf/users.json')
+            self.user_config)
 
     def test_load_with_non_parsable_file(self):
         """
         Verify load gracefully loads no users when the JSON file does not exist.
         """
-        for bad_file in ('', 'test/bad.json'):
+        for bad_file in ('', get_fixture_file_path('test/bad.json')):
             self.http_basic_auth_by_file.filepath = bad_file
             self.http_basic_auth_by_file.load()
             self.assertEquals(
@@ -100,7 +101,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         Verify authenticate works with a proper JSON file, Authorization header, and a matching user.
         """
         self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
-            './conf/users.json')
+            self.user_config)
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic YTph'}))
         resp = falcon.Response()
@@ -113,7 +114,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         Verify authenticate denies with a proper JSON file, Authorization header, and no matching user.
         """
         self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
-            './conf/users.json')
+            self.user_config)
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic Yjpi'}))
         resp = falcon.Response()
@@ -136,6 +137,8 @@ class TestHTTPBasicAuthByEtcd(TestCase):
         return_value = mock.MagicMock(etcd.EtcdResult)
         return_value.value = '{}'
         self.ds.get.return_value = return_value
+
+        self.user_config = get_fixture_file_path('conf/users.json')
 
         self.http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd(self.ds)
         self.ds.get.reset_mock()
@@ -172,7 +175,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
         """
         # Mock the return of the Etcd get result
         return_value = mock.MagicMock(etcd.EtcdResult)
-        with open('conf/users.json', 'r') as users_file:
+        with open(self.user_config, 'r') as users_file:
             return_value.value = users_file.read()
         self.ds.get.return_value = return_value
 
@@ -194,7 +197,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
         """
         # Mock the return of the Etcd get result
         return_value = mock.MagicMock(etcd.EtcdResult)
-        with open('conf/users.json', 'r') as users_file:
+        with open(self.user_config, 'r') as users_file:
             return_value.value = users_file.read()
         self.ds.get.return_value = return_value
 

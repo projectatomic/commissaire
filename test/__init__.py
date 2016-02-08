@@ -13,7 +13,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from falcon.testing import TestBase
+
+
+def get_fixture_file_path(filename):
+    """
+    Attempts to return the path to a fixture file.
+
+    :param filename: The name of the file to look for.
+    :type filename: str
+    :returns: Full path to the file
+    :rtype: str
+    :raises: Exception
+    """
+    for x in ('.', '..'):
+        try:
+            a_path = os.path.sep.join((x, filename))
+            os.stat(a_path)
+            return os.path.realpath(a_path)
+        except:
+            pass
+    raise Exception(
+        'Can not find path for config: {0}'.format(filename))
 
 
 class TestCase(TestBase):
