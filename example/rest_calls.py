@@ -252,6 +252,39 @@ r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.2', auth=AUTH)
 print(r.json())
 expected_status(r, 404)
 
+print("=> Creating Host 10.2.0.3 With Bad Cluster (Should Fail)")
+r = requests.put(
+    SERVER + '/api/v0/host/10.2.0.3', auth=AUTH,
+    json={
+        "address": "10.2.0.3",
+        "ssh_priv_key": "dGVzdAo=",
+        "cluster": "headache"
+    })
+print(r.json())
+expected_status(r, 409)
+
+print("=> Make Sure There Are No New Clusters")
+r = requests.get(SERVER + '/api/v0/clusters', auth=AUTH)
+print(r.json())
+expect = ['honeynut']
+expected_json(r.json(), expect) and expected_status(r, 200)
+
+print("=> Creating Host 10.2.0.3 With 'honeynut' Cluster")
+r = requests.put(
+    SERVER + '/api/v0/host/10.2.0.3', auth=AUTH,
+    json={
+        "address": "10.2.0.3",
+        "ssh_priv_key": "dGVzdAo=",
+        "cluster": "honeynut"
+    })
+print(r.json())
+expected_status(r, 201)
+
+print("=> Verify Host 10.2.0.3 In Cluster 'honeynut'")
+r = requests.get(SERVER + '/api/v0/cluster/honeynut/hosts/10.2.0.3', auth=AUTH)
+print(r.json())
+expected_status(r, 200)
+
 print("=> Initiate Cluster Upgrade Without Auth (Should Fail)")
 r = requests.put(
     SERVER + '/api/v0/cluster/honeynut/upgrade',

@@ -106,24 +106,60 @@ class HostResource(Resource):
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
-            data = req.stream.read().decode()
-            host_creation = json.loads(data)
-            ssh_priv_key = host_creation['ssh_priv_key']
-            host_creation['address'] = address
-            host_creation['os'] = ''
-            host_creation['status'] = 'investigating'
-            host_creation['cpus'] = -1
-            host_creation['memory'] = -1
-            host_creation['space'] = -1
-            host_creation['ssh_priv_key'] = ssh_priv_key
-            host_creation['last_check'] = None
-            host = Host(**host_creation)
-            new_host = self.store.set(
-                '/commissaire/hosts/{0}'.format(
-                    address), host.to_json(secure=True))
-            INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
-            resp.status = falcon.HTTP_201
-            req.context['model'] = Host(**json.loads(new_host.value))
+            pass
+
+        data = req.stream.read().decode()
+        host_creation = json.loads(data)
+        ssh_priv_key = host_creation['ssh_priv_key']
+        host_creation['address'] = address
+        host_creation['os'] = ''
+        host_creation['status'] = 'investigating'
+        host_creation['cpus'] = -1
+        host_creation['memory'] = -1
+        host_creation['space'] = -1
+        host_creation['last_check'] = None
+
+        # Don't store the cluster name in etcd.
+        cluster_name = host_creation.pop('cluster', None)
+
+        # Verify the cluster exists, if given.  Do it now
+        # so we can fail before writing anything to etcd.
+        if cluster_name:
+            # XXX: Based on ClusterSingleHostResource.on_put().
+            #      Add a util module to share common operations.
+            cluster_key = '/commissaire/clusters/{0}'.format(cluster_name)
+            try:
+                etcd_resp = self.store.get(cluster_key)
+                self.logger.info(
+                    'Request for cluster {0}'.format(cluster_name))
+                self.logger.debug('{0}'.format(etcd_resp))
+            except etcd.EtcdKeyNotFound:
+                self.logger.info(
+                    'Request for non-existent cluster {0}.'.format(
+                        cluster_name))
+                resp.status = falcon.HTTP_409
+                return
+            cluster = Cluster(**json.loads(etcd_resp.value))
+            hostset = set(cluster.hostset)
+            hostset.add(address)  # Ensures no duplicates
+            cluster.hostset = list(hostset)
+
+        host = Host(**host_creation)
+        new_host = self.store.set(
+            '/commissaire/hosts/{0}'.format(
+                address), host.to_json(secure=True))
+        INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
+
+        # Add host to the requested cluster.
+        if cluster_name:
+            # FIXME: Should guard against races here, since we're fetching
+            #        the cluster record and writing it back with some parts
+            #        unmodified.  Use either locking or a conditional write
+            #        with the etcd 'modifiedIndex'.  Deferring for now.
+            self.store.set(cluster_key, cluster.to_json(secure=True))
+
+        resp.status = falcon.HTTP_201
+        req.context['model'] = Host(**json.loads(new_host.value))
 
     def on_delete(self, req, resp, address):
         """
