@@ -63,9 +63,10 @@ class LogForward(CallbackBase):
         :param kwargs: All other ignored keyword arguments.
         :type kwargs: dict
         """
-        exception = result._result.get('exception', 'No Exception')
-        self.log.warn(
-            'An exception occurred: {0}\n'.format(exception))
+        if 'exception' in result._result.keys():
+            self.log.warn(
+                'An exception occurred: {0}'.format(
+                    result._result['exception']))
 
     def v2_runner_on_ok(self, result):
         """
@@ -96,6 +97,20 @@ class LogForward(CallbackBase):
         self.log.warn('UNREACHABLE {0}'.format(
             result._host.get_name(),
             result._result))
+        self.log.debug('{0}'.format(result.__dict__))
+
+    def v2_playbook_on_task_start(self, task, *args, **kwargs):
+        """
+        Called on the start of a task.
+
+        :param task: The task being called.
+        :type task: ansible.executor.task_executor.Task
+        :param args: All other ignored non-keyword arguments.
+        :type args: tuple
+        :param kwargs: All other ignored keyword arguments.
+        :type kwargs: dict
+        """
+        self.log.info("TASK started: %s" % task.get_name().strip())
 
 
 class Transport:
