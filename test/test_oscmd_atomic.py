@@ -37,6 +37,6 @@ class Test_Atomic_OSCmd(TestCase):
         """
         for meth in ('restart', 'upgrade', 'install_docker',
                      'start_docker', 'install_flannel', 'start_flannel',
-                     'install_kube', 'start_kube'):
+                     'install_kube', 'start_kube', 'start_kube_proxy'):
             cmd = getattr(self.instance, meth)()
             self.assertEquals(list, type(cmd))

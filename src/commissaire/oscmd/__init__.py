@@ -119,6 +119,17 @@ class OSCmdBase:
             '{0}.start_kube() must be overriden.'.format(
                 self.__class__.__name__))
 
+    def start_kube_proxy(self):
+        """
+        Start Kube Proxy command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.start_kube_proxy() must be overriden.'.format(
+                self.__class__.__name__))
+
 
 def get_oscmd(os_type):
     """

@@ -410,6 +410,12 @@ class Transport:
                         'args': " ".join(oscmd.start_kube())
                     }
                 },
+                {
+                    'action': {
+                        'module': 'command',
+                        'args': " ".join(oscmd.start_kube_proxy())
+                    }
+                },
             ]
         }
 

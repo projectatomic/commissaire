@@ -36,7 +36,8 @@ class Test_OSCmdBase(TestCase):
         Verify OSCmdBase base methods all raises.
         """
         for meth in ('restart', 'upgrade', 'install_docker',
-                     'start_docker', 'install_kube', 'start_kube'):
+                     'start_docker', 'install_flannel', 'start_flannel',
+                     'install_kube', 'start_kube', 'start_kube_proxy'):
             self.assertRaises(
                 NotImplementedError,
                 getattr(self.instance, meth))
