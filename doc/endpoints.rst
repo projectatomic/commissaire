@@ -41,7 +41,6 @@ Creates a new cluster.
 No body.
 
 
-
 Cluster Members
 ---------------
 **Endpoint**: /api/v0/cluster/{NAME}/hosts
