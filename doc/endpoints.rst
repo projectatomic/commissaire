@@ -305,6 +305,7 @@ Creates a new host record.
    {
        "address": string      // The IP address of the cluster host
        "ssh_priv_key": string // base64 encoded ssh private key
+       "cluster": string      // The cluster the host should be associated with
    }
 
 .. note::
@@ -317,6 +318,7 @@ Example
 
    {
        "address": "192.168.100.50",
+       "cluster": "default",
        "ssh_priv_key": "dGVzdAo..."
    }
 
