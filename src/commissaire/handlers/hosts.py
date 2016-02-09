@@ -106,24 +106,25 @@ class HostResource(Resource):
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
-            data = req.stream.read().decode()
-            host_creation = json.loads(data)
-            ssh_priv_key = host_creation['ssh_priv_key']
-            host_creation['address'] = address
-            host_creation['os'] = ''
-            host_creation['status'] = 'investigating'
-            host_creation['cpus'] = -1
-            host_creation['memory'] = -1
-            host_creation['space'] = -1
-            host_creation['ssh_priv_key'] = ssh_priv_key
-            host_creation['last_check'] = None
-            host = Host(**host_creation)
-            new_host = self.store.set(
-                '/commissaire/hosts/{0}'.format(
-                    address), host.to_json(secure=True))
-            INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
-            resp.status = falcon.HTTP_201
-            req.context['model'] = Host(**json.loads(new_host.value))
+            pass
+
+        data = req.stream.read().decode()
+        host_creation = json.loads(data)
+        ssh_priv_key = host_creation['ssh_priv_key']
+        host_creation['address'] = address
+        host_creation['os'] = ''
+        host_creation['status'] = 'investigating'
+        host_creation['cpus'] = -1
+        host_creation['memory'] = -1
+        host_creation['space'] = -1
+        host_creation['last_check'] = None
+        host = Host(**host_creation)
+        new_host = self.store.set(
+            '/commissaire/hosts/{0}'.format(
+                address), host.to_json(secure=True))
+        INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
+        resp.status = falcon.HTTP_201
+        req.context['model'] = Host(**json.loads(new_host.value))
 
     def on_delete(self, req, resp, address):
         """

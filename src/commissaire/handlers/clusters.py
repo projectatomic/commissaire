@@ -120,7 +120,7 @@ class ClusterResource(Resource):
             self.logger.debug('{0}'.format(etcd_resp))
         except etcd.EtcdKeyNotFound:
             self.logger.info(
-                'Request of non-existent cluster {0} requested.'.format(name))
+                'Request for non-existent cluster {0}.'.format(name))
             resp.status = falcon.HTTP_404
             return
 
@@ -204,7 +204,7 @@ class ClusterHostsResource(Resource):
             self.logger.debug('{0}'.format(etcd_resp))
         except etcd.EtcdKeyNotFound:
             self.logger.info(
-                'Request of non-existent cluster {0} requested.'.format(name))
+                'Request for non-existent cluster {0}.'.format(name))
             return None
         return Cluster(**json.loads(etcd_resp.value))
 
