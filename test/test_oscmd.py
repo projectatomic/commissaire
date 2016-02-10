@@ -20,24 +20,35 @@ from . import TestCase
 from commissaire import oscmd
 
 
-class Test_OSCmdBase(TestCase):
+class _Test_OSCmd(TestCase):
     """
     Tests for the OSCmdBase class.
     """
+
+    oscmdcls = None
+    expected_methods = (
+        'restart', 'upgrade', 'install_docker',
+        'install_flannel', 'install_kube')
 
     def before(self):
         """
         Sets up a fresh instance of the class before each run.
         """
-        self.instance = oscmd.OSCmdBase()
+        self.instance = self.oscmdcls()
 
-    def test_oscmd_base_methods(self):
+
+class Test_OSCmdBase(_Test_OSCmd):
+    """
+    Tests for the OSCmdBase class.
+    """
+
+    oscmdcls = oscmd.OSCmdBase
+
+    def test_oscmd_methods(self):
         """
         Verify OSCmdBase base methods all raises.
         """
-        for meth in ('restart', 'upgrade', 'install_docker',
-                     'start_docker', 'install_flannel', 'start_flannel',
-                     'install_kube', 'start_kube', 'start_kube_proxy'):
+        for meth in self.expected_methods:
             self.assertRaises(
                 NotImplementedError,
                 getattr(self.instance, meth))

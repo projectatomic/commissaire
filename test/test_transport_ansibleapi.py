@@ -149,7 +149,4 @@ class Test_Transport(TestCase):
             self.assertEquals(0, result)
             # We should see expected calls
             self.assertEquals(1, oscmd.install_docker.call_count)
-            self.assertEquals(1, oscmd.start_docker.call_count)
             self.assertEquals(1, oscmd.install_kube.call_count)
-            self.assertEquals(1, oscmd.start_kube.call_count)
-            self.assertEquals(1, oscmd.start_kube_proxy.call_count)

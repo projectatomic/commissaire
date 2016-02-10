@@ -356,14 +356,18 @@ class Transport:
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.flanneld_config,
-                            'src': configs['flanneld']
+                            'src': configs['flanneld'],
                         }
                     }
                 },
                 {
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_flannel())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.flannel_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
                 {
@@ -377,20 +381,24 @@ class Transport:
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.docker_config,
-                            'src': configs['docker']
+                            'src': configs['docker'],
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.docker_service,
+                            'enabled': 'yes',
+                            'state': 'started',
                         }
                     }
                 },
                 {
                     'action': {
                         'module': 'command',
-                        'args': " ".join(oscmd.start_docker())
-                    }
-                },
-                {
-                    'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.install_kube())
+                        'args': " ".join(oscmd.install_kube()),
                     }
                 },
                 {
@@ -398,7 +406,7 @@ class Transport:
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubernetes_config,
-                            'src': configs['kube_config']
+                            'src': configs['kube_config'],
                         }
                     }
                 },
@@ -407,7 +415,7 @@ class Transport:
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubernetes_kubeconfig,
-                            'src': configs['kubeconfig']
+                            'src': configs['kubeconfig'],
                         }
                     }
                 },
@@ -416,20 +424,28 @@ class Transport:
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubelet_config,
-                            'src': configs['kubelet']
+                            'src': configs['kubelet'],
                         }
                     }
                 },
                 {
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_kube())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.kubelet_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
                 {
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_kube_proxy())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.kubelet_proxy_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
             ]
