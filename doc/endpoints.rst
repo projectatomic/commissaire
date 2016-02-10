@@ -441,7 +441,7 @@ Retrieve a the status of the system.
                "in_use": int,           // Amount of the pool in use
                "errors": [string,...],  // Errors from the pool
            }
-       }
+       },
    }
 
 .. note::

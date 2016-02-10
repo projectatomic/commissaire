@@ -24,6 +24,11 @@
             "level": "DEBUG",
             "propagate": false
         },
+        "containermgr": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": false
+        },
         "investigator": {
             "handlers": ["console"],
             "level": "DEBUG",

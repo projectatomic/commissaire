@@ -13,6 +13,7 @@ Subpackages
 
     commissaire.authentication
     commissaire.compat
+    commissaire.containermgr
     commissaire.handlers
     commissaire.jobs
     commissaire.oscmd

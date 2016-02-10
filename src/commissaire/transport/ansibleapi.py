@@ -149,10 +149,12 @@ class Transport:
         :returns: Ansible exit code
         :type: int
         """
+        ssh_args = ('-o StrictHostKeyChecking=no -o '
+                    'ControlMaster=auto -o ControlPersist=60s')
         options = self.Options(
             connection='ssh', module_path=None, forks=1,
             remote_user='root', private_key_file=key_file,
-            ssh_common_args=None, ssh_extra_args=None,
+            ssh_common_args=ssh_args, ssh_extra_args=ssh_args,
             sftp_extra_args=None, scp_extra_args=None,
             become=None, become_method=None, become_user=None,
             verbosity=None, check=False)
@@ -290,7 +292,7 @@ class Transport:
 
         return (result, facts)
 
-    def bootstrap(self, ip, key_file, etcd_data, oscmd):
+    def bootstrap(self, ip, key_file, connection_config, oscmd):
         """
         Bootstraps a host via ansible.
 
@@ -298,9 +300,9 @@ class Transport:
         :type ip: str
         :param key_file: Full path the the file holding the private SSH key.
         :type key_file: str
-        :param etcd_data: Host/port for etcd connections.
-        :type etcd_data: tuple(str, int)
-        :param oscmd: OSCmd instance to use
+        :param connection_config: External resource connection information.
+        :type connection_config: dict
+        :param oscmd: OSCmd instance to useS
         :type oscmd: commissaire.oscmd.OSCmdBase
         :returns: tuple -- (exitcode(int), facts(dict)).
         """
@@ -315,17 +317,22 @@ class Transport:
             resource_filename('commissaire', 'data/templates/'))
         tpl_vars = {
             'bootstrap_ip': ip,
-            'kubernetes_api_server_host': '127.0.0.1',
-            'kubernetes_api_server_port': '8080',
-            'docker_registry_host': '127.0.0.1',
-            'docker_registry_port': 8080,
-            'etcd_host': etcd_data[0],
-            'etcd_port': etcd_data[1],
+            'kubernetes_api_server_host': connection_config.get(
+                'kubernetes')['uri'].hostname,
+            'kubernetes_api_server_port': connection_config.get(
+                'kubernetes')['uri'].port,
+            'kubernetes_bearer_token': connection_config.get(
+                'kubernetes')['token'],
+            'docker_registry_host': '127.0.0.1',  # TODO: Where do we get this?
+            'docker_registry_port': 8080,  # TODO: Where do we get this?
+            'etcd_host': connection_config['etcd']['uri'].hostname,
+            'etcd_port': connection_config['etcd']['uri'].port,
             'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
         }
         tpl_env = jinja2.Environment()
         configs = {}
-        for tpl_name in ('docker', 'flanneld', 'kubelet', 'kube_config'):
+        for tpl_name in (
+                'docker', 'flanneld', 'kubelet', 'kube_config', 'kubeconfig'):
             f = tempfile.NamedTemporaryFile(prefix=tpl_name, delete=False)
             f.write(tpl_loader.load(tpl_env, tpl_name).render(tpl_vars))
             f.close()
@@ -392,6 +399,15 @@ class Transport:
                         'args': {
                             'dest': oscmd.kubernetes_config,
                             'src': configs['kube_config']
+                        }
+                    }
+                },
+                {
+                    'action': {
+                        'module': 'synchronize',
+                        'args': {
+                            'dest': oscmd.kubernetes_kubeconfig,
+                            'src': configs['kubeconfig']
                         }
                     }
                 },

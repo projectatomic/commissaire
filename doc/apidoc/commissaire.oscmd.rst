@@ -13,5 +13,6 @@ Submodules
 
    commissaire.oscmd.atomic
    commissaire.oscmd.fedora
+   commissaire.oscmd.redhat
    commissaire.oscmd.rhel
 

@@ -23,6 +23,7 @@ import base64
 import json
 import logging
 import logging.config
+import urlparse
 
 import etcd
 import falcon
@@ -167,30 +168,54 @@ def cli_etcd_or_default(name, cli, default, ds):
     return result
 
 
+def parse_uri(uri, name):
+    """
+    Parses and returns a parsed URI.
+
+    :param uri: The URI to parse.
+    :type uri: str
+    :param name: The name to use for errors.
+    :type name: str
+    :returns: A parsed URI.
+    :rtype: urlparse.urlparse.ParseResult
+    :raises: Exception
+    """
+    parsed = urlparse.urlparse(uri)
+    # Verify we have what we need
+    if not uri or None in (parsed.port, parsed.hostname, parsed.scheme):
+        raise Exception(
+            ('You must provide a full {0} URI. '
+             'EX: http://127.0.0.1:2379'.format(name)))
+    return parsed
+
+
 def main():  # pragma: no cover
     """
     Main script entry point.
     """
     import argparse
-    import urlparse
 
-    parser = argparse.ArgumentParser()
+    epilog = ('Example: ./commissaire -e http://127.0.0.1:2379'
+              ' -k http://127.0.0.1:8080')
+
+    parser = argparse.ArgumentParser(epilog=epilog)
     parser.add_argument(
         '--listen-interface', '-i', type=str, help='Interface to listen on')
     parser.add_argument(
         '--listen-port', '-p', type=int, help='Port to listen on')
     parser.add_argument(
-        'etcd_uri', type=str, nargs=1, help='Full URI for etcd')
+        '--etcd-uri', '-e', type=str, required=True,
+        help='Full URI for etcd EX: http://127.0.0.1:2379')
+    parser.add_argument(
+        '--kube-uri', '-k', type=str, required=True,
+        help='Full URI for kubernetes EX: http://127.0.0.1:8080')
     args = parser.parse_args()
 
     try:
-        etcd_uri = urlparse.urlparse(args.etcd_uri[0])
-        # Verify we have what we need
-        if None in (etcd_uri.port, etcd_uri.hostname, etcd_uri.scheme):
-            raise Exception
-    except:
-        parser.error(
-            'You must provide a full etcd URI. EX: http://127.0.0.1:2379')
+        etcd_uri = parse_uri(args.etcd_uri, 'etcd')
+        kube_uri = parse_uri(args.kube_uri, 'kube')
+    except Exception as ex:
+        parser.error(ex)
 
     ds = etcd.Client(host=etcd_uri.hostname, port=etcd_uri.port)
 
@@ -212,7 +237,22 @@ def main():  # pragma: no cover
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
     port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
 
-    POOLS['investigator'].spawn(investigator, INVESTIGATE_QUEUE, ds)
+    # TODO: Make this an instance of a configuration class
+    try:
+        connection_config = {
+            'etcd': {
+                'uri': etcd_uri,
+            },
+            'kubernetes': {
+                'uri': kube_uri,
+                'token': ds.get('/commissaire/config/kubetoken').value,
+            }
+        }
+        logging.debug('Connection config: {0}'.format(connection_config))
+        POOLS['investigator'].spawn(
+            investigator, INVESTIGATE_QUEUE, connection_config, ds)
+    except etcd.EtcdKeyNotFound:
+        parser.error('"/commissaire/config/kubetoken" must be set in etcd!')
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
     # router_thread = gevent.spawn(router, ROUTER_QUEUE)
 

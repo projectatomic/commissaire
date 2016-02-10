@@ -30,6 +30,8 @@ class OSCmdBase:
     flanneld_config = '/etc/sysconfig/flanneld'
     #: Full path to kubernetes configuration file
     kubernetes_config = '/etc/kubernetes/config'
+    #: Full path to kubernetes kubeconfig file
+    kubernetes_kubeconfig = '/var/lib/kubelet/kubeconfig'
     #: Full path to kubelet configuration file
     kubelet_config = '/etc/kubernetes/kubelet'
 

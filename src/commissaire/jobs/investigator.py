@@ -23,7 +23,10 @@ import os
 import sys
 import tempfile
 
+import gevent
+
 from commissaire.compat.b64 import base64
+from commissaire.containermgr.kubernetes import KubeContainerManager
 from commissaire.oscmd import get_oscmd
 from commissaire.transport import ansibleapi
 
@@ -46,12 +49,14 @@ def clean_up_key(key_file):
             '{0}. Exception:{1}'.format(key_file, exc_msg))
 
 
-def investigator(queue, store, run_once=False):
+def investigator(queue, connection_config, store, run_once=False):
     """
     Investigates new hosts to retrieve and store facts.
 
     :param queue: Queue to pull work from.
     :type queue: gevent.queue.Queue
+    :param connection_config: External resource connection information.
+    :type connection_config: dict
     :param store: Data store to place results.
     :type store: etcd.Client
     """
@@ -109,7 +114,7 @@ def investigator(queue, store, run_once=False):
         oscmd = get_oscmd(data['os'])()
         try:
             result, facts = transport.bootstrap(
-                address, key_file, (store.host, store.port), oscmd)
+                address, key_file, connection_config, oscmd)
             data['status'] = 'inactive'
             store.set(key, json.dumps(data))
         except:
@@ -122,21 +127,35 @@ def investigator(queue, store, run_once=False):
             if run_once:
                 break
             continue
-        # # Associate with the container manager
-        # try:
-        #     result, facts = transport.associate(address, key_file, oscmd)
-        #     data['status'] = 'active'
-        # except:
-        #     logger.warn('Unable to bootstrap {0}'.format(address))
-        #     exc = sys.exc_info()[0]
-        #     logger.debug('{0} Exception: {1}'.format(address, exc))
-        #     data['status'] = 'inactive'
-        # store.set(key, json.dumps(data))
-        # logger.info(
-        #     'Finished bootstrapping for {0}'.format(address))
-        # logging.debug('Finished bootstrapping for {0}: {1}'.format(
-        #     address, data))
-        # # ---
+
+        # Verify association with the container manager
+        try:
+            container_mgr = KubeContainerManager(connection_config)
+            # Try 3 times waiting 5 seconds each time before giving up
+            for cnt in range(0, 3):
+                if container_mgr.node_registered(address):
+                    logger.info(
+                        '{0} has been registered with the container manager.')
+                    data['status'] = 'active'
+                    break
+                if cnt == 3:
+                    raise Exception(
+                        'Could not register with the container manager')
+                logger.debug(
+                    '{0} has not been registered with the container manager. '
+                    'Checking again in 5 seconds...'.format(address))
+                gevent.sleep(5)
+        except:
+            logger.warn('Unable to bootstrap {0}'.format(address))
+            exc = sys.exc_info()[0]
+            logger.debug('{0} Exception: {1}'.format(address, exc))
+            data['status'] = 'inactive'
+
+        store.set(key, json.dumps(data))
+        logger.info(
+            'Finished bootstrapping for {0}'.format(address))
+        logging.debug('Finished bootstrapping for {0}: {1}'.format(
+            address, data))
 
         clean_up_key(key_file)
         if run_once:
