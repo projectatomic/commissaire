@@ -30,6 +30,8 @@ class OSCmdBase:
     flanneld_config = '/etc/sysconfig/flanneld'
     #: Full path to kubernetes configuration file
     kubernetes_config = '/etc/kubernetes/config'
+    #: Full path to kubernetes kubeconfig file
+    kubernetes_kubeconfig = '/var/lib/kubelet/kubeconfig'
     #: Full path to kubelet configuration file
     kubelet_config = '/etc/kubernetes/kubelet'
 
@@ -117,6 +119,17 @@ class OSCmdBase:
         """
         raise NotImplementedError(
             '{0}.start_kube() must be overriden.'.format(
+                self.__class__.__name__))
+
+    def start_kube_proxy(self):
+        """
+        Start Kube Proxy command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.start_kube_proxy() must be overriden.'.format(
                 self.__class__.__name__))
 
 

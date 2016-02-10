@@ -98,3 +98,12 @@ class OSCmd(OSCmdBase):
         :rtype: list
         """
         return ['systemctl', 'start', 'kubelet']
+
+    def start_kube_proxy(self):
+        """
+        Fedora start Kube Proxy command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['systemctl', 'start', 'kube-proxy']

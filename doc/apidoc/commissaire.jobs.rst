@@ -11,5 +11,6 @@ Submodules
 
 .. toctree::
 
+   commissaire.jobs.clusterexec
    commissaire.jobs.investigator
 

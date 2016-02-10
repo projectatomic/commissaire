@@ -17,6 +17,7 @@ Test cases for the commissaire.transport.ansibleapi module.
 """
 
 import logging
+import urlparse
 
 from . import TestCase, get_fixture_file_path
 
@@ -131,8 +132,19 @@ class Test_Transport(TestCase):
             transport = ansibleapi.Transport()
             transport.variable_manager._fact_cache = {}
             oscmd = MagicMock(OSCmdBase)
+
+            connection_config = {
+                'etcd': {
+                    'uri': urlparse.urlparse('http://127.0.0.1:4321'),
+                },
+                'kubernetes': {
+                    'uri': urlparse.urlparse('http://127.0.0.1:8080'),
+                    'token': 'token',
+                }
+            }
+
             result, facts = transport.bootstrap(
-                '10.2.0.2', 'test/fake_key', ('127.0.0.1', 8080), oscmd)
+                '10.2.0.2', 'test/fake_key', connection_config, oscmd)
             # We should have a successful response
             self.assertEquals(0, result)
             # We should see expected calls
@@ -140,3 +152,4 @@ class Test_Transport(TestCase):
             self.assertEquals(1, oscmd.start_docker.call_count)
             self.assertEquals(1, oscmd.install_kube.call_count)
             self.assertEquals(1, oscmd.start_kube.call_count)
+            self.assertEquals(1, oscmd.start_kube_proxy.call_count)

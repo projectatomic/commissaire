@@ -44,7 +44,8 @@ class Test_Status(TestCase):
         )
 
         # Make sure a Cluster is accepted as expected
-        status_model = status.Status(etcd={}, investigator={}, clusterexecpool={})
+        status_model = status.Status(
+            etcd={}, investigator={}, clusterexecpool={})
         self.assertEquals(type(str()), type(status_model.to_json()))
 
 

@@ -13,30 +13,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test cases for the commissaire.oscmd.atomic module.
+The container manager package.
 """
 
-from . import TestCase
-from commissaire.oscmd import atomic
+import logging
 
 
-class Test_Atomic_OSCmd(TestCase):
+class ContainerManagerBase(object):  # pragma: no cover
     """
-    Tests for the OSCmd class for Atomic.
+    Base class for all container managers.
     """
 
-    def before(self):
+    def __init__(self):
         """
-        Sets up a fresh instance of the class before each run.
+        Creates a new instance of the ContainerManagerBase.
         """
-        self.instance = atomic.OSCmd()
+        self.logger = logging.getLogger('containermgr')
 
-    def test_atomic_oscmd_commands(self):
+    def node_registered(self, name):
         """
-        Verify Fedora's OSCmd returns proper data on restart.
+        Checks is a node was registered.
+
+        :param name: The name of the node.
+        :type name: str
+        :returns: True if registered, otherwise False
+        :rtype: bool
         """
-        for meth in ('restart', 'upgrade', 'install_docker',
-                     'start_docker', 'install_flannel', 'start_flannel',
-                     'install_kube', 'start_kube', 'start_kube_proxy'):
-            cmd = getattr(self.instance, meth)()
-            self.assertEquals(list, type(cmd))
+        raise NotImplementedError(
+            'ContainerManagerBase().node_registered() must be overridden.')

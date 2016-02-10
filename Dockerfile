@@ -20,4 +20,4 @@ RUN dnf remove -y gcc git redhat-rpm-config libffi-devel && dnf clean all
 
 EXPOSE 8000
 WORKDIR /commissaire
-CMD . /environment/bin/activate && python src/commissaire/script.py ${ETCD}
+CMD . /environment/bin/activate && python src/commissaire/script.py -e ${ETCD} -k ${KUBE}

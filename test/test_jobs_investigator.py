@@ -19,6 +19,7 @@ Test cases for the commissaire.jobs.investigator module.
 import etcd
 import mock
 import os
+import urlparse
 
 from . import TestCase
 from commissaire.jobs.investigator import clean_up_key, investigator
@@ -79,8 +80,18 @@ class Test_JobsInvestigator(TestCase):
             }
             ssh_priv_key = 'dGVzdAo='
 
+            connection_config = {
+                'etcd': {
+                    'uri': urlparse.urlparse('http://127.0.0.1:4321'),
+                },
+                'kubernetes': {
+                    'uri': urlparse.urlparse('http://127.0.0.1:8080'),
+                    'token': 'token',
+                }
+            }
+
             q.put_nowait((to_investigate, ssh_priv_key))
-            investigator(q, client, True)
+            investigator(q, connection_config, client, True)
 
             self.assertEquals(1, client.get.call_count)
             self.assertEquals(2, client.set.call_count)
