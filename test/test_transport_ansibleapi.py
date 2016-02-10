@@ -47,6 +47,8 @@ class Test_LogForward(TestCase):
         Verify failed results uses the logger.
         """
         result = TaskResult('127.0.0.1', Task(), {'exception': 'error'})
+        result._host = MagicMock()
+        result._host.get_name.return_value = '127.0.0.1'
 
         self.logforward.v2_runner_on_failed(result)
         self.assertEqual(1, self.logforward.log.warn.call_count)
