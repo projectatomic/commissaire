@@ -20,6 +20,7 @@ import falcon
 import json
 
 from commissaire.authentication import Authenticator
+from commissaire.compat import exception
 from commissaire.compat.b64 import base64
 
 
@@ -74,7 +75,8 @@ class HTTPBasicAuthByFile(_HTTPBasicAuth):
             with open(self.filepath, 'r') as afile:
                 self._data = json.load(afile)
                 self.logger.info('Loaded authentication data from local file.')
-        except (ValueError, IOError) as ve:
+        except:
+            _, ve, _ = exception.raise_if_not((ValueError, IOError))
             self.logger.warn(
                 'Denying all access due to problem parsing '
                 'JSON file: {0}'.format(ve))
@@ -129,12 +131,14 @@ class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
             self._data = json.loads(d.value)
             self.logger.info('Loaded authentication data from Etcd.')
             # TODO: Watch endpoint and reload on changes
-        except etcd.EtcdKeyNotFound as eknf:
+        except etcd.EtcdKeyNotFound:
+            _, eknf, _ = exception.raise_if_not(etcd.EtcdKeyNotFound)
             self.logger.warn(
                 'User configuration not found in Etcd. Raising...')
             self._data = {}
             raise eknf
-        except ValueError as ve:
+        except ValueError:
+            _, ve, _ = exception.raise_if_not(ValueError)
             self.logger.warn(
                 'User configuration in Etcd is not valid JSON. Raising...')
             raise ve

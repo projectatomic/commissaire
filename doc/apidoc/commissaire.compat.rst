@@ -12,4 +12,6 @@ Submodules
 .. toctree::
 
    commissaire.compat.b64
+   commissaire.compat.exception
+   commissaire.compat.urlparser
 

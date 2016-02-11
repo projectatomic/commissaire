@@ -31,6 +31,7 @@ import gevent
 from gevent.pywsgi import WSGIServer
 
 from commissaire.compat.urlparser import urlparse
+from commissaire.compat import exception
 from commissaire.config import Config, cli_etcd_or_default
 from commissaire.handlers.clusters import (
     ClustersResource, ClusterResource,
@@ -189,7 +190,8 @@ def main():  # pragma: no cover
     try:
         config.etcd['uri'] = parse_uri(args.etcd_uri, 'etcd')
         config.kubernetes['uri'] = parse_uri(args.kube_uri, 'kube')
-    except Exception as ex:
+    except Exception:
+        _, ex, _ = exception.raise_if_not(Exception)
         parser.error(ex)
 
     ds = etcd.Client(
@@ -203,7 +205,8 @@ def main():  # pragma: no cover
         with open('./conf/logger.json', 'r') as logging_default_cfg:
             logging.config.dictConfig(json.loads(logging_default_cfg.read()))
             logging.warn('No logger configuration in Etcd. Using defaults.')
-    except etcd.EtcdConnectionFailed as ecf:
+    except etcd.EtcdConnectionFailed:
+        _, ecf, _ = exception.raise_if_not(etcd.EtcdConnectionFailed)
         err = 'Unable to connect to Etcd: {0}. Exiting ...'.format(ecf)
         logging.fatal(err)
         parser.error('{0}\n'.format(err))
