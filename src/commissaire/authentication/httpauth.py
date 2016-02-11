@@ -49,6 +49,26 @@ class _HTTPBasicAuth(Authenticator):
         # Default meaning no user or password
         return (None, None)
 
+    def authenticate(self, req, resp):
+        """
+        Implements the authentication logic.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :raises: falcon.HTTPForbidden
+        """
+        user, passwd = self._decode_basic_auth(req)
+        if user is not None and passwd is not None:
+            if user in self._data.keys():
+                hashed = self._data[user]['hash'].encode('utf-8')
+                if bcrypt.hashpw(passwd.encode('utf-8'), hashed) == hashed:
+                    return  # Authentication is good
+
+        # Forbid by default
+        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
+
 
 class HTTPBasicAuthByFile(_HTTPBasicAuth):
     """
@@ -81,27 +101,6 @@ class HTTPBasicAuthByFile(_HTTPBasicAuth):
                 'Denying all access due to problem parsing '
                 'JSON file: {0}'.format(ve))
             self._data = {}
-
-    def authenticate(self, req, resp):
-        """
-        Implements the authentication logic.
-
-        :param req: Request instance that will be passed through.
-        :type req: falcon.Request
-        :param resp: Response instance that will be passed through.
-        :type resp: falcon.Response
-        :raises: falcon.HTTPForbidden
-        """
-        user, passwd = self._decode_basic_auth(req)
-        if user is not None and passwd is not None:
-            if user in self._data.keys():
-                if bcrypt.hashpw(
-                        passwd.encode('utf-8'),
-                        self._data[user]['hash'].encode('utf-8')):
-                    return  # Authentication is good
-
-        # Forbid by default
-        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
 
 
 class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
@@ -142,24 +141,3 @@ class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
             self.logger.warn(
                 'User configuration in Etcd is not valid JSON. Raising...')
             raise ve
-
-    def authenticate(self, req, resp):
-        """
-        Implements the authentication logic.
-
-        :param req: Request instance that will be passed through.
-        :type req: falcon.Request
-        :param resp: Response instance that will be passed through.
-        :type resp: falcon.Response
-        :raises: falcon.HTTPForbidden
-        """
-        user, passwd = self._decode_basic_auth(req)
-        if user is not None and passwd is not None:
-            if user in self._data.keys():
-                if bcrypt.hashpw(
-                        passwd.encode('utf-8'),
-                        self._data[user]['hash'].encode('utf-8')):
-                    return  # Authentication is good
-
-        # Forbid by default
-        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')

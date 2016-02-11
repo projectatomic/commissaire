@@ -123,6 +123,20 @@ class TestHTTPBasicAuthByFile(TestCase):
             self.http_basic_auth_by_file.authenticate,
             req, resp)
 
+    def test_authenticate_with_invalid_password(self):
+        """
+        Verify authenticate denies with a proper JSON file, Authorization header, and the wrong password.
+        """
+        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+            self.user_config)
+        req = falcon.Request(
+            create_environ(headers={'Authorization': 'basic YTpiCg=='}))
+        resp = falcon.Response()
+        self.assertRaises(
+            falcon.HTTPForbidden,
+            self.http_basic_auth_by_file.authenticate,
+            req, resp)
+
 
 class TestHTTPBasicAuthByEtcd(TestCase):
     """
@@ -207,6 +221,28 @@ class TestHTTPBasicAuthByEtcd(TestCase):
         # Test the call
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic Yjpi'}))
+        resp = falcon.Response()
+        self.assertRaises(
+            falcon.HTTPForbidden,
+            self.http_basic_auth_by_etcd.authenticate,
+            req, resp)
+        self.assertEquals(1, self.ds.get.call_count)
+
+    def test_authenticate_with_invalid_password(self):
+        """
+        Verify authenticate denies with a proper JSON file, Authorization header, and the wrong password.
+        """
+        # Mock the return of the Etcd get result
+        return_value = mock.MagicMock(etcd.EtcdResult)
+        with open(self.user_config, 'r') as users_file:
+            return_value.value = users_file.read()
+        self.ds.get.return_value = return_value
+
+        # Reload with the data from the mock'd Etcd
+        self.http_basic_auth_by_etcd.load()
+
+        req = falcon.Request(
+            create_environ(headers={'Authorization': 'basic YTpiCg=='}))
         resp = falcon.Response()
         self.assertRaises(
             falcon.HTTPForbidden,
