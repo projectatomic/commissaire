@@ -32,19 +32,6 @@ From the repo root...
    ...
    (virtualenv)$ python setup.py nosetests
 
-Adding a Host Manually
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. todo::
-
-   Remove this once container registration work is merged.
-
-Verify that etcd is running then execute...
-
-.. code-block:: shell
-
-   (virtualenv)$ etcdctl set /commissaire/hosts/10.0.0.1 '{"address": "10.0.0.1","status": "available","os": "atomic","cpus": 2,"memory": 11989228,"space": 487652,"last_check": "2015-12-17T15:48:18.710454","ssh_priv_key": "dGVzdAo=", "cluster": "default"}'
-
 (Optional): Put Configs in Etcd
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 commissaire will default back to the local files but using Etcd is where configuration should be stored.
@@ -95,3 +82,22 @@ To run the image specify the ETCD and KUBE variables pointing towards the specif
 
     docker run -d -e ETCD=http://127.0.0.1:2379 -e KUBE=http://127.0.0.1:8080 commissaire
     ...
+
+Adding a Cluster
+~~~~~~~~~~~~~~~~
+Verify that Commissaire is running as a container or in the virtual environment then execute...
+
+.. code-block:: shell
+
+   curl -u "a:a" -XPUT -H "Content-Type: application/json" http://localhost:8000/api/v0/cluster/datacenter1
+   ...
+
+
+Adding a Host
+~~~~~~~~~~~~~
+Verify that Commissaire is running as a container or in the virtual environment then execute...
+
+.. code-block:: shell
+
+   curl -u "a:a" -XPUT -H "Content-Type: application/json" http://localhost:8000/api/v0/host/192.168.1.100 -d '{"host": "192.168.1.100", "cluster": "datacenter1", "ssh_priv_key": "dGVzdAo="}'
+   ...
