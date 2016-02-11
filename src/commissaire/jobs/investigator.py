@@ -49,14 +49,14 @@ def clean_up_key(key_file):
             '{0}. Exception:{1}'.format(key_file, exc_msg))
 
 
-def investigator(queue, connection_config, store, run_once=False):
+def investigator(queue, config, store, run_once=False):
     """
     Investigates new hosts to retrieve and store facts.
 
     :param queue: Queue to pull work from.
     :type queue: gevent.queue.Queue
-    :param connection_config: External resource connection information.
-    :type connection_config: dict
+    :param config: Configuration information.
+    :type config: commissaire.config.Config
     :param store: Data store to place results.
     :type store: etcd.Client
     """
@@ -114,7 +114,7 @@ def investigator(queue, connection_config, store, run_once=False):
         oscmd = get_oscmd(data['os'])()
         try:
             result, facts = transport.bootstrap(
-                address, key_file, connection_config, oscmd)
+                address, key_file, config, oscmd)
             data['status'] = 'inactive'
             store.set(key, json.dumps(data))
         except:
@@ -130,7 +130,7 @@ def investigator(queue, connection_config, store, run_once=False):
 
         # Verify association with the container manager
         try:
-            container_mgr = KubeContainerManager(connection_config)
+            container_mgr = KubeContainerManager(config)
             # Try 3 times waiting 5 seconds each time before giving up
             for cnt in range(0, 3):
                 if container_mgr.node_registered(address):

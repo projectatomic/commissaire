@@ -297,7 +297,7 @@ class Transport:
 
         return (result, facts)
 
-    def bootstrap(self, ip, key_file, connection_config, oscmd):
+    def bootstrap(self, ip, key_file, config, oscmd):
         """
         Bootstraps a host via ansible.
 
@@ -305,8 +305,8 @@ class Transport:
         :type ip: str
         :param key_file: Full path the the file holding the private SSH key.
         :type key_file: str
-        :param connection_config: External resource connection information.
-        :type connection_config: dict
+        :param config: Configuration information.
+        :type config: commissaire.config.Config
         :param oscmd: OSCmd instance to useS
         :type oscmd: commissaire.oscmd.OSCmdBase
         :returns: tuple -- (exitcode(int), facts(dict)).
@@ -322,16 +322,13 @@ class Transport:
             resource_filename('commissaire', 'data/templates/'))
         tpl_vars = {
             'bootstrap_ip': ip,
-            'kubernetes_api_server_host': connection_config.get(
-                'kubernetes')['uri'].hostname,
-            'kubernetes_api_server_port': connection_config.get(
-                'kubernetes')['uri'].port,
-            'kubernetes_bearer_token': connection_config.get(
-                'kubernetes')['token'],
+            'kubernetes_api_server_host': config.kubernetes['uri'].hostname,
+            'kubernetes_api_server_port': config.kubernetes['uri'].port,
+            'kubernetes_bearer_token': config.kubernetes['token'],
             'docker_registry_host': '127.0.0.1',  # TODO: Where do we get this?
             'docker_registry_port': 8080,  # TODO: Where do we get this?
-            'etcd_host': connection_config['etcd']['uri'].hostname,
-            'etcd_port': connection_config['etcd']['uri'].port,
+            'etcd_host': config.etcd['uri'].hostname,
+            'etcd_port': config.etcd['uri'].port,
             'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
         }
         tpl_env = jinja2.Environment()

@@ -26,18 +26,18 @@ class ContainerManager(ContainerManagerBase):
     Kubernetes container manager implementation.
     """
 
-    def __init__(self, connection_config):
+    def __init__(self, config):
         """
         Creates an instance of the Kubernetes Container Manager.
 
-        :param connection_config: External resource connection information.
-        :type connection_config: dict
+        :param config: Configuration information.
+        :type config: commissaire.config.Config
         """
         ContainerManagerBase.__init__(self)
-        self.host = connection_config['kubernetes']['uri'].hostname
-        self.port = connection_config['kubernetes']['uri'].port
+        self.host = config.kubernetes['uri'].hostname
+        self.port = config.kubernetes['uri'].port
         self.con = requests.Session()
-        token = connection_config['kubernetes']['token']
+        token = config.kubernetes['token']
         self.con.headers["Authorization"] = "Bearer {0}".format(token)
         # TODO: Verify TLS!!!
         self.con.verify = False

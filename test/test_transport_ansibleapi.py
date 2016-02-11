@@ -24,6 +24,7 @@ from . import TestCase, get_fixture_file_path
 from ansible.executor.task_result import TaskResult
 from ansible.inventory import Host
 from ansible.playbook.task import Task
+from commissaire.config import Config
 from commissaire.transport import ansibleapi
 from commissaire.oscmd import OSCmdBase
 from mock import MagicMock, patch
@@ -135,18 +136,18 @@ class Test_Transport(TestCase):
             transport.variable_manager._fact_cache = {}
             oscmd = MagicMock(OSCmdBase)
 
-            connection_config = {
-                'etcd': {
+            config = Config(
+                etcd={
                     'uri': urlparse.urlparse('http://127.0.0.1:4321'),
                 },
-                'kubernetes': {
+                kubernetes={
                     'uri': urlparse.urlparse('http://127.0.0.1:8080'),
                     'token': 'token',
                 }
-            }
+            )
 
             result, facts = transport.bootstrap(
-                '10.2.0.2', 'test/fake_key', connection_config, oscmd)
+                '10.2.0.2', 'test/fake_key', config, oscmd)
             # We should have a successful response
             self.assertEquals(0, result)
             # We should see expected calls
