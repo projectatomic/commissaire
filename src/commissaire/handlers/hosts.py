@@ -23,6 +23,7 @@ import json
 from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.resource import Resource
 from commissaire.handlers.models import Cluster, Host, Hosts
+import commissaire.handlers.util as util
 
 
 class HostsResource(Resource):
@@ -80,15 +81,14 @@ class HostResource(Resource):
         """
         # TODO: Verify input
         try:
-            host = self.store.get('/commissaire/hosts/{0}'.format(address))
-            self.logger.debug('Etcd Response: {0}'.format(host))
+            etcd_resp = self.store.get(util.etcd_host_key(address))
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
             return
 
         resp.status = falcon.HTTP_200
-        host.address = address
-        req.context['model'] = Host(**json.loads(host.value))
+        req.context['model'] = Host(**json.loads(etcd_resp.value))
 
     def on_put(self, req, resp, address):
         """
@@ -102,9 +102,9 @@ class HostResource(Resource):
         :type address: str
         """
         # TODO: Verify input
+        key = util.etcd_host_key(address)
         try:
-            host = self.store.get('/commissaire/hosts/{0}'.format(address))
-            self.logger.debug('Etcd Response: {0}'.format(host))
+            host = self.store.get(key)
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
@@ -127,40 +127,17 @@ class HostResource(Resource):
         # Verify the cluster exists, if given.  Do it now
         # so we can fail before writing anything to etcd.
         if cluster_name:
-            # XXX: Based on ClusterSingleHostResource.on_put().
-            #      Add a util module to share common operations.
-            cluster_key = '/commissaire/clusters/{0}'.format(cluster_name)
-            try:
-                etcd_resp = self.store.get(cluster_key)
-                self.logger.info(
-                    'Request for cluster {0}'.format(cluster_name))
-                self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
-            except etcd.EtcdKeyNotFound:
-                self.logger.info(
-                    'Request for non-existent cluster {0}.'.format(
-                        cluster_name))
+            if not util.etcd_cluster_exists(self, cluster_name):
                 resp.status = falcon.HTTP_409
                 return
-            cluster = Cluster(**json.loads(etcd_resp.value))
-            hostset = set(cluster.hostset)
-            hostset.add(address)  # Ensures no duplicates
-            cluster.hostset = list(hostset)
 
         host = Host(**host_creation)
-        new_host = self.store.set(
-            '/commissaire/hosts/{0}'.format(
-                address), host.to_json(secure=True))
+        new_host = self.store.set(key, host.to_json(secure=True))
         INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
 
         # Add host to the requested cluster.
         if cluster_name:
-            # FIXME: Should guard against races here, since we're fetching
-            #        the cluster record and writing it back with some parts
-            #        unmodified.  Use either locking or a conditional write
-            #        with the etcd 'modifiedIndex'.  Deferring for now.
-            self.store.set(cluster_key, cluster.to_json(secure=True))
-            self.logger.info('Added host {0} to cluster {1}'.format(
-                address, cluster_name))
+            util.etcd_cluster_add_host(self, cluster_name, address)
 
         resp.status = falcon.HTTP_201
         req.context['model'] = Host(**json.loads(new_host.value))
@@ -178,8 +155,7 @@ class HostResource(Resource):
         """
         resp.body = '{}'
         try:
-            host = self.store.delete(
-                '/commissaire/hosts/{0}'.format(address))
+            host = self.store.delete(util.etcd_host_key(address))
             resp.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404

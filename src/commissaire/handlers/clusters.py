@@ -25,6 +25,7 @@ from commissaire.resource import Resource
 from commissaire.jobs import POOLS, clusterexec
 from commissaire.handlers.models import (
     Cluster, Clusters, ClusterRestart, ClusterUpgrade, Host)
+import commissaire.handlers.util as util
 
 
 class ClustersResource(Resource):
@@ -112,19 +113,11 @@ class ClusterResource(Resource):
         :param name: The name of the Cluster being requested.
         :type name: str
         """
-        key = '/commissaire/clusters/{0}'.format(name)
-        try:
-            etcd_resp = self.store.get(key)
-            self.logger.info(
-                'Request for cluster {0}.'.format(name))
-            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
-        except etcd.EtcdKeyNotFound:
-            self.logger.info(
-                'Request for non-existent cluster {0}.'.format(name))
+        cluster = util.get_cluster_model(self, name)
+        if not cluster:
             resp.status = falcon.HTTP_404
             return
 
-        cluster = Cluster(**json.loads(etcd_resp.value))
         self._calculate_hosts(cluster)
         # Have to set resp.body explicitly to include Hosts.
         resp.body = cluster.to_json_with_hosts()
@@ -144,19 +137,17 @@ class ClusterResource(Resource):
         # PUT is idempotent, and since there's no body to this request,
         # there's nothing to conflict with.  The request should always
         # succeed, even if we didn't actually do anything.
-        key = '/commissaire/clusters/{0}'.format(name)
-        try:
-            etcd_resp = self.store.get(key)
+        if util.etcd_cluster_exists(self, name):
             self.logger.info(
                 'Creation of already exisiting cluster {0} requested.'.format(
                     name))
-        except etcd.EtcdKeyNotFound:
+        else:
+            key = util.etcd_cluster_key(name)
             cluster = Cluster(status='ok', hostset=[])
             etcd_resp = self.store.set(key, cluster.to_json(secure=True))
             self.logger.info(
                 'Created cluster {0} per request.'.format(name))
             self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
-        cluster = Cluster(**json.loads(etcd_resp.value))
         resp.status = falcon.HTTP_201
 
     def on_delete(self, req, resp, name):
@@ -170,44 +161,23 @@ class ClusterResource(Resource):
         :param name: The name of the Cluster being deleted.
         :type name: str
         """
-        key = '/commissaire/clusters/{0}'.format(name)
         resp.body = '{}'
-        try:
-            self.store.delete(key)
-            resp.status = falcon.HTTP_410
-            self.logger.info(
-                'Deleted cluster {0} per request.'.format(name))
-        except etcd.EtcdKeyNotFound:
+        if not util.etcd_cluster_exists(self, name):
             self.logger.info(
                 'Deleting for non-existent cluster {0} requested.'.format(
                     name))
             resp.status = falcon.HTTP_404
+        else:
+            self.store.delete(util.etcd_cluster_key(name))
+            resp.status = falcon.HTTP_410
+            self.logger.info(
+                'Deleted cluster {0} per request.'.format(name))
 
 
 class ClusterHostsResource(Resource):
     """
     Resource for managing host membership in a Cluster.
     """
-
-    def get_cluster_model(self, name):
-        """
-        Returns a Cluster instance from the etcd record for the given
-        cluster name, if it exists, or else None.
-
-        :param name: Name of a cluster
-        :type name: str
-        """
-        key = '/commissaire/clusters/{0}'.format(name)
-        try:
-            etcd_resp = self.store.get(key)
-            self.logger.info(
-                'Request for cluster {0}.'.format(name))
-            self.logger.debug('{0}'.format(etcd_resp))
-        except etcd.EtcdKeyNotFound:
-            self.logger.info(
-                'Request for non-existent cluster {0}.'.format(name))
-            return None
-        return Cluster(**json.loads(etcd_resp.value))
 
     def on_get(self, req, resp, name):
         """
@@ -220,7 +190,7 @@ class ClusterHostsResource(Resource):
         :param name: The name of the Cluster being requested.
         :type name: str
         """
-        cluster = self.get_cluster_model(name)
+        cluster = util.get_cluster_model(self, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -251,7 +221,7 @@ class ClusterHostsResource(Resource):
             resp.status = falcon.HTTP_400
             return
 
-        cluster = self.get_cluster_model(name)
+        cluster = util.get_cluster_model(self, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -274,9 +244,8 @@ class ClusterHostsResource(Resource):
         #        unmodified.  Use either locking or a conditional write
         #        with the etcd 'modifiedIndex'.  Deferring for now.
 
-        key = '/commissaire/clusters/{0}'.format(name)
         cluster.hostset = list(new_hosts)
-        self.store.set(key, cluster.to_json(secure=True))
+        self.store.set(cluster.etcd.key, cluster.to_json(secure=True))
         resp.status = falcon.HTTP_200
 
 
@@ -300,7 +269,7 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :param address: The address of the Host being requested.
         :type address: str
         """
-        cluster = self.get_cluster_model(name)
+        cluster = util.get_cluster_model(self, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -324,26 +293,11 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :param address: The address of the Host being requested.
         :type address: str
         """
-        cluster = self.get_cluster_model(name)
-        if not cluster:
+        try:
+            util.etcd_cluster_add_host(self, name, address)
+            resp.status = falcon.HTTP_200
+        except KeyError:
             resp.status = falcon.HTTP_404
-            return
-
-        # FIXME: Need input validation.
-        #        - Does the host exist at /commissaire/hosts/{IP}?
-        #        - Does the host already belong to another cluster?
-
-        # FIXME: Should guard against races here, since we're fetching
-        #        the cluster record and writing it back with some parts
-        #        unmodified.  Use either locking or a conditional write
-        #        with the etcd 'modifiedIndex'.  Deferring for now.
-
-        key = '/commissaire/clusters/{0}'.format(name)
-        hostset = set(cluster.hostset)
-        hostset.add(address)  # Ensures no duplicates
-        cluster.hostset = list(hostset)
-        self.store.set(key, cluster.to_json(secure=True))
-        resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, name, address):
         """
@@ -359,21 +313,11 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :param address: The address of the Host being requested.
         :type address: str
         """
-        cluster = self.get_cluster_model(name)
-        if not cluster:
+        try:
+            util.etcd_cluster_remove_host(self, name, address)
+            resp.status = falcon.HTTP_200
+        except KeyError:
             resp.status = falcon.HTTP_404
-            return
-
-        # FIXME: Should guard against races here, since we're fetching
-        #        the cluster record and writing it back with some parts
-        #        unmodified.  Use either locking or a conditional write
-        #        with the etcd 'modifiedIndex'.  Deferring for now.
-
-        key = '/commissaire/clusters/{0}'.format(name)
-        if address in cluster.hostset:
-            cluster.hostset.remove(address)
-            self.store.set(key, cluster.to_json(secure=True))
-        resp.status = falcon.HTTP_200
 
 
 class ClusterRestartResource(Resource):
@@ -392,12 +336,9 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
-        cluster_key = '/commissaire/clusters/{0}'.format(name)
         key = '/commissaire/cluster/{0}/restart'.format(name)
         try:
-            try:
-                self.store.get(cluster_key)
-            except etcd.EtcdKeyNotFound:
+            if not util.etcd_cluster_exists(self, name):
                 self.logger.info(
                     'Restart GET requested for nonexistent cluster {0}'.format(
                         name))
@@ -463,12 +404,9 @@ class ClusterUpgradeResource(Resource):
         :param name: The name of the Cluster being upgraded.
         :type name: str
         """
-        cluster_key = '/commissaire/clusters/{0}'.format(name)
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         try:
-            try:
-                self.store.get(cluster_key)
-            except etcd.EtcdKeyNotFound:
+            if not util.etcd_cluster_exists(self, name):
                 self.logger.info(
                     'Upgrade GET requested for nonexistent cluster {0}'.format(
                         name))

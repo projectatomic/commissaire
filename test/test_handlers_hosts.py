@@ -249,7 +249,9 @@ class Test_HostResource(TestCase):
         """
 
         self.datasource.get.side_effect = (
-            etcd.EtcdKeyNotFound, MagicMock(value=self.etcd_cluster))
+            etcd.EtcdKeyNotFound,
+            MagicMock(value=self.etcd_cluster),
+            MagicMock(value=self.etcd_cluster))
         self.return_value.value = self.etcd_host
         data = ('{"ssh_priv_key": "dGVzdAo=",'
                 ' "cluster": "testing"}')

@@ -233,13 +233,21 @@ class Test_ClusterResource(TestCase):
         # Verify with proper deletion
         body = self.simulate_request(
             '/api/v0/cluster/development', method='DELETE')
+        # Get is called to verify cluster exists
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(1, self.datasource.delete.call_count)
         self.assertEquals(falcon.HTTP_410, self.srmock.status)
         self.assertEquals('{}', body[0])
 
         # Verify when key doesn't exist
-        self.datasource.delete.side_effect = etcd.EtcdKeyNotFound
+        self.datasource.get.reset_mock()
+        self.datasource.delete.reset_mock()
+        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
         body = self.simulate_request(
             '/api/v0/cluster/development', method='DELETE')
+        # Get is called to verify cluster exists
+        self.assertEquals(1, self.datasource.get.call_count)
+        self.assertEquals(0, self.datasource.delete.call_count)
         self.assertEquals(falcon.HTTP_404, self.srmock.status)
         self.assertEquals('{}', body[0])
 
