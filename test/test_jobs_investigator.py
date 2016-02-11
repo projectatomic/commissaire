@@ -83,7 +83,7 @@ class Test_JobsInvestigator(TestCase):
 
             connection_config = {
                 'etcd': {
-                    'uri': urlparse('http://127.0.0.1:4321'),
+                    'uri': urlparse('http://127.0.0.1:2379'),
                 },
                 'kubernetes': {
                     'uri': urlparse('http://127.0.0.1:8080'),
