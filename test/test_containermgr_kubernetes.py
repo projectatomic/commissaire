@@ -21,6 +21,7 @@ import urlparse
 from mock import MagicMock
 
 from . import TestCase
+from commissaire.config import Config
 from commissaire.containermgr.kubernetes import KubeContainerManager
 
 
@@ -33,16 +34,16 @@ class Test_KubeContainerManager(TestCase):
         """
         Verify that KuberContainerManager().node_registered() works as expected.
         """
-        connection_config = {
-            'etcd': {
+        config = Config(
+            etcd={
                 'uri': urlparse.urlparse('http://127.0.0.1:4321'),
             },
-            'kubernetes': {
+            kubernetes={
                 'uri': urlparse.urlparse('http://127.0.0.1:8080'),
                 'token': 'token',
             }
-        }
-        kube_container_mgr = KubeContainerManager(connection_config)
+        )
+        kube_container_mgr = KubeContainerManager(config)
         # First call should return True. The rest should be False.
         kube_container_mgr.con = MagicMock()
         kube_container_mgr.con.get = MagicMock(side_effect=(

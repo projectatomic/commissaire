@@ -31,6 +31,7 @@ import gevent
 
 from gevent.pywsgi import WSGIServer
 
+from commissaire.config import Config, cli_etcd_or_default
 from commissaire.handlers.clusters import (
     ClustersResource, ClusterResource,
     ClusterHostsResource, ClusterSingleHostResource,
@@ -139,35 +140,6 @@ def create_app(store):
     return app
 
 
-def cli_etcd_or_default(name, cli, default, ds):
-    """
-    Returns the value for an option in the following order:
-    CLI switch, etcd value, default.
-
-    :param name: The name of the switch/etcd key.
-    :type name: str
-    :param cli: The argparse value.
-    :type cli: list
-    :param default: The default value if CLI and etcd have no values.
-    :param ds: Etcd client
-    :type ds: etcd.Client
-    """
-    result = None
-    if cli:
-        result = cli[0]
-        logging.info('Using CLI for {0} configuration.'.format(name))
-    else:
-        try:
-            result = ds.get('/commissaire/config/{0}'.format(name)).value
-            logging.info('Using Etcd for {0} configuration.'.format(name))
-        except etcd.EtcdKeyNotFound:
-            logging.info(
-                'No CLI or etcd defined for {0}.'
-                ' Using default of {1}.'.format(name, default))
-            result = default
-    return result
-
-
 def parse_uri(uri, name):
     """
     Parses and returns a parsed URI.
@@ -194,6 +166,9 @@ def main():  # pragma: no cover
     Main script entry point.
     """
     import argparse
+    from commissaire.config import Config
+
+    config = Config()
 
     epilog = ('Example: ./commissaire -e http://127.0.0.1:2379'
               ' -k http://127.0.0.1:8080')
@@ -212,12 +187,13 @@ def main():  # pragma: no cover
     args = parser.parse_args()
 
     try:
-        etcd_uri = parse_uri(args.etcd_uri, 'etcd')
-        kube_uri = parse_uri(args.kube_uri, 'kube')
+        config.etcd['uri'] = parse_uri(args.etcd_uri, 'etcd')
+        config.kubernetes['uri'] = parse_uri(args.kube_uri, 'kube')
     except Exception as ex:
         parser.error(ex)
 
-    ds = etcd.Client(host=etcd_uri.hostname, port=etcd_uri.port)
+    ds = etcd.Client(
+        host=config.etcd['uri'].hostname, port=config.etcd['uri'].port)
 
     try:
         logging.config.dictConfig(
@@ -236,21 +212,15 @@ def main():  # pragma: no cover
     interface = cli_etcd_or_default(
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
     port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
+    config.etcd['listen'] = urlparse.urlparse('http://{0}:{1}'.format(
+        interface, port))
 
-    # TODO: Make this an instance of a configuration class
     try:
-        connection_config = {
-            'etcd': {
-                'uri': etcd_uri,
-            },
-            'kubernetes': {
-                'uri': kube_uri,
-                'token': ds.get('/commissaire/config/kubetoken').value,
-            }
-        }
-        logging.debug('Connection config: {0}'.format(connection_config))
+        config.kubernetes['token'] = ds.get(
+            '/commissaire/config/kubetoken').value
+        logging.debug('Config: {0}'.format(config))
         POOLS['investigator'].spawn(
-            investigator, INVESTIGATE_QUEUE, connection_config, ds)
+            investigator, INVESTIGATE_QUEUE, config, ds)
     except etcd.EtcdKeyNotFound:
         parser.error('"/commissaire/config/kubetoken" must be set in etcd!')
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
