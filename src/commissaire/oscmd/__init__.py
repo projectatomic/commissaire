@@ -35,6 +35,15 @@ class OSCmdBase:
     #: Full path to kubelet configuration file
     kubelet_config = '/etc/kubernetes/kubelet'
 
+    #: Docker service name
+    docker_service = 'docker'
+    #: Flannel service name
+    flannel_service = 'flanneld'
+    #: Kubernetes kubelet service name
+    kubelet_service = 'kubelet'
+    #: Kubernetes kube-proxy service name
+    kubelet_proxy_service = 'kube-proxy'
+
     def restart(self):
         """
         Restart command. Must be overriden.
@@ -66,17 +75,6 @@ class OSCmdBase:
             '{0}.install_docker() must be overriden.'.format(
                 self.__class__.__name__))
 
-    def start_docker(self):
-        """
-        Start Docker command. Must be overriden.
-
-        :return: The command to execute as a list
-        :rtype: list
-        """
-        raise NotImplementedError(
-            '{0}.start_docker() must be overriden.'.format(
-                self.__class__.__name__))
-
     def install_flannel(self):
         """
         Install Flannel command. Must be overriden.
@@ -88,17 +86,6 @@ class OSCmdBase:
             '{0}.install_flannel() must be overriden.'.format(
                 self.__class__.__name__))
 
-    def start_flannel(self):
-        """
-        Start Flannel command. Must be overriden.
-
-        :return: The command to execute as a list
-        :rtype: list
-        """
-        raise NotImplementedError(
-            '{0}.start_flannel() must be overriden.'.format(
-                self.__class__.__name__))
-
     def install_kube(self):
         """
         Install Kube command. Must be overriden.
@@ -108,28 +95,6 @@ class OSCmdBase:
         """
         raise NotImplementedError(
             '{0}.install_kube() must be overriden.'.format(
-                self.__class__.__name__))
-
-    def start_kube(self):
-        """
-        Start Kube command. Must be overriden.
-
-        :return: The command to execute as a list
-        :rtype: list
-        """
-        raise NotImplementedError(
-            '{0}.start_kube() must be overriden.'.format(
-                self.__class__.__name__))
-
-    def start_kube_proxy(self):
-        """
-        Start Kube Proxy command. Must be overriden.
-
-        :return: The command to execute as a list
-        :rtype: list
-        """
-        raise NotImplementedError(
-            '{0}.start_kube_proxy() must be overriden.'.format(
                 self.__class__.__name__))
 
 

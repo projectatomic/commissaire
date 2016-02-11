@@ -65,8 +65,9 @@ class LogForward(CallbackBase):
         """
         if 'exception' in result._result.keys():
             self.log.warn(
-                'An exception occurred: {0}'.format(
-                    result._result['exception']))
+                'An exception occurred for {0}: {1}'.format(
+                    result._host.get_name(), result._result['exception']))
+            self.log.debug('{0}'.format(result.__dict__))
 
     def v2_runner_on_ok(self, result):
         """
@@ -76,7 +77,9 @@ class LogForward(CallbackBase):
         :type result: ansible.executor.task_result.TaskResult
         """
         self._clean_results(result._result, result._task.action)
-        self.log.info('SUCCESS {0}'.format(result._host.get_name()))
+        self.log.info('SUCCESS {0}: {1}'.format(
+            result._host.get_name(), result._task.get_name().strip()))
+        self.log.debug('{0}'.format(result.__dict__))
 
     def v2_runner_on_skipped(self, result):
         """
@@ -85,7 +88,9 @@ class LogForward(CallbackBase):
         :param result: Ansible's result.
         :type result: ansible.executor.task_result.TaskResult
         """
-        self.log.warn('SKIPPED {0}'.format(result._host.get_name()))
+        self.log.warn('SKIPPED {0}: {1}'.format(
+            result._host.get_name(), result._task.get_name().strip()))
+        self.log.debug('{0}'.format(result.__dict__))
 
     def v2_runner_on_unreachable(self, result):
         """
@@ -94,9 +99,8 @@ class LogForward(CallbackBase):
         :param result: Ansible's result.
         :type result: ansible.executor.task_result.TaskResult
         """
-        self.log.warn('UNREACHABLE {0}'.format(
-            result._host.get_name(),
-            result._result))
+        self.log.warn('UNREACHABLE {0}: {1}'.format(
+            result._host.get_name(), result._task.get_name().strip()))
         self.log.debug('{0}'.format(result.__dict__))
 
     def v2_playbook_on_task_start(self, task, *args, **kwargs):
@@ -110,7 +114,8 @@ class LogForward(CallbackBase):
         :param kwargs: All other ignored keyword arguments.
         :type kwargs: dict
         """
-        self.log.info("TASK started: %s" % task.get_name().strip())
+        self.log.info("START TASK: {0}".format(task.get_name().strip()))
+        self.log.debug('{0}'.format(task.__dict__))
 
 
 class Transport:
@@ -346,90 +351,118 @@ class Transport:
             'gather_facts': 'no',
             'tasks': [
                 {
+                    'name': 'Install Flannel',
                     'action': {
                         'module': 'command',
                         'args': " ".join(oscmd.install_flannel()),
                     }
                 },
                 {
+                    'name': 'Configure Flannel',
                     'action': {
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.flanneld_config,
-                            'src': configs['flanneld']
+                            'src': configs['flanneld'],
                         }
                     }
                 },
                 {
+                    'name': 'Enable and Start Flannel',
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_flannel())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.flannel_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
                 {
+                    'name': 'Install Docker',
                     'action': {
                         'module': 'command',
                         'args': " ".join(oscmd.install_docker()),
                     }
                 },
                 {
+                    'name': 'Configure Docker',
                     'action': {
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.docker_config,
-                            'src': configs['docker']
+                            'src': configs['docker'],
                         }
                     }
                 },
                 {
+                    'name': 'Enable and Start Docker',
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_docker())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.docker_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
                 {
+                    'name': 'Install Kubernetes Node',
                     'action': {
                         'module': 'command',
-                        'args': " ".join(oscmd.install_kube())
+                        'args': " ".join(oscmd.install_kube()),
                     }
                 },
                 {
+                    'name': 'Configure Kubernetes Node',
                     'action': {
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubernetes_config,
-                            'src': configs['kube_config']
+                            'src': configs['kube_config'],
                         }
                     }
                 },
                 {
+                    'name': 'Add Kubernetes kubeconfig',
                     'action': {
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubernetes_kubeconfig,
-                            'src': configs['kubeconfig']
+                            'src': configs['kubeconfig'],
                         }
                     }
                 },
                 {
+                    'name': 'Configure Kubernetes kubelet',
                     'action': {
                         'module': 'synchronize',
                         'args': {
                             'dest': oscmd.kubelet_config,
-                            'src': configs['kubelet']
+                            'src': configs['kubelet'],
                         }
                     }
                 },
                 {
+                    'name': 'Enable and Start Kubelet',
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_kube())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.kubelet_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
                 {
+                    'name': 'Enable and Start Kube Proxy',
                     'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.start_kube_proxy())
+                        'module': 'service',
+                        'args': {
+                            'name': oscmd.kubelet_proxy_service,
+                            'enabled': 'yes',
+                            'state': 'started',
+                        }
                     }
                 },
             ]

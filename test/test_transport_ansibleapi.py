@@ -47,6 +47,8 @@ class Test_LogForward(TestCase):
         Verify failed results uses the logger.
         """
         result = TaskResult('127.0.0.1', Task(), {'exception': 'error'})
+        result._host = MagicMock()
+        result._host.get_name.return_value = '127.0.0.1'
 
         self.logforward.v2_runner_on_failed(result)
         self.assertEqual(1, self.logforward.log.warn.call_count)
@@ -149,7 +151,4 @@ class Test_Transport(TestCase):
             self.assertEquals(0, result)
             # We should see expected calls
             self.assertEquals(1, oscmd.install_docker.call_count)
-            self.assertEquals(1, oscmd.start_docker.call_count)
             self.assertEquals(1, oscmd.install_kube.call_count)
-            self.assertEquals(1, oscmd.start_kube.call_count)
-            self.assertEquals(1, oscmd.start_kube_proxy.call_count)
