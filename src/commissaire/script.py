@@ -23,7 +23,6 @@ import base64
 import json
 import logging
 import logging.config
-import urlparse
 
 import etcd
 import falcon
@@ -31,6 +30,7 @@ import gevent
 
 from gevent.pywsgi import WSGIServer
 
+from commissaire.compat.urlparser import urlparse
 from commissaire.config import Config, cli_etcd_or_default
 from commissaire.handlers.clusters import (
     ClustersResource, ClusterResource,
@@ -149,10 +149,10 @@ def parse_uri(uri, name):
     :param name: The name to use for errors.
     :type name: str
     :returns: A parsed URI.
-    :rtype: urlparse.urlparse.ParseResult
+    :rtype: ParseResult
     :raises: Exception
     """
-    parsed = urlparse.urlparse(uri)
+    parsed = urlparse(uri)
     # Verify we have what we need
     if not uri or None in (parsed.port, parsed.hostname, parsed.scheme):
         raise Exception(
@@ -212,7 +212,7 @@ def main():  # pragma: no cover
     interface = cli_etcd_or_default(
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
     port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
-    config.etcd['listen'] = urlparse.urlparse('http://{0}:{1}'.format(
+    config.etcd['listen'] = urlparse('http://{0}:{1}'.format(
         interface, port))
 
     try:
