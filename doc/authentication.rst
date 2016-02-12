@@ -20,6 +20,19 @@ using the same JSON schema.
    }
 
 
+Generating a hash
+~~~~~~~~~~~~~~~~~
+The following is a quick way to allow you to generate a hash.
+
+.. code-block:: shell
+
+   python -c "import bcrypt, getpass; print(bcrypt.hashpw(getpass.getpass(), bcrypt.gensalt()))"
+
+.. todo::
+
+   Replace this with a simple script.
+
+
 Example
 ~~~~~~~
 
@@ -33,10 +46,7 @@ Using Etcd
 To put the configuration in Etcd set the ``/commissaire/config/httpbasicauthbyuserlist`` key with
 valid JSON.
 
-.. code-block:: shell
-
-   (virtualenv)$ cat conf/users.json | etcdctl set '/commissaire/config/httpbasicauthbyuserlist'
-   ...
+.. include:: examples/etcd_authentication_example.rst
 
 
 Development Information

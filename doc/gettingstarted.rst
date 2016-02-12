@@ -3,9 +3,9 @@ Getting Started
 
 Development/Manual Installation
 --------------------------------
-To test out the current development code you will need the following installed:
+To test out the current code you will need the following installed:
 
-* Python2.6
+* Python2.6+
 * virtualenv
 * etcd2 (running)
 * Kubernetes Cluster with a bearer token for access (running)
@@ -14,49 +14,37 @@ To test out the current development code you will need the following installed:
 Set up virtualenv
 ~~~~~~~~~~~~~~~~~
 
-.. code-block:: shell
-
-   $ virtualenv /where/you/want/it/to/live
-   ...
-   (virtualenv)$ . /where/you/want/it/to/live/bin/activate
-   (virtualenv)$ pip install -r requirements.txt
-   ...
+.. include:: examples/setup_virtualenv.rst
 
 (Optional): Run Unittests
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-From the repo root...
+If you are running from the matest master it's a good idea to verify that all
+the unittests run. From the repo root...
 
-.. code-block:: shell
+.. include:: examples/run_unittest_example.rst
 
-   (virtualenv)$ pip install -r test-requirements.txt
-   ...
-   (virtualenv)$ python setup.py nosetests
 
 (Optional): Put Configs in Etcd
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 commissaire will default back to the local files but using Etcd is where configuration should be stored.
 
-.. code-block:: shell
+.. include:: examples/etcd_authentication_example.rst
 
-   (virtualenv)$ cat conf/users.json | etcdctl set '/commissaire/config/httpbasicauthbyuserlist'
-   ...
-   (virtualenv)$ cat conf/logger.json | etcdctl set '/commissaire/config/logger'
-   ...
+.. include:: examples/etcd_logging_example.rst
+
 
 Set The Kubernetes Bearer Token
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You'll also need to set the kubernetes bearer token.
+You'll also need to set the kubernetes bearer token in etcd.
 
-.. note:: There is no default bearer token!
+.. note:: There is no default for the bearer token!
 
-.. code-block:: shell
-
-   (virtualenv)$ etcdctl set '/commissaire/config/kubetoken' $KUBERNETES_ACCESS_TOKEN
+.. include:: examples/etcd_set_kube_bearer_token.rst
 
 
 (Optional): Build Docker Container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-From the repo root build the image...
+If you want to run from Docker and would like to build the image for yourself run...
 
 .. code-block:: shell
 
@@ -70,35 +58,22 @@ From Source
 ```````````
 From the repo root...
 
-.. code-block:: shell
-
-   (virtualenv)$ PYTHONPATH=`pwd`/src python src/commissaire/script.py -e http://127.0.0.1:2379 -k http://127.0.0.1:8080 &
-   ...
+.. include:: examples/run_from_source.rst
 
 Via Docker
 ``````````
 To run the image specify the ETCD and KUBE variables pointing towards the specific services.
 
-.. code-block:: shell
-
-    docker run -d -e ETCD=http://127.0.0.1:2379 -e KUBE=http://127.0.0.1:8080 docker.io/commissaire/amhm
-    ...
+.. include:: examples/run_via_docker.rst
 
 Adding a Cluster
 ~~~~~~~~~~~~~~~~
 Verify that Commissaire is running as a container or in the virtual environment then execute...
 
-.. code-block:: shell
-
-   curl -u "a:a" -XPUT -H "Content-Type: application/json" http://localhost:8000/api/v0/cluster/datacenter1
-   ...
-
+.. include:: examples/create_cluster.rst
 
 Adding a Host
 ~~~~~~~~~~~~~
 Verify that Commissaire is running as a container or in the virtual environment then execute...
 
-.. code-block:: shell
-
-   curl -u "a:a" -XPUT -H "Content-Type: application/json" http://localhost:8000/api/v0/host/192.168.1.100 -d '{"cluster": "datacenter1", "ssh_priv_key": "dGVzdAo="}'
-   ...
+.. include:: examples/create_host.rst
