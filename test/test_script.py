@@ -48,9 +48,9 @@ class Test_ParseUri(TestCase):
         """
         Verify parse_uri properly parses URIs.
         """
-        parsed = script.parse_uri('http://127.0.0.1:4321', 'test')
+        parsed = script.parse_uri('http://127.0.0.1:2379', 'test')
         self.assertEquals('127.0.0.1', parsed.hostname)
-        self.assertEquals(4321, parsed.port)
+        self.assertEquals(2379, parsed.port)
         self.assertEquals('http', parsed.scheme)
 
         for x in ('http://127.0.0.1:', 'http://127.0.0.1', 'http://1:a', ''):

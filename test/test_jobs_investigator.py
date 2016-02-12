@@ -19,9 +19,10 @@ Test cases for the commissaire.jobs.investigator module.
 import etcd
 import mock
 import os
-import urlparse
 
 from . import TestCase
+from commissaire.compat.urlparser import urlparse
+
 from commissaire.jobs.investigator import clean_up_key, investigator
 from gevent.queue import Queue
 from mock import MagicMock
@@ -82,10 +83,10 @@ class Test_JobsInvestigator(TestCase):
 
             connection_config = {
                 'etcd': {
-                    'uri': urlparse.urlparse('http://127.0.0.1:4321'),
+                    'uri': urlparse('http://127.0.0.1:2379'),
                 },
                 'kubernetes': {
-                    'uri': urlparse.urlparse('http://127.0.0.1:8080'),
+                    'uri': urlparse('http://127.0.0.1:8080'),
                     'token': 'token',
                 }
             }

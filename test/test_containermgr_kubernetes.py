@@ -16,11 +16,10 @@
 Test cases for the commissaire.oscmd module.
 """
 
-import urlparse
-
 from mock import MagicMock
 
 from . import TestCase
+from commissaire.compat.urlparser import urlparse
 from commissaire.config import Config
 from commissaire.containermgr.kubernetes import KubeContainerManager
 
@@ -36,10 +35,10 @@ class Test_KubeContainerManager(TestCase):
         """
         config = Config(
             etcd={
-                'uri': urlparse.urlparse('http://127.0.0.1:4321'),
+                'uri': urlparse('http://127.0.0.1:2379'),
             },
             kubernetes={
-                'uri': urlparse.urlparse('http://127.0.0.1:8080'),
+                'uri': urlparse('http://127.0.0.1:8080'),
                 'token': 'token',
             }
         )

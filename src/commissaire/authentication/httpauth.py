@@ -20,6 +20,7 @@ import falcon
 import json
 
 from commissaire.authentication import Authenticator
+from commissaire.compat import exception
 from commissaire.compat.b64 import base64
 
 
@@ -48,6 +49,26 @@ class _HTTPBasicAuth(Authenticator):
         # Default meaning no user or password
         return (None, None)
 
+    def authenticate(self, req, resp):
+        """
+        Implements the authentication logic.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        :raises: falcon.HTTPForbidden
+        """
+        user, passwd = self._decode_basic_auth(req)
+        if user is not None and passwd is not None:
+            if user in self._data.keys():
+                hashed = self._data[user]['hash'].encode('utf-8')
+                if bcrypt.hashpw(passwd.encode('utf-8'), hashed) == hashed:
+                    return  # Authentication is good
+
+        # Forbid by default
+        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
+
 
 class HTTPBasicAuthByFile(_HTTPBasicAuth):
     """
@@ -74,32 +95,12 @@ class HTTPBasicAuthByFile(_HTTPBasicAuth):
             with open(self.filepath, 'r') as afile:
                 self._data = json.load(afile)
                 self.logger.info('Loaded authentication data from local file.')
-        except (ValueError, IOError) as ve:
+        except:
+            _, ve, _ = exception.raise_if_not((ValueError, IOError))
             self.logger.warn(
                 'Denying all access due to problem parsing '
                 'JSON file: {0}'.format(ve))
             self._data = {}
-
-    def authenticate(self, req, resp):
-        """
-        Implements the authentication logic.
-
-        :param req: Request instance that will be passed through.
-        :type req: falcon.Request
-        :param resp: Response instance that will be passed through.
-        :type resp: falcon.Response
-        :raises: falcon.HTTPForbidden
-        """
-        user, passwd = self._decode_basic_auth(req)
-        if user is not None and passwd is not None:
-            if user in self._data.keys():
-                if bcrypt.hashpw(
-                        passwd.encode('utf-8'),
-                        self._data[user]['hash'].encode('utf-8')):
-                    return  # Authentication is good
-
-        # Forbid by default
-        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
 
 
 class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
@@ -129,33 +130,14 @@ class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
             self._data = json.loads(d.value)
             self.logger.info('Loaded authentication data from Etcd.')
             # TODO: Watch endpoint and reload on changes
-        except etcd.EtcdKeyNotFound as eknf:
+        except etcd.EtcdKeyNotFound:
+            _, eknf, _ = exception.raise_if_not(etcd.EtcdKeyNotFound)
             self.logger.warn(
                 'User configuration not found in Etcd. Raising...')
             self._data = {}
             raise eknf
-        except ValueError as ve:
+        except ValueError:
+            _, ve, _ = exception.raise_if_not(ValueError)
             self.logger.warn(
                 'User configuration in Etcd is not valid JSON. Raising...')
             raise ve
-
-    def authenticate(self, req, resp):
-        """
-        Implements the authentication logic.
-
-        :param req: Request instance that will be passed through.
-        :type req: falcon.Request
-        :param resp: Response instance that will be passed through.
-        :type resp: falcon.Response
-        :raises: falcon.HTTPForbidden
-        """
-        user, passwd = self._decode_basic_auth(req)
-        if user is not None and passwd is not None:
-            if user in self._data.keys():
-                if bcrypt.hashpw(
-                        passwd.encode('utf-8'),
-                        self._data[user]['hash'].encode('utf-8')):
-                    return  # Authentication is good
-
-        # Forbid by default
-        raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
