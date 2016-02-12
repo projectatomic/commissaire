@@ -17,7 +17,4 @@ Using Etcd
 To put the configuration in Etcd set the ``/commissaire/config/logger`` key with
 valid JSON.
 
-.. code-block:: shell
-
-   (virtualenv)$ cat conf/logger.json | etcdctl set '/commissaire/config/logger'
-   ...
+.. include:: examples/etcd_logging_example.rst
