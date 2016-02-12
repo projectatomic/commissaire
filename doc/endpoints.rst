@@ -109,6 +109,7 @@ Removes host {IP} from cluster. (Idempotent)
 No body.
 
 
+.. _cluster_op_upgrade:
 
 Cluster Operations: Upgrade
 ---------------------------
@@ -177,6 +178,7 @@ Example Response
    }
 
 
+.. _cluster_op_restart:
 
 Cluster Operations: Restart
 ---------------------------
@@ -253,6 +255,7 @@ Example
    ]
 
 
+.. _host_op:
 
 Host
 ----

@@ -7,11 +7,12 @@ Contents
    :maxdepth: 2
 
    gettingstarted
+   operations
    authentication
    logging
-   endpoints
    components
    enums
+   endpoints
 
 Development
 -----------
