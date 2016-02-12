@@ -13,10 +13,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import requests
 
 SERVER = 'http://127.0.0.1:8000'
 AUTH = ('a', 'a')
+
+try:
+    SERVER = sys.argv[1]
+except:
+    pass
+
+
+print ('=> Server set to {0}'.format(SERVER))
+
 
 def expected_json(actual, expect):
     if actual != expect:
