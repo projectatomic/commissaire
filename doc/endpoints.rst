@@ -303,9 +303,8 @@ Creates a new host record.
 .. code-block:: javascript
 
    {
-       "address": string      // The IP address of the cluster host
        "ssh_priv_key": string // base64 encoded ssh private key
-       "cluster": string      // The cluster the host should be associated with
+       "cluster": string      // Optional cluster the host should be associated with
    }
 
 .. note::
@@ -317,7 +316,6 @@ Example
 .. code-block:: javascript
 
    {
-       "address": "192.168.100.50",
        "cluster": "default",
        "ssh_priv_key": "dGVzdAo..."
    }

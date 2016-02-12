@@ -16,7 +16,6 @@
 Host(s) handlers.
 
 """
-import datetime
 import falcon
 import etcd
 import json
