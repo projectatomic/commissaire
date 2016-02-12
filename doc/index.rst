@@ -7,9 +7,10 @@ Contents:
    :maxdepth: 2
 
    gettingstarted
-   logging
    authentication
+   logging
    endpoints
+   components
    enums
 
 
