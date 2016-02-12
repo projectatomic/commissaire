@@ -59,6 +59,7 @@ You'll also need to set the kubernetes bearer token.
 From the repo root build the image...
 
 .. code-block:: shell
+
     docker build --tag commissaire .
     ...
 
