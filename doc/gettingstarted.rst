@@ -1,8 +1,8 @@
 Getting Started
 ===============
 
-Development/Manual Installation
---------------------------------
+Manual Installation
+-------------------
 To test out the current code you will need the following installed:
 
 * Python2.6+

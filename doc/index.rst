@@ -1,8 +1,8 @@
 commissaire: simple host management
 ===================================
 
-Contents:
-
+Contents
+--------
 .. toctree::
    :maxdepth: 2
 
@@ -13,6 +13,13 @@ Contents:
    components
    enums
 
+Development
+-----------
+.. toctree::
+   :maxdepth: 2
+
+   development
+   authentication_devel
 
 Indices and tables
 ==================
