@@ -22,15 +22,14 @@ using the same JSON schema.
 
 Generating a hash
 ~~~~~~~~~~~~~~~~~
-The following is a quick way to allow you to generate a hash.
+commissaire comes with a utility to create bcrypt hashes.
 
 .. code-block:: shell
 
-   python -c "import bcrypt, getpass; print(bcrypt.hashpw(getpass.getpass(), bcrypt.gensalt()))"
-
-.. todo::
-
-   Replace this with a simple script.
+	$ commissaire-hashpass
+	Password:
+	$2b$12$rq/RN.Y1WD0ZyKPpLJkFVOv3XdLxW5thJ3OEaRgaMMFCgzLzHjiJG
+	$
 
 
 Example
