@@ -24,6 +24,7 @@ Submodules
 
 .. toctree::
 
+   commissaire.client_script
    commissaire.config
    commissaire.middleware
    commissaire.model

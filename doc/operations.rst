@@ -4,14 +4,33 @@ Operations
 Preface
 -------
 All operations via commissaire are done via REST. While any HTTP client can
-be used this document will show examples using *curl*.
+be used this document will show examples using *commctl* as well as *curl*.
 
+commctl
+~~~~~~~
+commctl can be used directly but for repeated use it's best to set up a
+configuration file.
+
+.. code-block:: shell
+
+   cat ~/.commissaire.json
+   {
+       "username": "a",
+       "endpoint": "http://127.0.0.1:8080"
+   }
+
+.. note::
+
+   "password" can also be set in ~/.commissaire.json.
+
+curl
+~~~~
 Every call requires a username and password to be passed via HTTP Basic Auth.
 With curl this looks like:
 
 .. code-block:: shell
 
-   $ curl ... -u "USERNAME:PASSWORD" ...
+   curl ... -u "USERNAME:PASSWORD" ...
 
 
 The proper headers must also be passed. Since all of the REST communication
@@ -19,7 +38,7 @@ is done via JSON the content-type must be set to application/json.
 
 .. code-block:: shell
 
-   $ curl ... -H "Content-Type: application/json" ...
+   curl ... -H "Content-Type: application/json" ...
 
 
 Lastly, the type of operation must be specified. For example, *PUT* must be
@@ -27,7 +46,7 @@ used when creating while *GET* must be used for retrieving.
 
 .. code-block:: shell
 
-   $ curl ... -XPUT ...
+   curl ... -XPUT ...
 
 
 Bootstrapping
@@ -48,8 +67,35 @@ and using the **-w0** switch.
 For specifics on the endpoint see :ref:`host_op`
 
 
-Cluster Operations
-------------------
+Cluster Operations with commctl
+-------------------------------
+
+These operations are done across all hosts associated with a cluster.
+
+Restart
+~~~~~~~
+To restart a cluster:
+
+.. include:: examples/commctl_create_restart.rst
+
+To check up on a restart:
+
+.. include:: examples/commctl_get_restart.rst
+
+
+Upgrade
+~~~~~~~
+To upgrade a cluster:
+
+.. include:: examples/commctl_create_upgrade.rst
+
+To check up on an upgrade:
+
+.. include:: examples/commctl_get_upgrade.rst
+
+
+Cluster Operations with curl
+----------------------------
 
 These operations are done across all hosts associated with a cluster.
 
