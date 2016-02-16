@@ -81,7 +81,7 @@ def investigator(queue, config, store, run_once=False):
             'Using {0} as the temporary key location for {1}'.format(
                 key_file, address))
         f.write(base64.decodestring(ssh_priv_key))
-        logger.debug('Wrote key for {0}'.format(address))
+        logger.info('Wrote key for {0}'.format(address))
         f.close()
 
         key = '/commissaire/hosts/{0}'.format(address)
@@ -93,12 +93,13 @@ def investigator(queue, config, store, run_once=False):
             data['last_check'] = datetime.datetime.utcnow().isoformat()
             data['status'] = 'bootstrapping'
             logger.info('Facts for {0} retrieved'.format(address))
+            logger.debug('Data: {0}'.format(data))
         except:
-            logger.warn('Getting info failed for {0}'.format(address))
+            exc_type, exc_msg, tb = sys.exc_info()
+            logger.warn('Getting info failed for {0}: {1}'.format(
+                address, exc_msg))
             data['status'] = 'failed'
             store.set(key, json.dumps(data))
-            exc_type, exc_msg, tb = sys.exc_info()
-            logger.debug('{0} Exception: {1}'.format(address, exc_msg))
             clean_up_key(key_file)
             if run_once:
                 break
@@ -109,7 +110,7 @@ def investigator(queue, config, store, run_once=False):
             'Finished and stored investigation data for {0}'.format(address))
         logger.debug('Finished investigation update for {0}: {1}'.format(
             address, data))
-        # --
+
         logger.info('{0} is now in bootstrapping'.format(address))
         oscmd = get_oscmd(data['os'])()
         try:
@@ -118,9 +119,9 @@ def investigator(queue, config, store, run_once=False):
             data['status'] = 'inactive'
             store.set(key, json.dumps(data))
         except:
-            logger.warn('Unable to bootstrap {0}'.format(address))
             exc_type, exc_msg, tb = sys.exc_info()
-            logger.debug('{0} Exception: {1}'.format(address, exc_msg))
+            logger.warn('Unable to start bootstraping for {0}: {1}'.format(
+                address, exc_msg))
             data['status'] = 'disassociated'
             store.set(key, json.dumps(data))
             clean_up_key(key_file)
@@ -139,16 +140,18 @@ def investigator(queue, config, store, run_once=False):
                     data['status'] = 'active'
                     break
                 if cnt == 3:
-                    raise Exception(
-                        'Could not register with the container manager')
+                    msg = 'Could not register with the container manager'
+                    logger.warn(msg)
+                    raise Exception(msg)
                 logger.debug(
                     '{0} has not been registered with the container manager. '
                     'Checking again in 5 seconds...'.format(address))
                 gevent.sleep(5)
         except:
-            logger.warn('Unable to bootstrap {0}'.format(address))
-            exc = sys.exc_info()[0]
-            logger.debug('{0} Exception: {1}'.format(address, exc))
+            _, exc_msg, _ = sys.exc_info()
+            logger.warn(
+                'Unable to finish bootstrap for {0} while associating with '
+                'the container manager: {1}'.format(address, exc_msg))
             data['status'] = 'inactive'
 
         store.set(key, json.dumps(data))
