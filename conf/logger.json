@@ -16,37 +16,32 @@
     "loggers": {
         "authentication": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         },
         "clusterexec": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         },
         "containermgr": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         },
         "investigator": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         },
         "resources": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         },
         "transport": {
             "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": false
-        },
-        "watcher": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": false
         }
     },
