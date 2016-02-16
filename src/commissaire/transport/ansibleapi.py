@@ -168,13 +168,17 @@ class Transport:
             loader=self.loader,
             variable_manager=self.variable_manager,
             host_list=ip)
+        self.logger.debug('Options: {0}'.format(options))
         # TODO: Fix this ... weird but works
         group = Group(ip)
         group.add_host(Host(ip, 22))
         inventory.groups.update({ip: group})
+        self.logger.debug('Inventory: {0}'.format(inventory))
         # ---
 
         self.variable_manager.set_inventory(inventory)
+        self.logger.debug(
+            'Running play for host {0}: {1}'.format(ip, play_source))
         play = Play().load(
             play_source,
             variable_manager=self.variable_manager,
@@ -193,6 +197,7 @@ class Transport:
             result = tqm.run(play)
         finally:
             if tqm is not None:
+                self.logger.debug('Cleaning up after the TaskQueueManager.')
                 tqm.cleanup()
 
         if result in expected_results:
@@ -200,7 +205,6 @@ class Transport:
             fact_cache = self.variable_manager._fact_cache.get(ip, {})
             return (result, fact_cache)
 
-        # TODO: Do something :-)
         self.logger.debug('{0}: Bad result {1}'.format(ip, result))
         raise Exception('Can not run for {0}'.format(ip))
 
@@ -288,12 +292,15 @@ class Transport:
         # instead calls itself 'redhat' we need to check for 'atomicos'
         # in other ansible_cmdline facts
         if facts['os'] == 'redhat':
+            self.logger.debug(
+                'Found os of redhat. Checking for special atomic case...')
             boot_image = fact_cache.get(
                 'ansible_cmdline', {}).get('BOOT_IMAGE', '')
             root_mapper = fact_cache.get('ansible_cmdline', {}).get('root', '')
             if (boot_image.startswith('/ostree/rhel-atomic-host') or
                     'atomicos' in root_mapper):
                 facts['os'] = 'atomic'
+            self.logger.debug('Facts: {0}'.format(facts))
 
         return (result, facts)
 
@@ -331,6 +338,7 @@ class Transport:
             'etcd_port': config.etcd['uri'].port,
             'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
         }
+        self.logger.debug('Variables for bootstrap: {0}'.format(tpl_vars))
         tpl_env = jinja2.Environment()
         configs = {}
         for tpl_name in (
@@ -338,9 +346,9 @@ class Transport:
             f = tempfile.NamedTemporaryFile(prefix=tpl_name, delete=False)
             f.write(tpl_loader.load(tpl_env, tpl_name).render(tpl_vars))
             f.close()
+            self.logger.debug('Wrote temporary config for {0} at {1}'.format(
+                tpl_name, f.name))
             configs[tpl_name] = f.name
-
-        # ---
 
         play_source = {
             'name': 'bootstrap',
@@ -469,5 +477,6 @@ class Transport:
 
         # Clean out the temporary configs
         map(os.unlink, configs.values())
-
+        self.logger.debug('Removed the temporary configs at {0}'.format(
+            config.values()))
         return results
