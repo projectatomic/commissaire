@@ -65,10 +65,20 @@ def clusterexec(cluster_name, command, store):
         '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
         json.dumps(cluster_status))
 
+    # Collect all host addresses in the cluster
+    etcd_resp = store.get('/commissaire/clusters/{0}'.format(cluster_name))
+    cluster_hosts = set(json.loads(etcd_resp.value).get('hostset', []))
+    if cluster_hosts:
+        logger.debug(
+            '{0} hosts in cluster {1}'.format(
+                len(cluster_hosts), cluster_name))
+    else:
+        logger.warn('No hosts in cluster {1}'.format(cluster_name))
+
     # TODO: Find better way to do this
     for a_host_dict in store.get('/commissaire/hosts')._children:
         a_host = json.loads(a_host_dict['value'])
-        if a_host['cluster'] != cluster_name:
+        if a_host['address'] not in cluster_hosts:
             logger.debug('Skipping {0} as it is not in this cluster.'.format(
                 a_host['address']))
             continue  # Move on to the next one

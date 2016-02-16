@@ -35,6 +35,8 @@ class Test_JobsClusterExec(TestCase):
                  ' "last_check": "2015-12-17T15:48:18.710454", '
                  '"cluster": "default"}')
 
+    etcd_cluster = '{"status": "ok", "hostset": ["10.2.0.2"]}'
+
     def test_clusterexec(self):
         """
         Verify the clusterexec.
@@ -49,12 +51,14 @@ class Test_JobsClusterExec(TestCase):
 
                 store = etcd.Client()
                 store.get = MagicMock('get')
-                store.get.return_value = return_value
+                store.get.side_effect = (
+                    MagicMock(value=self.etcd_cluster), return_value)
                 store.set = MagicMock('set')
 
                 clusterexec('default', cmd, store)
 
-                self.assertEquals(1, store.get.call_count)
+                # One for the cluster, one for the host
+                self.assertEquals(2, store.get.call_count)
                 # We should have 4 sets for 1 host
                 self.assertEquals(4, store.set.call_count)
 
@@ -72,11 +76,13 @@ class Test_JobsClusterExec(TestCase):
 
                 store = etcd.Client()
                 store.get = MagicMock('get')
-                store.get.return_value = return_value
+                store.get.side_effect = (
+                    MagicMock(value=self.etcd_cluster), return_value)
                 store.set = MagicMock('set')
 
                 clusterexec('default', cmd, store)
 
-                self.assertEquals(1, store.get.call_count)
+                # One for the cluster, one for the host
+                self.assertEquals(2, store.get.call_count)
                 # We should have 4 sets for 1 host
                 self.assertEquals(3, store.set.call_count)
