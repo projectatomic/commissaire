@@ -28,7 +28,7 @@ import etcd
 import falcon
 import gevent
 
-from gevent.pywsgi import WSGIServer
+from gevent.pywsgi import WSGIServer, LoggingLogAdapter
 
 from commissaire.compat.urlparser import urlparse
 from commissaire.compat import exception
@@ -231,7 +231,14 @@ def main():  # pragma: no cover
 
     app = create_app(ds)
     try:
-        WSGIServer((interface, int(port)), app).serve_forever()
+        access_logger = logging.getLogger('http-access')
+        error_logger = logging.getLogger('http-error')
+        WSGIServer(
+            listener=(interface, int(port)),
+            application=app,
+            log=LoggingLogAdapter(access_logger, access_logger.level),
+            error_log=LoggingLogAdapter(error_logger, error_logger.level),
+        ).serve_forever()
     except KeyboardInterrupt:
         pass
 

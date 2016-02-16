@@ -14,6 +14,16 @@
         }
     },
     "loggers": {
+        "http-access": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
+        "http-error": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
         "authentication": {
             "handlers": ["console"],
             "level": "INFO",
