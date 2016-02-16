@@ -117,7 +117,7 @@ class ClusterResource(Resource):
             etcd_resp = self.store.get(key)
             self.logger.info(
                 'Request for cluster {0}.'.format(name))
-            self.logger.debug('{0}'.format(etcd_resp))
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
         except etcd.EtcdKeyNotFound:
             self.logger.info(
                 'Request for non-existent cluster {0}.'.format(name))
@@ -155,6 +155,7 @@ class ClusterResource(Resource):
             etcd_resp = self.store.set(key, cluster.to_json(secure=True))
             self.logger.info(
                 'Created cluster {0} per request.'.format(name))
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
         cluster = Cluster(**json.loads(etcd_resp.value))
         resp.status = falcon.HTTP_201
 
@@ -397,14 +398,21 @@ class ClusterRestartResource(Resource):
             try:
                 self.store.get(cluster_key)
             except etcd.EtcdKeyNotFound:
+                self.logger.info(
+                    'Restart GET requested for nonexistent cluster {0}'.format(
+                        name))
                 resp.status = falcon.HTTP_404
                 return
             status = self.store.get(key)
+            self.logger.debug('Etcd Response: {0}'.format(status))
         except etcd.EtcdKeyNotFound:
             # Return "204 No Content" if we have no status,
             # meaning no restart is in progress.  The client
             # can't be expected to know that, so it's not a
             # client error (4xx).
+            self.logger.debug((
+                'Restart GET requested for {0} but no restart '
+                'has ever been executed.').format(name))
             resp.status = falcon.HTTP_204
             return
         resp.status = falcon.HTTP_200
@@ -423,6 +431,8 @@ class ClusterRestartResource(Resource):
         """
         POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'restart', self.store)
+        self.logger.debug('Started restart in clusterexecpool for {0}'.format(
+            name))
         key = '/commissaire/cluster/{0}/restart'.format(name)
         cluster_restart_default = {
             'status': 'in_process',
@@ -459,14 +469,21 @@ class ClusterUpgradeResource(Resource):
             try:
                 self.store.get(cluster_key)
             except etcd.EtcdKeyNotFound:
+                self.logger.info(
+                    'Upgrade GET requested for nonexistent cluster {0}'.format(
+                        name))
                 resp.status = falcon.HTTP_404
                 return
             status = self.store.get(key)
+            self.logger.debug('Etcd Response: {0}'.format(status))
         except etcd.EtcdKeyNotFound:
             # Return "204 No Content" if we have no status,
             # meaning no upgrade is in progress.  The client
             # can't be expected to know that, so it's not a
             # client error (4xx).
+            self.logger.debug((
+                'Upgrade GET requested for {0} but no upgrade '
+                'has ever been executed.').format(name))
             resp.status = falcon.HTTP_204
             return
 
@@ -494,6 +511,8 @@ class ClusterUpgradeResource(Resource):
         # FIXME: How do I pass 'upgrade_to'?
         POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'upgrade', self.store)
+        self.logger.debug('Started upgrade in clusterexecpool for {0}'.format(
+            name))
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         cluster_upgrade_default = {
             'status': 'in_process',

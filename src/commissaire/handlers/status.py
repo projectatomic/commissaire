@@ -67,6 +67,7 @@ class StatusResource(Resource):
             self.store.get('/')
             kwargs['etcd']['status'] = 'OK'
         except etcd.EtcdKeyNotFound:
+            self.logger.debug('There is no root directory in etcd...')
             kwargs['etcd']['status'] = 'FAILED'
 
         # Check all the pools
@@ -90,6 +91,7 @@ class StatusResource(Resource):
             return exceptions
 
         map(populate_exceptions, POOLS.keys())
+        self.logger.debug('Status: {0}', kwargs)
 
         resp.status = falcon.HTTP_200
         req.context['model'] = Status(**kwargs)

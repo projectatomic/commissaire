@@ -41,6 +41,7 @@ class HostsResource(Resource):
         """
         try:
             hosts_dir = self.store.get('/commissaire/hosts/')
+            self.logger.debug('Etcd Response: {0}'.format(hosts_dir))
         except etcd.EtcdKeyNotFound:
             self.logger.warn(
                 'Etcd does not have any hosts. Returning [] and 404.')
@@ -80,6 +81,7 @@ class HostResource(Resource):
         # TODO: Verify input
         try:
             host = self.store.get('/commissaire/hosts/{0}'.format(address))
+            self.logger.debug('Etcd Response: {0}'.format(host))
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404
             return
@@ -102,6 +104,7 @@ class HostResource(Resource):
         # TODO: Verify input
         try:
             host = self.store.get('/commissaire/hosts/{0}'.format(address))
+            self.logger.debug('Etcd Response: {0}'.format(host))
             resp.status = falcon.HTTP_409
             return
         except etcd.EtcdKeyNotFound:
@@ -131,7 +134,7 @@ class HostResource(Resource):
                 etcd_resp = self.store.get(cluster_key)
                 self.logger.info(
                     'Request for cluster {0}'.format(cluster_name))
-                self.logger.debug('{0}'.format(etcd_resp))
+                self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
             except etcd.EtcdKeyNotFound:
                 self.logger.info(
                     'Request for non-existent cluster {0}.'.format(
@@ -156,6 +159,8 @@ class HostResource(Resource):
             #        unmodified.  Use either locking or a conditional write
             #        with the etcd 'modifiedIndex'.  Deferring for now.
             self.store.set(cluster_key, cluster.to_json(secure=True))
+            self.logger.info('Added host {0} to cluster {1}'.format(
+                address, cluster_name))
 
         resp.status = falcon.HTTP_201
         req.context['model'] = Host(**json.loads(new_host.value))
@@ -185,12 +190,17 @@ class HostResource(Resource):
         #       return.
         try:
             clusters_dir = self.store.get('/commissaire/clusters')
+            self.logger.debug('Etcd Response: {0}'.format(clusters_dir))
         except etcd.EtcdKeyNotFound:
             self.logger.warn('Etcd does not have any clusters')
             return
         if len(clusters_dir._children):
+            self.logger.info(
+                'There are clusters associated with {0}...'.format(address))
             for etcd_resp in clusters_dir.leaves:
                 cluster = Cluster(**json.loads(etcd_resp.value))
                 if address in cluster.hostset:
+                    self.logger.info('Removing {0} from cluster {1}'.format(
+                        address, etcd_resp.key.split('/')[-1]))
                     cluster.hostset.remove(address)
                     self.store.set(etcd_resp.key, cluster.to_json(secure=True))
