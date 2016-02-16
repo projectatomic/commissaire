@@ -41,8 +41,10 @@ class _HTTPBasicAuth(Authenticator):
         if req.auth is not None:
             if req.auth.lower().startswith('basic '):
                 try:
-                    return tuple(base64.decodebytes(
+                    decoded = tuple(base64.decodebytes(
                         req.auth[6:].encode('utf-8')).decode().split(':'))
+                    self.logger.debug('Credentials given: {0}'.format(decoded))
+                    return decoded
                 except base64.binascii.Error:
                     self.logger.info(
                         'Bad base64 data sent. Setting to no user/pass.')
@@ -62,8 +64,12 @@ class _HTTPBasicAuth(Authenticator):
         user, passwd = self._decode_basic_auth(req)
         if user is not None and passwd is not None:
             if user in self._data.keys():
+                self.logger.debug('User {0} found in datastore.'.format(user))
                 hashed = self._data[user]['hash'].encode('utf-8')
                 if bcrypt.hashpw(passwd.encode('utf-8'), hashed) == hashed:
+                    self.logger.debug(
+                        'The provided hash for user {0} matched: {1}'.format(
+                            user, passwd))
                     return  # Authentication is good
 
         # Forbid by default
