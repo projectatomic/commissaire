@@ -43,8 +43,10 @@ class ContainerManager(ContainerManagerBase):
         self.con.verify = False
         self.base_uri = 'http://{0}:{1}/api/v1'.format(
             self.host, self.port)
-        print('Kubernetes Container Manager: {0}'.format(
-            self.__dict__))
+        self.logger.info('Kubernetes Container Manager created: {0}'.format(
+            self.base_uri))
+        self.logger.debug(
+            'Kubernetes Container Manager: {0}'.format(self.__dict__))
 
     def _get(self, part, *args, **kwargs):
         """
@@ -60,6 +62,8 @@ class ContainerManager(ContainerManagerBase):
         """
         # Fix part if it doesn't start with a slash
         if not part.startswith('/'):
+            self.logger.debug(
+                'Part given without starting slash. Adding...')
             part = '/{0}'.format(part)
 
         self.logger.debug('Executing GET for {0}'.format(part))
