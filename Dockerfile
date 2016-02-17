@@ -1,7 +1,7 @@
 FROM fedora
 MAINTAINER Red Hat, Inc. <container-tools@redhat.com>
 
-ENV MHM_RELEASE v0.0.0
+ENV MHM_RELEASE v0.0.1rc1
 ENV PYTHONPATH  /commissaire/src/
 
 # Install required dependencies and commissaire
