@@ -101,28 +101,57 @@ class HostResource(Resource):
         :param address: The address of the Host being requested.
         :type address: str
         """
-        # TODO: Verify input
+        try:
+            # Extract what we need from the input data.
+            # Don't treat it as a skeletal host record.
+            req_body = json.loads(req.stream.read().decode())
+            ssh_priv_key = req_body['ssh_priv_key']
+            # Cluster member is optional.
+            cluster_name = req_body.get('cluster', None)
+        except (KeyError, ValueError):
+            self.logger.info(
+                'Bad client PUT request for host {0}: {1}'.
+                format(address, req_body))
+            resp.status = falcon.HTTP_400
+            return
+
         key = util.etcd_host_key(address)
         try:
-            host = self.store.get(key)
-            resp.status = falcon.HTTP_409
+            etcd_resp = self.store.get(key)
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
+
+            # Check if the request conflicts with the existing host.
+            existing_host = Host(**json.loads(etcd_resp.value))
+            if existing_host.ssh_priv_key != ssh_priv_key:
+                resp.status = falcon.HTTP_409
+                return
+            if cluster_name:
+                try:
+                    assert util.etcd_cluster_has_host(
+                        self, cluster_name, address)
+                except (AssertionError, KeyError):
+                    resp.status = falcon.HTTP_409
+                    return
+
+            # Request is compatible with the existing host, so
+            # we're done.  (Not using HTTP_201 since we didn't
+            # actually create anything.)
+            resp.status = falcon.HTTP_200
+            req.context['model'] = existing_host
             return
         except etcd.EtcdKeyNotFound:
             pass
 
-        data = req.stream.read().decode()
-        host_creation = json.loads(data)
-        ssh_priv_key = host_creation['ssh_priv_key']
-        host_creation['address'] = address
-        host_creation['os'] = ''
-        host_creation['status'] = 'investigating'
-        host_creation['cpus'] = -1
-        host_creation['memory'] = -1
-        host_creation['space'] = -1
-        host_creation['last_check'] = None
-
-        # Don't store the cluster name in etcd.
-        cluster_name = host_creation.pop('cluster', None)
+        host_creation = {
+            'address': address,
+            'ssh_priv_key': ssh_priv_key,
+            'os': '',
+            'status': 'investigating',
+            'cpus': -1,
+            'memory': -1,
+            'space': -1,
+            'last_check': None
+        }
 
         # Verify the cluster exists, if given.  Do it now
         # so we can fail before writing anything to etcd.

@@ -65,24 +65,21 @@ expected_status(r, 404)
 print("=> Creating Host 10.2.0.2")
 r = requests.put(
     SERVER + '/api/v0/host/10.2.0.2', auth=AUTH,
-    json={
-        "address": "10.2.0.2",
-        "ssh_priv_key": "dGVzdAo=",
-    })
+    json={"ssh_priv_key": "dGVzdAo="})
 print(r.json())
 expected_status(r, 201)
 
-print("=> Creating Host Again 10.2.0.2 (Should Fail)")
+print("=> Recreating Compatible Host 10.2.0.2")
 r = requests.put(
     SERVER + '/api/v0/host/10.2.0.2', auth=AUTH,
-    json={
-        "address": "10.2.0.2",
-        "status": "available",
-        "os": "atomic",
-        "cpus": 2,
-        "memory": 11989228,
-        "space": 487652,
-        "last_check": "2015-12-17T15:48:18.710454"})
+    json={"ssh_priv_key": "dGVzdAo="})
+print(r.json())
+expected_status(r, 200)
+
+print("=> Recreating Incompatible Host 10.2.0.2 (Should Fail)")
+r = requests.put(
+    SERVER + '/api/v0/host/10.2.0.2', auth=AUTH,
+    json={"ssh_priv_key": "boguskey"})
 print(r.json())
 expected_status(r, 409)
 

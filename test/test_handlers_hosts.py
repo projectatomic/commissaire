@@ -179,6 +179,8 @@ class Test_HostResource(TestCase):
 
     etcd_cluster = '{"status": "ok", "hostset": []}'
 
+    etcd_cluster_with_host = '{"status": "ok", "hostset": ["10.2.0.2"]}'
+
     def before(self):
         self.api = falcon.API(middleware = [JSONify()])
         self.datasource = etcd.Client()
@@ -273,12 +275,28 @@ class Test_HostResource(TestCase):
         self.assertEqual(self.srmock.status, falcon.HTTP_409)
         self.assertEqual({}, json.loads(body[0]))
 
-        # Make sure that if the host exists creation doesn't happen
-        self.datasource.get.side_effect = None
+        # Make sure creation is idempotent if the request parameters
+        # agree with an existing host.
+        self.datasource.get.side_effect = (
+            MagicMock(value=self.etcd_host),
+            MagicMock(value=self.etcd_cluster_with_host))
         self.datasource.get.reset_mock()
         self.datasource.set.reset_mock()
         body = self.simulate_request(
             '/api/v0/host/10.2.0.2', method='PUT', body=data)
+        # datasource's set should not have been called
+        self.assertEquals(0, self.datasource.set.call_count)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
+        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+
+        # Make sure creation fails if the request parameters conflict
+        # with an existing host.
+        self.datasource.get.side_effect = None
+        self.datasource.get.reset_mock()
+        self.datasource.set.reset_mock()
+        bad_data = '{"ssh_priv_key": "boguskey"}'
+        body = self.simulate_request(
+            '/api/v0/host/10.2.0.2', method='PUT', body=bad_data)
         # datasource's set should not have been called once
         self.assertEquals(0, self.datasource.set.call_count)
         self.assertEqual(self.srmock.status, falcon.HTTP_409)
