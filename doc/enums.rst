@@ -33,7 +33,7 @@ Host Statuses
 Upgrade Statuses
 ~~~~~~~~~~~~~~~~
 
-* **inprocess**: The cluster is currently upgrading hosts.
+* **in_process**: The cluster is currently upgrading hosts.
 * **finished**: The cluster successfully upgraded.
 * **failed**: The cluster could not upgrade.
 

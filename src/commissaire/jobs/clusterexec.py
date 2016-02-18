@@ -39,7 +39,7 @@ def clusterexec(cluster_name, command, store):
     if command == 'upgrade':
         finished_hosts_key = 'upgraded'
         cluster_status = {
-            "status": 'inprocess',
+            "status": 'in_process',
             "upgrade_to": 'latest',
             "upgraded": [],
             "in_process": [],
@@ -49,7 +49,7 @@ def clusterexec(cluster_name, command, store):
     elif command == 'restart':
         finished_hosts_key = 'restarted'
         cluster_status = {
-            "status": 'inprocess',
+            "status": 'in_process',
             "restarted": [],
             "in_process": [],
             "started_at": datetime.datetime.utcnow().isoformat(),

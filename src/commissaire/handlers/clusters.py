@@ -370,11 +370,34 @@ class ClusterRestartResource(Resource):
         :param name: The name of the Cluster being restarted.
         :type name: str
         """
+        # Make sure the cluster name is valid.
+        if not util.etcd_cluster_exists(self, name):
+            self.logger.info(
+                'Restart PUT requested for nonexistent cluster {0}'.format(
+                    name))
+            resp.status = falcon.HTTP_404
+            return
+
+        # If the operation is already in progress, return the current
+        # status with response code 200 OK.
+        key = '/commissaire/cluster/{0}/restart'.format(name)
+        try:
+            etcd_resp = self.store.get(key)
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
+            cluster_restart = ClusterRestart(**json.loads(etcd_resp.value))
+            if not cluster_restart.finished_at:
+                self.logger.debug(
+                    'Cluster {0} restart already in progress'.format(name))
+                resp.status = falcon.HTTP_200
+                req.context['model'] = cluster_restart
+                return
+        except etcd.EtcdKeyNotFound:
+            pass
+
         POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'restart', self.store)
         self.logger.debug('Started restart in clusterexecpool for {0}'.format(
             name))
-        key = '/commissaire/cluster/{0}/restart'.format(name)
         cluster_restart_default = {
             'status': 'in_process',
             'restarted': [],
@@ -446,12 +469,46 @@ class ClusterUpgradeResource(Resource):
         except (KeyError, ValueError):
             resp.status = falcon.HTTP_400
             return
+
+        # Make sure the cluster name is valid.
+        if not util.etcd_cluster_exists(self, name):
+            self.logger.info(
+                'Upgrade PUT requested for nonexistent cluster {0}'.format(
+                    name))
+            resp.status = falcon.HTTP_404
+            return
+
+        # If the operation is already in progress and the requested version
+        # matches, return the current status with response code 200 OK.
+        # If the requested version conflicts with the operation in progress,
+        # return the current status with response code 409 Conflict.
+        key = '/commissaire/cluster/{0}/upgrade'.format(name)
+        try:
+            etcd_resp = self.store.get(key)
+            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
+            cluster_upgrade = ClusterUpgrade(**json.loads(etcd_resp.value))
+            if not cluster_upgrade.finished_at:
+                if cluster_upgrade.upgrade_to == upgrade_to:
+                    self.logger.debug(
+                        'Cluster {0} upgrade to {1} already in progress'.
+                        format(name, upgrade_to))
+                    resp.status = falcon.HTTP_200
+                else:
+                    self.logger.debug(
+                        'Cluster upgrade to {0} requested while '
+                        'upgrade to {1} was already in progress'.
+                        format(upgrade_to, cluster_upgrade.upgrade_to))
+                    resp.status = falcon.HTTP_409
+                req.context['model'] = cluster_upgrade
+                return
+        except etcd.EtcdKeyNotFound:
+            pass
+
         # FIXME: How do I pass 'upgrade_to'?
         POOLS['clusterexecpool'].spawn(
             clusterexec.clusterexec, name, 'upgrade', self.store)
         self.logger.debug('Started upgrade in clusterexecpool for {0}'.format(
             name))
-        key = '/commissaire/cluster/{0}/upgrade'.format(name)
         cluster_upgrade_default = {
             'status': 'in_process',
             'upgrade_to': upgrade_to,
