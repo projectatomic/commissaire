@@ -104,14 +104,15 @@ class HostResource(Resource):
         try:
             # Extract what we need from the input data.
             # Don't treat it as a skeletal host record.
-            req_body = json.loads(req.stream.read().decode())
+            req_data = req.stream.read()
+            req_body = json.loads(req_data.decode())
             ssh_priv_key = req_body['ssh_priv_key']
             # Cluster member is optional.
             cluster_name = req_body.get('cluster', None)
         except (KeyError, ValueError):
             self.logger.info(
                 'Bad client PUT request for host {0}: {1}'.
-                format(address, req_body))
+                format(address, req_data))
             resp.status = falcon.HTTP_400
             return
 
