@@ -16,10 +16,10 @@
 All global queues.
 """
 
-from gevent.queue import Queue
+from multiprocessing import Queue as MPQueue
 
 #: Input queue for the investigator thread(s)
-INVESTIGATE_QUEUE = Queue()
+INVESTIGATE_QUEUE = MPQueue()
 
 
 # ROUTER_QUEUE = Queue()

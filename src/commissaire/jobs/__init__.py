@@ -20,6 +20,10 @@ from gevent.pool import Pool
 
 #: All green pools
 POOLS = {
-    'investigator': Pool(1),
     'clusterexecpool': Pool(5),
+}
+
+#: All multiprocessing processes
+PROCS = {
+    'investigator': None,
 }

@@ -13,14 +13,14 @@ commissaire developers.
 
 Investigator
 ~~~~~~~~~~~~
-The investigator is a daemon like greenlet which is tasked with investigating
+The investigator is a subprocess which is tasked with investigating
 and bootstrapping new host nodes. When a new host is added it's the
 investigator which populates the host data in etcd and gets the right services
 going on the new host.
 
 ClusterExecPool
 ~~~~~~~~~~~~~~~
-This is a static pool used for executing commands across a cluster. For
+This is a static greenlet pool used for executing commands across a cluster. For
 instance, a reboot of a cluser will utilize this pool to execute remote commands
 in their own greenlet. Because the pool is limited there will only ever be X
 number of the command being executed at once.

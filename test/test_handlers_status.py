@@ -25,7 +25,7 @@ from . import TestCase
 from mock import MagicMock
 from commissaire.handlers import status
 from commissaire.middleware import JSONify
-from commissaire.jobs import POOLS
+from commissaire.jobs import POOLS, PROCS
 
 
 class Test_Status(TestCase):
@@ -75,12 +75,18 @@ class Test_StatusResource(TestCase):
         self.return_value._children = [child]
         self.return_value.leaves = self.return_value._children
 
-        for pool in ('investigator', 'clusterexecpool'):
+        for pool in ('clusterexecpool', ):
             POOLS[pool] = MagicMock(
                 'gevent.pool.Pool',
                 size=1,
                 free_count=lambda: 0,
                 greenlets=[])
+
+        for proc in ('investigator', ):
+            PROCS[proc] = MagicMock(
+                'multiprocessing.Process',
+                is_alive=MagicMock(return_value=True),
+            )
 
         body = self.simulate_request('/api/v0/status')
         # datasource's get should have been called once

@@ -16,7 +16,7 @@
 """
 
 from gevent.monkey import patch_all
-patch_all()
+patch_all(thread=False, socket=False)
 
 import datetime
 import base64
@@ -40,7 +40,7 @@ from commissaire.handlers.clusters import (
 from commissaire.handlers.hosts import HostsResource, HostResource
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
-from commissaire.jobs import POOLS
+from commissaire.jobs import POOLS, PROCS
 from commissaire.jobs.investigator import investigator
 from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
@@ -111,6 +111,8 @@ def main():  # pragma: no cover
     """
     import argparse
 
+    from multiprocessing import Process
+
     config = Config()
 
     epilog = ('Example: ./commissaire -e http://127.0.0.1:2379'
@@ -164,8 +166,9 @@ def main():  # pragma: no cover
         config.kubernetes['token'] = ds.get(
             '/commissaire/config/kubetoken').value
         logging.debug('Config: {0}'.format(config))
-        POOLS['investigator'].spawn(
-            investigator, INVESTIGATE_QUEUE, config, ds)
+        PROCS['investigator'] = Process(
+            target=investigator, args=(INVESTIGATE_QUEUE, config, ds))
+        PROCS['investigator'].start()
     except etcd.EtcdKeyNotFound:
         parser.error('"/commissaire/config/kubetoken" must be set in etcd!')
     # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
@@ -184,7 +187,8 @@ def main():  # pragma: no cover
     except KeyboardInterrupt:
         pass
 
-    POOLS['investigator'].kill()
+    PROCS['investigator'].terminate()
+    PROCS['investigator'].join()
 
 
 if __name__ == '__main__':  # pragma: no cover

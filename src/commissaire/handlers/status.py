@@ -19,7 +19,7 @@ Status handlers.
 import falcon
 import etcd
 
-from commissaire.jobs import POOLS
+from commissaire.jobs import POOLS, PROCS
 from commissaire.resource import Resource
 from commissaire.handlers.models import Status
 
@@ -69,6 +69,13 @@ class StatusResource(Resource):
         except etcd.EtcdKeyNotFound:
             self.logger.debug('There is no root directory in etcd...')
             kwargs['etcd']['status'] = 'FAILED'
+
+        # Check investigator proccess
+        # XXX: Change investigator if more than 1 process is allowed
+        if PROCS['investigator'].is_alive():
+            kwargs['investigator']['status'] = 'OK'
+            kwargs['investigator']['info']['size'] = 1
+            kwargs['investigator']['info']['in_use'] = 1
 
         # Check all the pools
         def populate_pool_info(pool):
