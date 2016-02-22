@@ -66,11 +66,14 @@ class _HTTPBasicAuth(Authenticator):
             if user in self._data.keys():
                 self.logger.debug('User {0} found in datastore.'.format(user))
                 hashed = self._data[user]['hash'].encode('utf-8')
-                if bcrypt.hashpw(passwd.encode('utf-8'), hashed) == hashed:
-                    self.logger.debug(
-                        'The provided hash for user {0} matched: {1}'.format(
-                            user, passwd))
-                    return  # Authentication is good
+                try:
+                    if bcrypt.hashpw(passwd.encode('utf-8'), hashed) == hashed:
+                        self.logger.debug(
+                            'The provided hash for user {0} '
+                            'matched: {1}'.format(user, passwd))
+                        return  # Authentication is good
+                except ValueError:
+                    pass  # Bad salt
 
         # Forbid by default
         raise falcon.HTTPForbidden('Forbidden', 'Forbidden')

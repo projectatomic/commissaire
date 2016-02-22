@@ -1,7 +1,7 @@
 gevent==1.1rc3
 falcon>=0.3
 requests
-bcrypt
+py-bcrypt
 python-etcd==0.4.2
 setuptools
 ansible>=2.0.0.2

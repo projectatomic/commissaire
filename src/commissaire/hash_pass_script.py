@@ -42,7 +42,7 @@ def main():
     else:
         password = getpass.getpass()
 
-    hashed = bcrypt.hashpw(password, bcrypt.gensalt(rounds=args.rounds))
+    hashed = bcrypt.hashpw(password, bcrypt.gensalt(log_rounds=args.rounds))
     sys.stdout.write('{0}\n'.format(hashed))
 
 
