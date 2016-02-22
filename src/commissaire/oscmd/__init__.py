@@ -110,7 +110,7 @@ def get_oscmd(os_type):
     try:
         return getattr(__import__(
             'commissaire.oscmd.{0}'.format(os_type),
-            fromlist=[True]), 'OSCmd')
+            fromlist=['True']), 'OSCmd')
     except ImportError:
         # TODO: Make this a specific exception
         raise Exception('No OSCmd class for {0}'.format(os_type))
