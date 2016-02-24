@@ -129,7 +129,7 @@ class HostResource(Resource):
             if cluster_name:
                 try:
                     assert util.etcd_cluster_has_host(
-                        self, cluster_name, address)
+                        self.store, cluster_name, address)
                 except (AssertionError, KeyError):
                     resp.status = falcon.HTTP_409
                     return
@@ -157,7 +157,7 @@ class HostResource(Resource):
         # Verify the cluster exists, if given.  Do it now
         # so we can fail before writing anything to etcd.
         if cluster_name:
-            if not util.etcd_cluster_exists(self, cluster_name):
+            if not util.etcd_cluster_exists(self.store, cluster_name):
                 resp.status = falcon.HTTP_409
                 return
 
@@ -167,7 +167,7 @@ class HostResource(Resource):
 
         # Add host to the requested cluster.
         if cluster_name:
-            util.etcd_cluster_add_host(self, cluster_name, address)
+            util.etcd_cluster_add_host(self.store, cluster_name, address)
 
         resp.status = falcon.HTTP_201
         req.context['model'] = Host(**json.loads(new_host.value))

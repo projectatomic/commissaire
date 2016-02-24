@@ -42,43 +42,43 @@ def etcd_cluster_key(name):
     return '/commissaire/clusters/{0}'.format(name)
 
 
-def etcd_cluster_exists(resource, name):
+def etcd_cluster_exists(store, name):
     """
     Returns whether a cluster with the given name exists.
 
-    :param resource: A Resource instance
-    :type resource: commissaire.resource.Resource
+    :param store: Data store.
+    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     """
     key = etcd_cluster_key(name)
     try:
-        resource.store.get(key)
+        store.get(key)
         return True
     except etcd.EtcdKeyNotFound:
         return False
 
 
-def etcd_cluster_has_host(resource, name, address):
+def etcd_cluster_has_host(store, name, address):
     """
     Checks if a host address belongs to a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
 
-    :param resource: A Resource instance
-    :type resource: commissaire.resource.Resource
+    :param store: Data store.
+    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     :param address: Host address
     :type address: str
     """
-    cluster = get_cluster_model(resource, name)
+    cluster = get_cluster_model(store, name)
     if not cluster:
         raise KeyError
 
     return address in cluster.hostset
 
 
-def etcd_cluster_add_host(resource, name, address):
+def etcd_cluster_add_host(store, name, address):
     """
     Adds a host address to a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
@@ -86,14 +86,14 @@ def etcd_cluster_add_host(resource, name, address):
     Note the function is idempotent: if the host address is
     already in the cluster, no change occurs.
 
-    :param resource: A Resource instance
-    :type resource: commissaire.resource.Resource
+    :param store: Data store.
+    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     :param address: Host address to add
     :type address: str
     """
-    cluster = get_cluster_model(resource, name)
+    cluster = get_cluster_model(store, name)
     if not cluster:
         raise KeyError
 
@@ -108,10 +108,10 @@ def etcd_cluster_add_host(resource, name, address):
 
     if address not in cluster.hostset:
         cluster.hostset.append(address)
-        resource.store.set(cluster.etcd.key, cluster.to_json(secure=True))
+        store.set(cluster.etcd.key, cluster.to_json(secure=True))
 
 
-def etcd_cluster_remove_host(resource, name, address):
+def etcd_cluster_remove_host(store, name, address):
     """
     Removes a host address from a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
@@ -119,14 +119,14 @@ def etcd_cluster_remove_host(resource, name, address):
     Note the function is idempotent: if the host address is
     not in the cluster, no change occurs.
 
-    :param resource: A Resource instance
-    :type resource: commissaire.resource.Resource
+    :param store: Data store.
+    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     :param address: Host address to remove
     :type address: str
     """
-    cluster = get_cluster_model(resource, name)
+    cluster = get_cluster_model(store, name)
     if not cluster:
         raise KeyError
 
@@ -137,10 +137,10 @@ def etcd_cluster_remove_host(resource, name, address):
 
     if address in cluster.hostset:
         cluster.hostset.remove(address)
-        resource.store.set(cluster.etcd.key, cluster.to_json(secure=True))
+        store.set(cluster.etcd.key, cluster.to_json(secure=True))
 
 
-def get_cluster_model(resource, name):
+def get_cluster_model(store, name):
     """
     Returns a Cluster instance from the etcd record for the given
     cluster name, if it exists, or else None.
@@ -148,20 +148,15 @@ def get_cluster_model(resource, name):
     For convenience, the EtcdResult is embedded in the Cluster instance
     as an 'etcd' property.
 
-    :param resource: A Resource instance
-    :type resource: commissaire.resource.Resource
+    :param store: Data store.
+    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     """
     key = etcd_cluster_key(name)
     try:
-        etcd_resp = resource.store.get(key)
-        resource.logger.info(
-            'Request for cluster {0}.'.format(name))
-        resource.logger.debug('{0}'.format(etcd_resp))
+        etcd_resp = store.get(key)
     except etcd.EtcdKeyNotFound:
-        resource.logger.info(
-            'Request for non-existent cluster {0}.'.format(name))
         return None
     cluster = Cluster(**json.loads(etcd_resp.value))
     cluster.etcd = etcd_resp

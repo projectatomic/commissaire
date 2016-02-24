@@ -113,7 +113,7 @@ class ClusterResource(Resource):
         :param name: The name of the Cluster being requested.
         :type name: str
         """
-        cluster = util.get_cluster_model(self, name)
+        cluster = util.get_cluster_model(self.store, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -137,7 +137,7 @@ class ClusterResource(Resource):
         # PUT is idempotent, and since there's no body to this request,
         # there's nothing to conflict with.  The request should always
         # succeed, even if we didn't actually do anything.
-        if util.etcd_cluster_exists(self, name):
+        if util.etcd_cluster_exists(self.store, name):
             self.logger.info(
                 'Creation of already exisiting cluster {0} requested.'.format(
                     name))
@@ -162,7 +162,7 @@ class ClusterResource(Resource):
         :type name: str
         """
         resp.body = '{}'
-        if not util.etcd_cluster_exists(self, name):
+        if not util.etcd_cluster_exists(self.store, name):
             self.logger.info(
                 'Deleting for non-existent cluster {0} requested.'.format(
                     name))
@@ -190,7 +190,7 @@ class ClusterHostsResource(Resource):
         :param name: The name of the Cluster being requested.
         :type name: str
         """
-        cluster = util.get_cluster_model(self, name)
+        cluster = util.get_cluster_model(self.store, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -221,7 +221,7 @@ class ClusterHostsResource(Resource):
             resp.status = falcon.HTTP_400
             return
 
-        cluster = util.get_cluster_model(self, name)
+        cluster = util.get_cluster_model(self.store, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -269,7 +269,7 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :param address: The address of the Host being requested.
         :type address: str
         """
-        cluster = util.get_cluster_model(self, name)
+        cluster = util.get_cluster_model(self.store, name)
         if not cluster:
             resp.status = falcon.HTTP_404
             return
@@ -294,7 +294,7 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :type address: str
         """
         try:
-            util.etcd_cluster_add_host(self, name, address)
+            util.etcd_cluster_add_host(self.store, name, address)
             resp.status = falcon.HTTP_200
         except KeyError:
             resp.status = falcon.HTTP_404
@@ -314,7 +314,7 @@ class ClusterSingleHostResource(ClusterHostsResource):
         :type address: str
         """
         try:
-            util.etcd_cluster_remove_host(self, name, address)
+            util.etcd_cluster_remove_host(self.store, name, address)
             resp.status = falcon.HTTP_200
         except KeyError:
             resp.status = falcon.HTTP_404
@@ -338,7 +338,7 @@ class ClusterRestartResource(Resource):
         """
         key = '/commissaire/cluster/{0}/restart'.format(name)
         try:
-            if not util.etcd_cluster_exists(self, name):
+            if not util.etcd_cluster_exists(self.store, name):
                 self.logger.info(
                     'Restart GET requested for nonexistent cluster {0}'.format(
                         name))
@@ -371,7 +371,7 @@ class ClusterRestartResource(Resource):
         :type name: str
         """
         # Make sure the cluster name is valid.
-        if not util.etcd_cluster_exists(self, name):
+        if not util.etcd_cluster_exists(self.store, name):
             self.logger.info(
                 'Restart PUT requested for nonexistent cluster {0}'.format(
                     name))
@@ -429,7 +429,7 @@ class ClusterUpgradeResource(Resource):
         """
         key = '/commissaire/cluster/{0}/upgrade'.format(name)
         try:
-            if not util.etcd_cluster_exists(self, name):
+            if not util.etcd_cluster_exists(self.store, name):
                 self.logger.info(
                     'Upgrade GET requested for nonexistent cluster {0}'.format(
                         name))
@@ -471,7 +471,7 @@ class ClusterUpgradeResource(Resource):
             return
 
         # Make sure the cluster name is valid.
-        if not util.etcd_cluster_exists(self, name):
+        if not util.etcd_cluster_exists(self.store, name):
             self.logger.info(
                 'Upgrade PUT requested for nonexistent cluster {0}'.format(
                     name))
