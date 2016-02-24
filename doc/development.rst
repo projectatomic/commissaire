@@ -41,7 +41,7 @@ the exception of E402: module level import not at top of file.
 
 Compatibility
 ~~~~~~~~~~~~~
-Code shoulld attempt to be compatible with both Python 2 and Python 3. When
+Code should attempt to be compatible with both Python 2 and Python 3. When
 this is not possible it's assumed a workaround can be created in the
 `commissaire.compat package <apidoc/commissaire.compat.html>`_  module.
 If that is also not possible then Python 2 should be the fallback syntax.
@@ -49,7 +49,7 @@ If that is also not possible then Python 2 should be the fallback syntax.
 Testing
 ~~~~~~~
 commissaire uses TravisCI to verify that all unittests are passing.
-**All unittests must pass and coverege must be above 80% before code
+**All unittests must pass and coverage must be above 80% before code
 will be accepted. No exceptions.**.
 
 To run unittests locally and see where your code stands:
