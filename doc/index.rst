@@ -21,6 +21,7 @@ Development
 
    development
    authentication_devel
+   packaging
 
 Indices and tables
 ==================
