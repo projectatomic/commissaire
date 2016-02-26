@@ -1,1 +1,1 @@
-KUBE_MASTER="--master=http://{{ kubernetes_api_server_host }}:{{ kubernetes_api_server_port }}"
+KUBE_MASTER="--master=http://{{ commissaire_kubernetes_api_server_host }}:{{ commissaire_kubernetes_api_server_port }}"

@@ -1,0 +1,7 @@
+---
+- hosts: commissaire_targets
+  name: upgrade
+  gather_facts: no
+  tasks:
+    - name: upgrade host
+      command: "{{ commissaire_upgrade_command }}"

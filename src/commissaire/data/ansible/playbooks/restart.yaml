@@ -1,0 +1,7 @@
+---
+- hosts: commissaire_targets
+  name: restart
+  gather_facts: no
+  tasks:
+    - name: restart host
+      command: "{{ commissaire_restart_command }}"

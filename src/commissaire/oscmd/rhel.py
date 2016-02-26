@@ -36,6 +36,15 @@ class OSCmd(OSCmdBase):
         """
         return ['yum', 'update', '-y']
 
+    def install_libselinux_python(self):
+        """
+        RHEL install libselinux_python command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['yum', 'install', '-y', 'libselinux-python']
+
     def install_docker(self):
         """
         RHEL install Docker command.

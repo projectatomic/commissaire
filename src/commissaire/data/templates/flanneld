@@ -1,2 +1,2 @@
-FLANNEL_ETCD="http://{{ etcd_host }}:{{ etcd_port }}"
-FLANNEL_ETCD_KEY="{{ flannel_key }}"
+FLANNEL_ETCD="http://{{ commissaire_etcd_host }}:{{ commissaire_etcd_port }}"
+FLANNEL_ETCD_KEY="{{ commissaire_flannel_key }}"

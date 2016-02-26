@@ -26,9 +26,8 @@ class _Test_OSCmd(TestCase):
     """
 
     oscmdcls = None
-    expected_methods = (
-        'restart', 'upgrade', 'install_docker',
-        'install_flannel', 'install_kube')
+    expected_methods = ('restart', 'upgrade', 'install_libselinux_python',
+                        'install_docker', 'install_flannel', 'install_kube')
 
     def before(self):
         """

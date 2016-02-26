@@ -45,6 +45,15 @@ class OSCmd(OSCmdBase):
         """
         return ['rpm-ostree', 'upgrade']
 
+    def install_libselinux_python(self):
+        """
+        Atomic install libselinux_python command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['true']
+
     def install_docker(self):
         """
         Atomic install docker command.

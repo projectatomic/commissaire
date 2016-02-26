@@ -1,0 +1,5 @@
+---
+- hosts: commissaire_targets
+  name: gather
+  gather_facts: yes
+  tasks: []

@@ -16,10 +16,7 @@
 Ansible API transport.
 """
 
-import jinja2
 import logging
-import os
-import tempfile
 
 from collections import namedtuple
 from pkg_resources import resource_filename
@@ -139,21 +136,25 @@ class Transport:
         self.loader = DataLoader()
         self.passwords = {}
 
-    def _run(self, ip, key_file, play_source, expected_results=[0]):
+    def _run(self, ips, key_file, play_file,
+             expected_results=[0], play_vars={}):
         """
         Common code used for each run.
 
-        :param ip: IP address to check.
-        :type ip: str
+        :param ips: IP address(es) to check.
+        :type ips: str or list
         :param key_file: Full path the the file holding the private SSH key.
         :type key_file: string
-        :param play_source: Ansible play.
-        :type play_source: dict
+        :param play_file: Path to the ansible play file.
+        :type play_file: str
         :param expected_results: List of expected return codes. Default: [0]
         :type expected_results: list
         :returns: Ansible exit code
         :type: int
         """
+        if type(ips) != list:
+            ips = [ips]
+
         ssh_args = ('-o StrictHostKeyChecking=no -o '
                     'ControlMaster=auto -o ControlPersist=60s')
         options = self.Options(
@@ -167,22 +168,32 @@ class Transport:
         inventory = Inventory(
             loader=self.loader,
             variable_manager=self.variable_manager,
-            host_list=ip)
+            host_list=ips)
         self.logger.debug('Options: {0}'.format(options))
-        # TODO: Fix this ... weird but works
-        group = Group(ip)
-        group.add_host(Host(ip, 22))
-        inventory.groups.update({ip: group})
+
+        group = Group('commissaire_targets')
+        for ip in ips:
+            host = Host(ip, 22)
+            group.add_host(host)
+
+        inventory.groups.update({'commissaire_targets': group})
         self.logger.debug('Inventory: {0}'.format(inventory))
-        # ---
 
         self.variable_manager.set_inventory(inventory)
-        self.logger.debug(
-            'Running play for host {0}: {1}'.format(ip, play_source))
+
+        play_source = self.loader.load_from_file(play_file)[0]
         play = Play().load(
             play_source,
             variable_manager=self.variable_manager,
             loader=self.loader)
+
+        # Add any variables provided into the play
+        play.vars.update(play_vars)
+
+        self.logger.debug(
+            'Running play for hosts {0}: play={1}, vars={2}'.format(
+                ips, play_source, play.vars))
+
         # actually run it
         tqm = None
         try:
@@ -208,57 +219,41 @@ class Transport:
         self.logger.debug('{0}: Bad result {1}'.format(ip, result))
         raise Exception('Can not run for {0}'.format(ip))
 
-    def upgrade(self, ip, key_file, oscmd):
+    def upgrade(self, ips, key_file, oscmd):
         """
         Upgrades a host via ansible.
 
-        :param ip: IP address to upgrade.
-        :type ip: str
+        :param ips: IP address(es) to upgrade.
+        :type ips: str or list
         :param key_file: Full path the the file holding the private SSH key.
         :param oscmd: OSCmd instance to use
         :type oscmd: commissaire.oscmd.OSCmdBase
         :type key_file: str
         :returns: tuple -- (exitcode(int), facts(dict)).
         """
-        # TODO: Use ansible to do multiple hosts...
-        play_source = {
-            'name': 'upgrade',
-            'hosts': ip,
-            'gather_facts': 'no',
-            'tasks': [{
-                'action': {
-                    'module': 'command',
-                    'args': " ".join(oscmd.upgrade())
-                }
-            }]
-        }
-        return self._run(ip, key_file, play_source)
+        play_file = resource_filename(
+            'commissaire', 'data/ansible/playbooks/upgrade.yaml')
+        return self._run(
+            ips, key_file, play_file, [0],
+            {'commissaire_upgrade_command': " ".join(oscmd.upgrade())})
 
-    def restart(self, ip, key_file, oscmd):
+    def restart(self, ips, key_file, oscmd):
         """
         Restarts a host via ansible.
 
-        :param ip: IP address to reboot.
-        :type ip: str
+        :param ips: IP address(es) to restart.
+        :type ips: str or list
         :param key_file: Full path the the file holding the private SSH key.
         :type key_file: str
         :param oscmd: OSCmd instance to use
         :type oscmd: commissaire.oscmd.OSCmdBase
         :returns: tuple -- (exitcode(int), facts(dict)).
         """
-        # TODO: Use ansible to do multiple hosts...
-        play_source = {
-            'name': 'reboot',
-            'hosts': ip,
-            'gather_facts': 'no',
-            'tasks': [{
-                'action': {
-                    'module': 'command',
-                    'args': " ".join(oscmd.restart())
-                }
-            }]
-        }
-        return self._run(ip, key_file, play_source, [0, 2])
+        play_file = resource_filename(
+            'commissaire', 'data/ansible/playbooks/restart.yaml')
+        return self._run(
+            ips, key_file, play_file, [0, 2],
+            {'commissaire_restart_command': " ".join(oscmd.restart())})
 
     def get_info(self, ip, key_file):
         """
@@ -270,15 +265,9 @@ class Transport:
         :type key_file: str
         :returns: tuple -- (exitcode(int), facts(dict)).
         """
-        # create play with tasks
-        play_source = {
-            'name': 'gather',
-            'hosts': ip,
-            'gather_facts': 'yes',
-            'tasks': []
-
-        }
-        result, fact_cache = self._run(ip, key_file, play_source)
+        play_file = resource_filename(
+            'commissaire', 'data/ansible/playbooks/get_info.yaml')
+        result, fact_cache = self._run(ip, key_file, play_file)
         facts = {}
         facts['os'] = fact_cache['ansible_distribution'].lower()
         facts['cpus'] = fact_cache['ansible_processor_cores']
@@ -318,165 +307,53 @@ class Transport:
         :type oscmd: commissaire.oscmd.OSCmdBase
         :returns: tuple -- (exitcode(int), facts(dict)).
         """
-        # TODO: Use ansible to do multiple hosts...
         self.logger.debug('Using {0} as the oscmd class for {1}'.format(
             oscmd.os_type, ip))
 
-        # TODO: I'd love to use ansibles "template" but it, as well as copy
-        # always fails when used in tasks in 2.0.0.2.
-        # Fill out templates
-        tpl_loader = jinja2.loaders.FileSystemLoader(
-            resource_filename('commissaire', 'data/templates/'))
-        tpl_vars = {
-            'bootstrap_ip': ip,
-            'kubernetes_api_server_host': config.kubernetes['uri'].hostname,
-            'kubernetes_api_server_port': config.kubernetes['uri'].port,
-            'kubernetes_bearer_token': config.kubernetes['token'],
-            'docker_registry_host': '127.0.0.1',  # TODO: Where do we get this?
-            'docker_registry_port': 8080,  # TODO: Where do we get this?
-            'etcd_host': config.etcd['uri'].hostname,
-            'etcd_port': config.etcd['uri'].port,
-            'flannel_key': '/atomic01/network'  # TODO: Where do we get this?
+        play_vars = {
+            'commissaire_bootstrap_ip': ip,
+            'commissaire_kubernetes_api_server_host': config.kubernetes.get(
+                'uri').hostname,
+            'commissaire_kubernetes_api_server_port': config.kubernetes.get(
+                'uri').port,
+            'commissaire_kubernetes_bearer_token': config.kubernetes['token'],
+            # TODO: Where do we get this?
+            'commissaire_docker_registry_host': '127.0.0.1',
+            # TODO: Where do we get this?
+            'commissaire_docker_registry_port': 8080,
+            'commissaire_etcd_host': config.etcd['uri'].hostname,
+            'commissaire_etcd_port': config.etcd['uri'].port,
+            # TODO: Where do we get this?
+            'commissaire_flannel_key': '/atomic01/network',
+            'commissaire_docker_config_local': resource_filename(
+                'commissaire', 'data/templates/docker'),
+            'commissaire_flanneld_config_local': resource_filename(
+                'commissaire', 'data/templates/flanneld'),
+            'commissaire_kubelet_config_local': resource_filename(
+                'commissaire', 'data/templates/kubelet'),
+            'commissaire_kubernetes_config_local': resource_filename(
+                'commissaire', 'data/templates/kube_config'),
+            'commissaire_kubeconfig_config_local': resource_filename(
+                'commissaire', 'data/templates/kubeconfig'),
+            'commissaire_install_libselinux_python': " ".join(
+                oscmd.install_libselinux_python()),
+            'commissaire_docker_config': oscmd.docker_config,
+            'commissaire_flanneld_config': oscmd.flanneld_config,
+            'commissaire_kubelet_config': oscmd.kubelet_config,
+            'commissaire_kubernetes_config': oscmd.kubernetes_config,
+            'commissaire_kubeconfig_config': oscmd.kubernetes_kubeconfig,
+            'commissaire_install_flannel': " ".join(oscmd.install_flannel()),
+            'commissaire_install_docker': " ".join(oscmd.install_docker()),
+            'commissaire_install_kube': " ".join(oscmd.install_kube()),
+            'commissaire_flannel_service': oscmd.flannel_service,
+            'commissaire_docker_service': oscmd.flannel_service,
+            'commissaire_kubelet_service': oscmd.kubelet_service,
+            'commissaire_kubeproxy_service': oscmd.kubelet_proxy_service,
         }
-        self.logger.debug('Variables for bootstrap: {0}'.format(tpl_vars))
-        tpl_env = jinja2.Environment()
-        configs = {}
-        for tpl_name in (
-                'docker', 'flanneld', 'kubelet', 'kube_config', 'kubeconfig'):
-            f = tempfile.NamedTemporaryFile(prefix=tpl_name, delete=False)
-            f.write(tpl_loader.load(tpl_env, tpl_name).render(tpl_vars))
-            f.close()
-            self.logger.debug('Wrote temporary config for {0} at {1}'.format(
-                tpl_name, f.name))
-            configs[tpl_name] = f.name
+        self.logger.debug('Variables for bootstrap: {0}'.format(play_vars))
 
-        play_source = {
-            'name': 'bootstrap',
-            'hosts': ip,
-            'gather_facts': 'no',
-            'tasks': [
-                {
-                    'name': 'Install Flannel',
-                    'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.install_flannel()),
-                    }
-                },
-                {
-                    'name': 'Configure Flannel',
-                    'action': {
-                        'module': 'synchronize',
-                        'args': {
-                            'dest': oscmd.flanneld_config,
-                            'src': configs['flanneld'],
-                        }
-                    }
-                },
-                {
-                    'name': 'Enable and Start Flannel',
-                    'action': {
-                        'module': 'service',
-                        'args': {
-                            'name': oscmd.flannel_service,
-                            'enabled': 'yes',
-                            'state': 'started',
-                        }
-                    }
-                },
-                {
-                    'name': 'Install Docker',
-                    'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.install_docker()),
-                    }
-                },
-                {
-                    'name': 'Configure Docker',
-                    'action': {
-                        'module': 'synchronize',
-                        'args': {
-                            'dest': oscmd.docker_config,
-                            'src': configs['docker'],
-                        }
-                    }
-                },
-                {
-                    'name': 'Enable and Start Docker',
-                    'action': {
-                        'module': 'service',
-                        'args': {
-                            'name': oscmd.docker_service,
-                            'enabled': 'yes',
-                            'state': 'started',
-                        }
-                    }
-                },
-                {
-                    'name': 'Install Kubernetes Node',
-                    'action': {
-                        'module': 'command',
-                        'args': " ".join(oscmd.install_kube()),
-                    }
-                },
-                {
-                    'name': 'Configure Kubernetes Node',
-                    'action': {
-                        'module': 'synchronize',
-                        'args': {
-                            'dest': oscmd.kubernetes_config,
-                            'src': configs['kube_config'],
-                        }
-                    }
-                },
-                {
-                    'name': 'Add Kubernetes kubeconfig',
-                    'action': {
-                        'module': 'synchronize',
-                        'args': {
-                            'dest': oscmd.kubernetes_kubeconfig,
-                            'src': configs['kubeconfig'],
-                        }
-                    }
-                },
-                {
-                    'name': 'Configure Kubernetes kubelet',
-                    'action': {
-                        'module': 'synchronize',
-                        'args': {
-                            'dest': oscmd.kubelet_config,
-                            'src': configs['kubelet'],
-                        }
-                    }
-                },
-                {
-                    'name': 'Enable and Start Kubelet',
-                    'action': {
-                        'module': 'service',
-                        'args': {
-                            'name': oscmd.kubelet_service,
-                            'enabled': 'yes',
-                            'state': 'started',
-                        }
-                    }
-                },
-                {
-                    'name': 'Enable and Start Kube Proxy',
-                    'action': {
-                        'module': 'service',
-                        'args': {
-                            'name': oscmd.kubelet_proxy_service,
-                            'enabled': 'yes',
-                            'state': 'started',
-                        }
-                    }
-                },
-            ]
-        }
+        play_file = resource_filename(
+            'commissaire', 'data/ansible/playbooks/bootstrap.yaml')
+        results = self._run(ip, key_file, play_file, [0], play_vars)
 
-        results = self._run(ip, key_file, play_source, [0])
-
-        # Clean out the temporary configs
-        map(os.unlink, configs.values())
-        self.logger.debug('Removed the temporary configs at {0}'.format(
-            config.values()))
         return results

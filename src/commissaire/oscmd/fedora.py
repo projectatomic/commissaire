@@ -45,6 +45,15 @@ class OSCmd(OSCmdBase):
         """
         return ['dnf', 'update', '-y']
 
+    def install_libselinux_python(self):
+        """
+        Fedora install libselinux_python command.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        return ['dnf', 'install', '-y', 'libselinux-python']
+
     def install_docker(self):
         """
         Fedora install docker command.

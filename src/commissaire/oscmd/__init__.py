@@ -64,6 +64,17 @@ class OSCmdBase:
         raise NotImplementedError('{0}.upgrade() must be overriden.'.format(
             self.__class__.__name__))
 
+    def install_libselinux_python(self):
+        """
+        Install libselinux_python command. Must be overriden.
+
+        :return: The command to execute as a list
+        :rtype: list
+        """
+        raise NotImplementedError(
+            '{0}.install_libselinux_python() must be overriden.'.format(
+                self.__class__.__name__))
+
     def install_docker(self):
         """
         Install Docker command. Must be overriden.

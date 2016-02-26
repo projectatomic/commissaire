@@ -1,0 +1,48 @@
+---
+- name: bootstrap
+  hosts: commissaire_targets
+  gather_facts: no
+  tasks:
+    - name: Install libselinux-python
+      command: "{{ commissaire_install_libselinux_python }}"
+    - name: Install Flannel
+      command: "{{ commissaire_install_flannel }}"
+    - name: Configure Flannel
+      template:
+        src: "{{ commissaire_flanneld_config_local }}"
+        dest: "{{ commissaire_flanneld_config }}"
+        force: yes
+    - name: Install Docker
+      command: "{{ commissaire_install_docker }}"
+    - name: Configure Docker
+      template:
+        dest: "{{ commissaire_docker_config }}"
+        src: "{{ commissaire_docker_config_local }}"
+        force: yes
+    - name: Install Kubernetes Node
+      command: "{{ commissaire_install_kube }}"
+    - name: Configure Kubernetes Node
+      template:
+        dest: "{{ commissaire_kube_config_config }}"
+        src: "{{ commissaire_kube_config_config_local }}"
+        force: yes
+    - name: Add Kubernetes kubeconfig
+      template:
+        dest: "{{ commissaire_kubeconfig_config }}"
+        src: "{{ commissaire_kubeconfig_config_local }}"
+        force: yes
+    - name: Configure Kubernetes kubelet
+      template:
+        dest: "{{ commissaire_kubelet_config }}"
+        src: "{{ commissaire_kubelet_config_local }}"
+        force: yes
+    - name: Enable and Start Services
+      service:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - "{{ commissaire_flannel_service }}"
+        - "{{ commissaire_docker_service }}"
+        - "{{ commissaire_kubelet_service }}"
+        - "{{ commissaire_kubeproxy_service }}"
