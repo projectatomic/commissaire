@@ -191,6 +191,8 @@ class Test_HostResource(TestCase):
         self.datasource.delete.return_value = self.return_value
         self.datasource.set = MagicMock(name='set')
         self.datasource.set.return_value = self.return_value
+        self.datasource.write = MagicMock(name='set')
+        self.datasource.write.return_value = self.return_value
         self.resource = hosts.HostResource(self.datasource)
         self.api.add_route('/api/v0/host/{address}', self.resource)
 
@@ -260,7 +262,8 @@ class Test_HostResource(TestCase):
         body = self.simulate_request(
             '/api/v0/host/10.2.0.2', method='PUT', body=data)
         # datasource's set should have been called twice
-        self.assertEquals(2, self.datasource.set.call_count)
+        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEquals(1, self.datasource.write.call_count)
         self.assertEqual(self.srmock.status, falcon.HTTP_201)
         self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
 

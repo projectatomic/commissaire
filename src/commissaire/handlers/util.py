@@ -108,7 +108,10 @@ def etcd_cluster_add_host(store, name, address):
 
     if address not in cluster.hostset:
         cluster.hostset.append(address)
-        store.set(cluster.etcd.key, cluster.to_json(secure=True))
+        r = store.write(
+            cluster.etcd.key,
+            cluster.to_json(secure=True),
+            prevValue=cluster.etcd.value)
 
 
 def etcd_cluster_remove_host(store, name, address):

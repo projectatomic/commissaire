@@ -453,6 +453,8 @@ class Test_ClusterSingleHostResource(TestCase):
         self.datasource.get.return_value = self.return_value
         self.datasource.set = MagicMock(name='set')
         self.datasource.set.return_value = self.return_value
+        self.datasource.write = MagicMock(name='set')
+        self.datasource.write.return_value = self.return_value
         self.resource = clusters.ClusterSingleHostResource(self.datasource)
         self.api.add_route(
             '/api/v0/cluster/{name}/hosts/{address}', self.resource)
@@ -498,7 +500,7 @@ class Test_ClusterSingleHostResource(TestCase):
         body = self.simulate_request(
             '/api/v0/cluster/developent/hosts/10.2.0.3', method='PUT')
         self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEquals(1, self.datasource.set.call_count)
+        self.assertEquals(1, self.datasource.write.call_count)
         self.assertEqual(falcon.HTTP_200, self.srmock.status)
         self.assertEqual({}, json.loads(body[0]))
 

@@ -163,7 +163,6 @@ class HostResource(Resource):
 
         host = Host(**host_creation)
         new_host = self.store.set(key, host.to_json(secure=True))
-        INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
 
         # Add host to the requested cluster.
         if cluster_name:
@@ -171,6 +170,7 @@ class HostResource(Resource):
 
         resp.status = falcon.HTTP_201
         req.context['model'] = Host(**json.loads(new_host.value))
+        INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
 
     def on_delete(self, req, resp, address):
         """
