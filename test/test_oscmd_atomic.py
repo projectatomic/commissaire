@@ -16,14 +16,16 @@
 Test cases for the commissaire.oscmd.atomic module.
 """
 
-from . import TestCase
+from . test_oscmd import _Test_OSCmd
 from commissaire.oscmd import atomic
 
 
-class Test_Atomic_OSCmd(TestCase):
+class Test_Atomic_OSCmd(_Test_OSCmd):
     """
     Tests for the OSCmd class for Atomic.
     """
+
+    oscmdcls = atomic.OSCmd
 
     def before(self):
         """
@@ -33,10 +35,8 @@ class Test_Atomic_OSCmd(TestCase):
 
     def test_atomic_oscmd_commands(self):
         """
-        Verify Fedora's OSCmd returns proper data on restart.
+        Verify Atomic's OSCmd returns proper data on restart.
         """
-        for meth in ('restart', 'upgrade', 'install_docker',
-                     'start_docker', 'install_flannel', 'start_flannel',
-                     'install_kube', 'start_kube', 'start_kube_proxy'):
+        for meth in self.expected_methods:
             cmd = getattr(self.instance, meth)()
             self.assertEquals(list, type(cmd))
