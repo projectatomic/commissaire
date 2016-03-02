@@ -22,6 +22,15 @@ from commissaire.oscmd import OSCmdBase
 class OSCmd(OSCmdBase):
     """
     Commmands for Atomic.
+
+    .. note::
+
+       install_* methods return true since Atomic already has these
+       packages as part of the OS and does not allow installing packages.
+
+    .. todo::
+
+       TODO: skip install_* commands for atomic via ansible playbook.
     """
 
     #: The type of Operating System
@@ -47,7 +56,7 @@ class OSCmd(OSCmdBase):
 
     def install_libselinux_python(self):
         """
-        Atomic install libselinux_python command.
+        Faux Atomic install libselinux_python command.
 
         :return: The command to execute as a list
         :rtype: list
@@ -56,7 +65,7 @@ class OSCmd(OSCmdBase):
 
     def install_docker(self):
         """
-        Atomic install docker command.
+        Faux Atomic install docker command.
 
         :return: The command to execute as a list
         :rtype: list
@@ -74,7 +83,7 @@ class OSCmd(OSCmdBase):
 
     def install_flannel(self):
         """
-        Atomic install flannel command.
+        Faux Atomic install flannel command.
 
         :return: The command to execute as a list
         :rtype: list
@@ -92,7 +101,7 @@ class OSCmd(OSCmdBase):
 
     def install_kube(self):
         """
-        Atomic install Kube command.
+        Faux Atomic install Kube command.
 
         :return: The command to execute as a list
         :rtype: list
