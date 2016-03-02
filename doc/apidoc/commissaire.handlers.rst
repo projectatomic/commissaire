@@ -15,4 +15,5 @@ Submodules
    commissaire.handlers.hosts
    commissaire.handlers.models
    commissaire.handlers.status
+   commissaire.handlers.util
 
