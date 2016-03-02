@@ -1,6 +1,8 @@
 Getting Started
 ===============
 
+.. _manual_installation:
+
 Manual Installation
 -------------------
 To test out the current code you will need the following installed:

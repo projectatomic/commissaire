@@ -90,10 +90,23 @@ If that is also not possible then Python 2 should be the fallback syntax.
 
 Testing
 ~~~~~~~
-commissaire uses TravisCI to verify that all unittests are passing.
-**All unittests must pass and coverage must be above 80% before code
+
+Unit Testing
+````````````
+commissaire uses TravisCI to verify that all unit tests are passing.
+**All unit tests must pass and coverage must be above 80% before code
 will be accepted. No exceptions.**.
 
-To run unittests locally and see where your code stands:
+To run unit tests locally and see where your code stands:
 
 .. include:: examples/run_unittest_example.rst
+
+
+End-to-End/BDD Testing
+``````````````````````
+commissaire uses `Behave <http://pythonhosted.org/behave/>`_ to execute
+end to end/BDD tests.
+
+To run e2e/bdd tests locally and see where your code stands:
+
+.. include:: examples/run_e2e_bdd_example.rst
