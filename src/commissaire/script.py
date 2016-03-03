@@ -171,8 +171,6 @@ def main():  # pragma: no cover
         PROCS['investigator'].start()
     except etcd.EtcdKeyNotFound:
         parser.error('"/commissaire/config/kubetoken" must be set in etcd!')
-    # watch_thread = gevent.spawn(host_watcher, ROUTER_QUEUE, ds)
-    # router_thread = gevent.spawn(router, ROUTER_QUEUE)
 
     app = create_app(ds)
     try:
