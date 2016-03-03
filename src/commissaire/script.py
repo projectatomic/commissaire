@@ -129,6 +129,13 @@ def main():  # pragma: no cover
     parser.add_argument(
         '--kube-uri', '-k', type=str, required=True,
         help='Full URI for kubernetes EX: http://127.0.0.1:8080')
+    parser.add_argument(
+        '--tls-keyfile', type=str, required=False,
+        help='Full path to the TLS keyfile')
+    parser.add_argument(
+        '--tls-certfile', type=str, required=False,
+        help='Full path to the TLS certfile')
+
     args = parser.parse_args()
 
     try:
@@ -156,6 +163,22 @@ def main():  # pragma: no cover
         parser.error('{0}\n'.format(err))
         raise SystemExit(1)
 
+    # TLS options
+    ssl_args = {}
+    tls_keyfile = cli_etcd_or_default(
+        'tlskeyfile', args.tls_keyfile, None, ds)
+    tls_certfile = cli_etcd_or_default(
+        'tlscertfile', args.tls_certfile, None, ds)
+    if tls_keyfile is not None and tls_certfile is not None:
+        ssl_args = {
+            'keyfile': tls_keyfile,
+            'certfile': tls_certfile,
+        }
+        logging.info('TLS will be enabled.')
+    elif tls_keyfile is not None or tls_certfile is not None:
+        parser.error(
+            'Both a keyfile and certfile must be given for TLS. Exiting ...')
+
     interface = cli_etcd_or_default(
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
     port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
@@ -176,12 +199,15 @@ def main():  # pragma: no cover
     try:
         access_logger = logging.getLogger('http-access')
         error_logger = logging.getLogger('http-error')
-        WSGIServer(
-            listener=(interface, int(port)),
-            application=app,
-            log=LoggingLogAdapter(access_logger, access_logger.level),
-            error_log=LoggingLogAdapter(error_logger, error_logger.level),
-        ).serve_forever()
+        kwargs = {
+            'listener': (interface, int(port)),
+            'application': app,
+            'log': LoggingLogAdapter(access_logger, access_logger.level),
+            'error_log': LoggingLogAdapter(error_logger, error_logger.level),
+        }
+        kwargs.update(ssl_args)
+        logging.debug('WSGIServer args: {0}'.format(kwargs))
+        WSGIServer(**kwargs).serve_forever()
     except KeyboardInterrupt:
         pass
 
