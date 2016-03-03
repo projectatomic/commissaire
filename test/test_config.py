@@ -33,7 +33,7 @@ class Test_CliEtcdOrDefault(TestCase):
         """
         Verify cli_etcd_or_default works with cli input.
         """
-        cli = Namespace(test=['test'])
+        cli = Namespace(test='test')
         ds = MagicMock(get=MagicMock(side_effect=etcd.EtcdKeyNotFound))
         self.assertEquals(
             'test',

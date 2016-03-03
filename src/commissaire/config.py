@@ -58,7 +58,7 @@ def cli_etcd_or_default(name, cli, default, ds):
     """
     result = None
     if cli:
-        result = cli[0]
+        result = cli
         logging.info('Using CLI for {0} configuration.'.format(name))
     else:
         try:
