@@ -207,7 +207,13 @@ def main():  # pragma: no cover
         }
         kwargs.update(ssl_args)
         logging.debug('WSGIServer args: {0}'.format(kwargs))
-        WSGIServer(**kwargs).serve_forever()
+
+        server = WSGIServer(**kwargs)
+
+        # Catch SIGTERM and stop the server.
+        gevent.signal.signal(
+            gevent.signal._signal.SIGTERM, lambda s, f: server.stop())
+        server.serve_forever()
     except KeyboardInterrupt:
         pass
 
