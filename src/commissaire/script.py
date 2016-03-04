@@ -28,7 +28,7 @@ import etcd
 import falcon
 import gevent
 
-from gevent.pywsgi import WSGIServer, LoggingLogAdapter
+from gevent.pywsgi import WSGIServer, LoggingLogAdapter, socket
 
 from commissaire.compat.urlparser import urlparse
 from commissaire.compat import exception
@@ -214,6 +214,9 @@ def main():  # pragma: no cover
         gevent.signal.signal(
             gevent.signal._signal.SIGTERM, lambda s, f: server.stop())
         server.serve_forever()
+    except socket.error:
+        _, ex, _ = exception.raise_if_not(socket.error)
+        logging.fatal(ex)
     except KeyboardInterrupt:
         pass
 

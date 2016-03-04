@@ -51,7 +51,6 @@ def cli_etcd_or_default(name, cli, default, ds):
     :param name: The name of the switch/etcd key.
     :type name: str
     :param cli: The argparse value.
-    :type cli: list
     :param default: The default value if CLI and etcd have no values.
     :param ds: Etcd client
     :type ds: etcd.Client

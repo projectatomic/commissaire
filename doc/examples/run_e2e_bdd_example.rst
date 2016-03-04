@@ -1,3 +1,12 @@
+
+.. code-block:: shell
+
+   (virtualenv)$ behave -D start-etcd=true -D start-server=true
+   ...
+
+
+You can also run the tests against any commissaire/etcd instance directly.
+
 .. warning::
 
    Do **not** point to a real instance of commissaire. e2e/BDD tests will

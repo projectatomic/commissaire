@@ -1,10 +1,13 @@
 import etcd
 import json
-# import subprocess
+import platform
+import random
+import subprocess
+import tempfile
+import time
 
 # XXX Reproducing commissaire.compat.urlparser because I can't seem to
 #     import it from here.
-import platform
 if platform.python_version()[0] == '2':
     from urlparse import urlparse as _urlparse
 else:
@@ -24,9 +27,61 @@ def before_all(context):
     context.ETCD = context.config.userdata.get(
         'etcd', 'http://127.0.0.1:2379')
 
+    # Start etcd up via -D start-etcd=$ANYTHING
+    if context.config.userdata.get('start-etcd', None):
+        for retry in range(1, 4):
+            listen_client_port = random.randint(50000, 60000)
+            listen_peer_port = listen_client_port + 1
+            listen_client_url = 'http://127.0.0.1:{0}'.format(
+                listen_client_port)
+            listen_peer_url = 'http://127.0.0.1:{0}'.format(listen_peer_port)
+            context.ETCD_DATA_DIR = tempfile.mkdtemp()
+            context.ETCD = listen_client_url
+
+            # Try up to 3 times to gain usable random ports
+            context.ETCD_PROCESS = subprocess.Popen(
+                ['etcd', '--name', 'commissaireE2E',
+                 '--initial-cluster',
+                 'commissaireE2E={0}'.format(listen_peer_url),
+                 '--listen-client-urls', listen_client_url,
+                 '--advertise-client-urls', listen_client_url,
+                 '--listen-peer-urls', listen_peer_url,
+                 '--initial-advertise-peer-urls', listen_peer_url,
+                 '--data-dir', context.ETCD_DATA_DIR])
+            time.sleep(3)
+            context.ETCD_PROCESS.poll()
+            # If the returncode is not set then etcd is running
+            if context.ETCD_PROCESS.returncode is None:
+                break
+            if retry == 3:
+                print("Could not find a random port to use for "
+                      "etcd. Exiting...")
+                raise SystemExit(1)
+
     # Connect to the etcd service
     url = urlparse(context.ETCD)
     context.etcd = etcd.Client(host=url.hostname, port=url.port)
+    context.etcd.write('/commissaire/config/kubetoken', 'test')
+
+    # Start the server up via -D start-server=$ANYTHING
+    if context.config.userdata.get('start-server', None):
+        for retry in range(1, 4):
+            server_port = random.randint(8500, 9000)
+            context.SERVER = 'http://127.0.0.1:{0}'.format(server_port)
+            # TODO: add kubernetes URL to options
+            context.SERVER_PROCESS = subprocess.Popen(
+                ['python', 'src/commissaire/script.py',
+                 '-e', context.ETCD, '-k', 'http://127.0.0.1:8080',
+                 '--listen-port', str(server_port)])
+            time.sleep(3)
+            context.SERVER_PROCESS.poll()
+            # If the returncode is not set then etcd is running
+            if context.SERVER_PROCESS.returncode is None:
+                break
+            if retry == 3:
+                print("Could not find a random port to use for "
+                      "commissaire. Exiting...")
+                raise SystemExit(1)
 
 
 def before_scenario(context, scenario):
@@ -78,21 +133,12 @@ def after_scenario(context, scenario):
         pass
 
 
-# TODO: Not needed?
-'''
-def before_all(context):
-    """
-    Start the server via a subproccess.
-    """
-    context.server_pipe = subprocess.Popen(
-        ['python', 'src/commissaire/script.py',
-         '-e', 'http://127.0.0.1:2379', '-k', 'http://127.0.0.1:8080'],
-        stdout=subprocess.PIPE)
-
-
 def after_all(context):
     """
-    Kill the server at the end.
+    Run after everything finishes.
     """
-    context.server_pipe.kill()
-'''
+    if hasattr(context, 'ETCD_PROCESS'):
+        context.ETCD_PROCESS.kill()
+    if hasattr(context, 'SERVER_PROCESS'):
+        context.SERVER_PROCESS.terminate()
+        context.SERVER_PROCESS.wait()
