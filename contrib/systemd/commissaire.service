@@ -1,0 +1,13 @@
+[Unit]
+Description=Commissaire Atomic Multi-Host Manager
+Documentation=http://commissaire.readthedocs.org
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/commissaire
+ExecStart=/usr/bin/commissaire -e $ETCD_URL -k $KUBERNETES_URL
+PIDFile=/var/run/commissaire.pid
+Type=simple
+
+[Install]
+Alias=amhm

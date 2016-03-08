@@ -1,6 +1,6 @@
 Name:           commissaire
 Version:        0.0.1rc2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Simple cluster host management
 License:        AGPLv3+
 URL:            http://github.com/projectatomic/commissaire
@@ -18,6 +18,7 @@ BuildRequires:  python-coverage
 BuildRequires:  python-mock
 BuildRequires:  python-nose
 BuildRequires:  python-pep8
+BuildRequires:  pkgconfig(systemd)
 
 # XXX: Waiting on python2-python-etcd to pass review
 #      https://bugzilla.redhat.com/show_bug.cgi?id=1310796
@@ -53,14 +54,24 @@ Example tasks include:
 # Build docs
 %{__python2} setup.py build_sphinx -c doc -b text
 
-
 %install
 %py2_install
-
+install -D contrib/systemd/commissaire %{buildroot}%{_sysconfdir}/sysconfig/commissaire
+install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissaire.service
 
 %check
 # XXX: Issue with the coverage module.
 #%{__python2} setup.py nosetests
+
+%post
+%systemd_post %{name}
+
+%preun
+%systemd_preun %{name}
+
+%postun
+%systemd_postun_with_restart %{name}
+
 
 
 %files
@@ -71,10 +82,15 @@ Example tasks include:
 %{_bindir}/commissaire
 %{_bindir}/commissaire-hashpass
 %{python2_sitelib}/*
+%{_sysconfdir}/sysconfig/commissaire
+%{_unitdir}/commissaire.service
 
 
 %changelog
-* Tue Apr  8 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-1
+* Tue Mar  8 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-2
+- Adding in service items.
+
+* Tue Mar  8 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-1
 - Update for RC2.
 
 * Mon Feb 22 2016 Matthew Barnes <mbarnes@redhat.com> - 0.0.1rc1-1
