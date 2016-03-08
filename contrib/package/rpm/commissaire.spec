@@ -1,5 +1,5 @@
 Name:           commissaire
-Version:        0.0.1rc1
+Version:        0.0.1rc2
 Release:        1%{?dist}
 Summary:        Simple cluster host management
 License:        AGPLv3+
@@ -74,5 +74,8 @@ Example tasks include:
 
 
 %changelog
+* Tue Apr  8 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-1
+- Update for RC2.
+
 * Mon Feb 22 2016 Matthew Barnes <mbarnes@redhat.com> - 0.0.1rc1-1
 - Initial packaging.
