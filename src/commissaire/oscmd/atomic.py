@@ -36,7 +36,8 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'atomic'
 
-    def restart(self):
+    @classmethod
+    def restart(cls):
         """
         Atomic restart command.
 
@@ -45,7 +46,8 @@ class OSCmd(OSCmdBase):
         """
         return ['systemctl', 'reboot']
 
-    def upgrade(self):
+    @classmethod
+    def upgrade(cls):
         """
         Atomic upgrade command.
 
@@ -54,7 +56,8 @@ class OSCmd(OSCmdBase):
         """
         return ['rpm-ostree', 'upgrade']
 
-    def install_libselinux_python(self):
+    @classmethod
+    def install_libselinux_python(cls):
         """
         Faux Atomic install libselinux_python command.
 
@@ -63,7 +66,8 @@ class OSCmd(OSCmdBase):
         """
         return ['true']
 
-    def install_docker(self):
+    @classmethod
+    def install_docker(cls):
         """
         Faux Atomic install docker command.
 
@@ -72,7 +76,8 @@ class OSCmd(OSCmdBase):
         """
         return ['true']
 
-    def install_flannel(self):
+    @classmethod
+    def install_flannel(cls):
         """
         Faux Atomic install flannel command.
 
@@ -81,7 +86,8 @@ class OSCmd(OSCmdBase):
         """
         return ['true']
 
-    def install_kube(self):
+    @classmethod
+    def install_kube(cls):
         """
         Faux Atomic install Kube command.
 

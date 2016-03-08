@@ -112,7 +112,7 @@ def investigator(queue, config, store, run_once=False):
             address, data))
 
         logger.info('{0} is now in bootstrapping'.format(address))
-        oscmd = get_oscmd(data['os'])()
+        oscmd = get_oscmd(data['os'])
         try:
             result, facts = transport.bootstrap(
                 address, key_file, config, oscmd)

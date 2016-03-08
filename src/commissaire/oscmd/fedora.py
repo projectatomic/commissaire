@@ -27,7 +27,8 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'fedora'
 
-    def restart(self):
+    @classmethod
+    def restart(cls):
         """
         Fedora restart command.
 
@@ -36,7 +37,8 @@ class OSCmd(OSCmdBase):
         """
         return ['systemctl', 'reboot']
 
-    def upgrade(self):
+    @classmethod
+    def upgrade(cls):
         """
         Fedora upgrade command.
 
@@ -45,7 +47,8 @@ class OSCmd(OSCmdBase):
         """
         return ['dnf', 'update', '-y']
 
-    def install_libselinux_python(self):
+    @classmethod
+    def install_libselinux_python(cls):
         """
         Fedora install libselinux_python command.
 
@@ -54,7 +57,8 @@ class OSCmd(OSCmdBase):
         """
         return ['dnf', 'install', '-y', 'libselinux-python']
 
-    def install_docker(self):
+    @classmethod
+    def install_docker(cls):
         """
         Fedora install docker command.
 
@@ -63,7 +67,8 @@ class OSCmd(OSCmdBase):
         """
         return ['dnf', 'install', '-y', 'docker']
 
-    def install_flannel(self):
+    @classmethod
+    def install_flannel(cls):
         """
         Fedora install flannel command.
 
@@ -72,7 +77,8 @@ class OSCmd(OSCmdBase):
         """
         return ['dnf', 'install', '-y', 'flannel']
 
-    def install_kube(self):
+    @classmethod
+    def install_kube(cls):
         """
         Fedora install Kube command.
 

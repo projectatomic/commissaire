@@ -27,7 +27,8 @@ class OSCmd(OSCmdBase):
     #: The type of Operating System
     os_type = 'rhel'
 
-    def upgrade(self):
+    @classmethod
+    def upgrade(cls):
         """
         RHEL upgrade command.
 
@@ -36,7 +37,8 @@ class OSCmd(OSCmdBase):
         """
         return ['yum', 'update', '-y']
 
-    def install_libselinux_python(self):
+    @classmethod
+    def install_libselinux_python(cls):
         """
         RHEL install libselinux_python command.
 
@@ -45,7 +47,8 @@ class OSCmd(OSCmdBase):
         """
         return ['yum', 'install', '-y', 'libselinux-python']
 
-    def install_docker(self):
+    @classmethod
+    def install_docker(cls):
         """
         RHEL install Docker command.
 
@@ -54,7 +57,8 @@ class OSCmd(OSCmdBase):
         """
         return ['yum', 'install', '-y', 'docker']
 
-    def install_kube(self):
+    @classmethod
+    def install_kube(cls):
         """
         RHEL start Kube command.
 
@@ -63,7 +67,8 @@ class OSCmd(OSCmdBase):
         """
         return ['yum', 'install', '-y', 'kubernetes-node']
 
-    def install_flannel(self):
+    @classmethod
+    def install_flannel(cls):
         """
         Atomic install flannel command.
 

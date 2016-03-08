@@ -84,7 +84,7 @@ def clusterexec(cluster_name, command, store):
             continue  # Move on to the next one
         oscmd = get_oscmd(a_host['os'])
 
-        command_list = getattr(oscmd(), command)()  # Only used for logging
+        command_list = getattr(oscmd, command)()  # Only used for logging
         logger.info('Executing {0} on {1}...'.format(
             command_list, a_host['address']))
 
@@ -105,7 +105,7 @@ def clusterexec(cluster_name, command, store):
 
         transport = ansibleapi.Transport()
         result, facts = getattr(transport, command)(
-            a_host['address'], key_file, oscmd())
+            a_host['address'], key_file, oscmd)
         try:
             f.unlink(key_file)
             logger.debug('Removed temporary key file {0}'.format(key_file))

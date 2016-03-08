@@ -44,27 +44,30 @@ class OSCmdBase:
     #: Kubernetes kube-proxy service name
     kubelet_proxy_service = 'kube-proxy'
 
-    def restart(self):
+    @classmethod
+    def restart(cls):
         """
         Restart command. Must be overriden.
 
         :return: The command to execute as a list
         :rtype: list
         """
-        raise NotImplementedError('{0}.restart() must be overriden.'.format(
-            self.__class__.__name__))
+        raise NotImplementedError(
+            '{0}.restart() must be overriden.'.format(cls.__name__))
 
-    def upgrade(self):
+    @classmethod
+    def upgrade(cls):
         """
         Upgrade command. Must be overriden.
 
         :return: The command to execute as a list
         :rtype: list
         """
-        raise NotImplementedError('{0}.upgrade() must be overriden.'.format(
-            self.__class__.__name__))
+        raise NotImplementedError(
+            '{0}.upgrade() must be overriden.'.format(cls.__name__))
 
-    def install_libselinux_python(self):
+    @classmethod
+    def install_libselinux_python(cls):
         """
         Install libselinux_python command. Must be overriden.
 
@@ -73,9 +76,10 @@ class OSCmdBase:
         """
         raise NotImplementedError(
             '{0}.install_libselinux_python() must be overriden.'.format(
-                self.__class__.__name__))
+                cls.__name__))
 
-    def install_docker(self):
+    @classmethod
+    def install_docker(cls):
         """
         Install Docker command. Must be overriden.
 
@@ -83,10 +87,10 @@ class OSCmdBase:
         :rtype: list
         """
         raise NotImplementedError(
-            '{0}.install_docker() must be overriden.'.format(
-                self.__class__.__name__))
+            '{0}.install_docker() must be overriden.'.format(cls.__name__))
 
-    def install_flannel(self):
+    @classmethod
+    def install_flannel(cls):
         """
         Install Flannel command. Must be overriden.
 
@@ -94,10 +98,10 @@ class OSCmdBase:
         :rtype: list
         """
         raise NotImplementedError(
-            '{0}.install_flannel() must be overriden.'.format(
-                self.__class__.__name__))
+            '{0}.install_flannel() must be overriden.'.format(cls.__name__))
 
-    def install_kube(self):
+    @classmethod
+    def install_kube(cls):
         """
         Install Kube command. Must be overriden.
 
@@ -105,8 +109,7 @@ class OSCmdBase:
         :rtype: list
         """
         raise NotImplementedError(
-            '{0}.install_kube() must be overriden.'.format(
-                self.__class__.__name__))
+            '{0}.install_kube() must be overriden.'.format(cls.__name__))
 
 
 def get_oscmd(os_type):
