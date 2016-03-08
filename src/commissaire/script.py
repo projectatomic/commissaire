@@ -23,6 +23,7 @@ import base64
 import json
 import logging
 import logging.config
+import os
 
 import etcd
 import falcon
@@ -46,21 +47,31 @@ from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
 
 
-def create_app(store):
+def create_app(
+        store,
+        users_paths=('/etc/commissaire/users.json', './conf/users.json')):
     """
     Creates a new WSGI compliant commissaire application.
 
     :param store: The etcd client to for storing/retrieving data.
     :type store: etcd.Client
+    :param users_paths: Path(s) to where the users.json can be found.
+    :type users_paths: str or iterable
     :returns: The commissaire application.
     :rtype: falcon.API
     """
-    # TODO: Make this configurable
     try:
         http_auth = httpauth.HTTPBasicAuthByEtcd(store)
     except etcd.EtcdKeyNotFound:
-        # TODO: Fall back to empty users file instead
-        http_auth = httpauth.HTTPBasicAuthByFile('./conf/users.json')
+        if not hasattr(users_paths, '__iter__'):
+            users_paths = [users_paths]
+        http_auth = None
+        for user_path in users_paths:
+            if os.path.isfile(user_path):
+                http_auth = httpauth.HTTPBasicAuthByFile(user_path)
+        if http_auth is None:
+            raise Exception('User configuration must be set in Etcd '
+                            'or on the file system ({0}).'.format(users_paths))
 
     app = falcon.API(middleware=[http_auth, JSONify()])
 
@@ -153,9 +164,19 @@ def main():  # pragma: no cover
             json.loads(ds.get('/commissaire/config/logger').value))
         logging.info('Using Etcd for logging configuration.')
     except etcd.EtcdKeyNotFound:
-        with open('./conf/logger.json', 'r') as logging_default_cfg:
-            logging.config.dictConfig(json.loads(logging_default_cfg.read()))
-            logging.warn('No logger configuration in Etcd. Using defaults.')
+        found_logger_config = False
+        for logger_path in (
+                '/etc/commissaire/logger.json', './conf/logger.json'):
+            if os.path.isfile(logger_path):
+                with open(logger_path, 'r') as logging_default_cfg:
+                    logging.config.dictConfig(
+                        json.loads(logging_default_cfg.read()))
+                    found_logger_config = True
+                logging.warn('No logger configuration in Etcd. Using defaults '
+                             'at {0}'.format(logger_path))
+        if not found_logger_config:
+            parser.error(
+                'Unable to find any logging configuration. Exiting ...')
     except etcd.EtcdConnectionFailed:
         _, ecf, _ = exception.raise_if_not(etcd.EtcdConnectionFailed)
         err = 'Unable to connect to Etcd: {0}. Exiting ...'.format(ecf)

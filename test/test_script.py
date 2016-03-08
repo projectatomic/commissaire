@@ -18,6 +18,7 @@ Test cases for the commissaire.script module.
 
 import falcon
 import etcd
+import os.path
 
 from . import TestCase
 from mock import MagicMock
@@ -34,7 +35,7 @@ class Test_CreateApp(TestCase):
         Verify cli_etcd_or_default works with cli input.
         """
         store = MagicMock(get=MagicMock(side_effect=etcd.EtcdKeyNotFound))
-        app = script.create_app(store)
+        app = script.create_app(store, os.path.realpath('../conf/users.json'))
         self.assertTrue(isinstance(app, falcon.API))
         self.assertEquals(2, len(app._middleware))
 
