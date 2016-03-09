@@ -311,16 +311,22 @@ class Transport:
             oscmd.os_type, ip))
 
         play_vars = {
+            'commissaire_etcd_use_cert': False,
+            'commissaire_kubernetes_use_cert': False,
             'commissaire_bootstrap_ip': ip,
+            'commissaire_kubernetes_api_server_scheme': config.kubernetes.get(
+                'uri').scheme,
             'commissaire_kubernetes_api_server_host': config.kubernetes.get(
                 'uri').hostname,
             'commissaire_kubernetes_api_server_port': config.kubernetes.get(
                 'uri').port,
-            'commissaire_kubernetes_bearer_token': config.kubernetes['token'],
+            'commissaire_kubernetes_bearer_token': config.kubernetes.get(
+                'token', ''),
             # TODO: Where do we get this?
             'commissaire_docker_registry_host': '127.0.0.1',
             # TODO: Where do we get this?
             'commissaire_docker_registry_port': 8080,
+            'commissaire_etcd_scheme': config.etcd['uri'].scheme,
             'commissaire_etcd_host': config.etcd['uri'].hostname,
             'commissaire_etcd_port': config.etcd['uri'].port,
             # TODO: Where do we get this?
@@ -350,6 +356,31 @@ class Transport:
             'commissaire_kubelet_service': oscmd.kubelet_service,
             'commissaire_kubeproxy_service': oscmd.kubelet_proxy_service,
         }
+
+        # Client Certificate additions
+        if config.etcd.get('certificate_path', None):
+            self.logger.info('Using etcd client certs')
+            play_vars['commissaire_etcd_client_cert_path'] = (
+                oscmd.etcd_client_cert)
+            play_vars['commissaire_etcd_client_cert_path_local'] = (
+                config.etcd['certificate_path'])
+            play_vars['commissaire_etcd_client_key_path'] = (
+                oscmd.etcd_client_key)
+            play_vars['commissaire_etcd_client_key_path_local'] = (
+                config.etcd['certificate_key_path'])
+            play_vars['commissaire_etcd_use_cert'] = True
+
+        if config.kubernetes.get('certificate_path', None):
+            self.logger.info('Using kubernetes client certs')
+            play_vars['commissaire_kubernetes_client_cert_path'] = (
+                oscmd.kube_client_cert)
+            play_vars['commissaire_kubernetes_client_cert_path_local'] = (
+                config.kubernetes['certificate_path'])
+            play_vars['commissaire_kubernetes_client_key_path'] = (
+                oscmd.kube_client_key)
+            play_vars['commissaire_kubernetes_client_key_path_local'] = (
+                config.kubernetes['certificate_key_path'])
+            play_vars['commissaire_kubernetes_use_cert'] = True
 
         # XXX: Need to enable some package repositories for OS 'rhel'
         #      (or 'redhat').  This is a hack for a single corner case.

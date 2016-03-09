@@ -71,13 +71,23 @@ commissaire_kubeproxy_service                 Name of the kubernetes proxy servi
 commissaire_restart_command                   Host restart command
 commissaire_upgrade_command                   Host upgrade command
 commissaire_bootstrap_ip                      The IP address of the host
+commissaire_kubernetes_api_server_scheme      The kubernetes api server scheme (http/https)
 commissaire_kubernetes_api_server_host        The kubernetes api server host
 commissaire_kubernetes_api_server_port        The kubernetes api server port
+commissaire_kubernetes_client_cert_path       Path to the kubernetes client certificate
+commissaire_kubernetes_client_key_path        Path to the kubernetes client key
+commissaire_kubernetes_client_cert_path_local Path to the local kubernetes client certificate
+commissaire_kubernetes_client_key_path_local  Path to the local kubernetes client key
 commissaire_kubernetes_bearer_token           The bearer token used to contact kubernetes
 commissaire_docker_registry_host              The docker registry host
 commissaire_docker_registry_port              The docker registry port
+commissaire_etcd_scheme                       The etcd server scheme (http/https)
 commissaire_etcd_host                         The etcd host
 commissaire_etcd_port                         The etcd port
+commissaire_etcd_client_cert_path             Path to the etcd client certificate
+commissaire_etcd_client_key_path              Path to the etcd client key
+commissaire_etcd_client_cert_path_local       Path to the local etcd client certificate
+commissaire_etcd_client_key_path_local        Path to the local etcd client key
 commissaire_flannel_key                       The flannel configuration key
 ============================================= ======================================================
 

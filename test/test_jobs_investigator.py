@@ -16,7 +16,7 @@
 Test cases for the commissaire.jobs.investigator module.
 """
 
-import etcd
+import contextlib
 import mock
 import os
 
@@ -58,7 +58,9 @@ class Test_JobsInvestigator(TestCase):
         """
         Verify the investigator.
         """
-        with mock.patch('commissaire.transport.ansibleapi.Transport') as _tp:
+        with contextlib.nested(
+                mock.patch('commissaire.transport.ansibleapi.Transport'),
+                mock.patch('etcd.Client')) as (_tp, _client):
             _tp().get_info.return_value = (
                 0,
                 {
@@ -70,7 +72,7 @@ class Test_JobsInvestigator(TestCase):
             )
 
             q = Queue()
-            client = etcd.Client()
+            client = _client()
             client.get = MagicMock('get')
             client.get.return_value = MagicMock(value=self.etcd_host)
             client.set = MagicMock('set')
@@ -92,7 +94,7 @@ class Test_JobsInvestigator(TestCase):
             }
 
             q.put_nowait((to_investigate, ssh_priv_key))
-            investigator(q, connection_config, client, True)
+            investigator(q, connection_config, {}, True)
 
             self.assertEquals(1, client.get.call_count)
             self.assertEquals(2, client.set.call_count)

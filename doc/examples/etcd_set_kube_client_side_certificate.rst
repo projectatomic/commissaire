@@ -1,0 +1,6 @@
+.. code-block:: shell
+
+   (virtualenv)$ etcdctl set '/commissaire/config/kube_certificate_path' $PATH_TO_CRT_FILE
+   ...
+   (virtualenv)$ etcdctl set '/commissaire/config/kube_certificate_key_path' $PATH_TO_KEY_FILE
+   ...

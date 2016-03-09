@@ -17,13 +17,14 @@ The investigator job.
 """
 
 import datetime
+import etcd
 import json
 import logging
 import os
 import sys
 import tempfile
 
-import gevent
+from gevent import sleep
 
 from commissaire.compat.b64 import base64
 from commissaire.containermgr.kubernetes import KubeContainerManager
@@ -49,7 +50,7 @@ def clean_up_key(key_file):
             '{0}. Exception:{1}'.format(key_file, exc_msg))
 
 
-def investigator(queue, config, store, run_once=False):
+def investigator(queue, config, store_kwargs, run_once=False):
     """
     Investigates new hosts to retrieve and store facts.
 
@@ -57,13 +58,14 @@ def investigator(queue, config, store, run_once=False):
     :type queue: gevent.queue.Queue
     :param config: Configuration information.
     :type config: commissaire.config.Config
-    :param store: Data store to place results.
-    :type store: etcd.Client
+    :param store_kwargs: Keyword arguments to use when creating an etcd.Client
+    :type store_kwargs: dict
     """
-    # TODO: Change this to be watch and etcd "queue" and kick off a function
-    #       similar to clusterpoolexec
     logger = logging.getLogger('investigator')
     logger.info('Investigator started')
+
+    # Create our own client for use in this process
+    store = etcd.Client(**store_kwargs)
 
     transport = ansibleapi.Transport()
     while True:
@@ -146,7 +148,7 @@ def investigator(queue, config, store, run_once=False):
                 logger.debug(
                     '{0} has not been registered with the container manager. '
                     'Checking again in 5 seconds...'.format(address))
-                gevent.sleep(5)
+                sleep(5)
         except:
             _, exc_msg, _ = sys.exc_info()
             logger.warn(

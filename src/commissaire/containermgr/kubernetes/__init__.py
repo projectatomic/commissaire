@@ -34,15 +34,29 @@ class ContainerManager(ContainerManagerBase):
         :type config: commissaire.config.Config
         """
         ContainerManagerBase.__init__(self)
+        self.scheme = config.kubernetes['uri'].scheme
         self.host = config.kubernetes['uri'].hostname
         self.port = config.kubernetes['uri'].port
         self.con = requests.Session()
-        token = config.kubernetes['token']
-        self.con.headers["Authorization"] = "Bearer {0}".format(token)
+        token = config.kubernetes.get('token', None)
+        if token:
+            self.con.headers["Authorization"] = "Bearer {0}".format(token)
+            self.logger.info('Using bearer token')
+            self.logger.debug('Bearer token: {0}'.format(token))
+
+        certificate_path = config.kubernetes.get('certificate_path')
+        certificate_key_path = config.kubernetes.get('certificate_key_path')
+        if certificate_path and certificate_key_path:
+            self.con.cert = (certificate_path, certificate_key_path)
+            self.logger.info(
+                'Using client side certificate. Certificate path: {0} '
+                'Certificate Key Path: {1}'.format(
+                    certificate_path, certificate_key_path))
+
         # TODO: Verify TLS!!!
         self.con.verify = False
-        self.base_uri = 'http://{0}:{1}/api/v1'.format(
-            self.host, self.port)
+        self.base_uri = '{0}://{1}:{2}/api/v1'.format(
+            self.scheme, self.host, self.port)
         self.logger.info('Kubernetes Container Manager created: {0}'.format(
             self.base_uri))
         self.logger.debug(

@@ -34,6 +34,14 @@ class OSCmdBase:
     kubernetes_kubeconfig = '/var/lib/kubelet/kubeconfig'
     #: Full path to kubelet configuration file
     kubelet_config = '/etc/kubernetes/kubelet'
+    #: Full path to the kubernetes client certificate
+    kube_client_cert = '/etc/kubernetes/client.crt'
+    #: Full path to the kubernetes client key
+    kube_client_key = '/etc/kubernetes/client.key'
+    #: Full path to the etcd client certificate
+    etcd_client_cert = '/etc/etcd/client.crt'
+    #: Full path to the etcd client key
+    etcd_client_key = '/etc/etcd/key.crt'
 
     #: Docker service name
     docker_service = 'docker'

@@ -1,3 +1,3 @@
 KUBELET_ADDRESS="--address=0.0.0.0"
 KUBELET_HOSTNAME="--hostname_override={{ commissaire_bootstrap_ip }}"
-KUBELET_API_SERVER="--api_servers=http://{{ commissaire_kubernetes_api_server_host }}:{{ commissaire_kubernetes_api_server_port }}"
+KUBELET_API_SERVER="--api_servers={{ commissaire_kubernetes_api_server_scheme }}://{{ commissaire_kubernetes_api_server_host }}:{{ commissaire_kubernetes_api_server_port }}"

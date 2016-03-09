@@ -16,7 +16,7 @@
 """
 
 from gevent.monkey import patch_all
-patch_all(thread=False, socket=False)
+patch_all(thread=False)
 
 import datetime
 import base64
@@ -138,6 +138,12 @@ def main():  # pragma: no cover
         '--etcd-uri', '-e', type=str, required=True,
         help='Full URI for etcd EX: http://127.0.0.1:2379')
     parser.add_argument(
+        '--etcd-cert-path', '-C', type=str, required=False,
+        help='Full path to the client side certificate.')
+    parser.add_argument(
+        '--etcd-cert-key-path', '-K', type=str, required=False,
+        help='Full path to the client side certificate key.')
+    parser.add_argument(
         '--kube-uri', '-k', type=str, required=True,
         help='Full URI for kubernetes EX: http://127.0.0.1:8080')
     parser.add_argument(
@@ -156,8 +162,26 @@ def main():  # pragma: no cover
         _, ex, _ = exception.raise_if_not(Exception)
         parser.error(ex)
 
-    ds = etcd.Client(
-        host=config.etcd['uri'].hostname, port=config.etcd['uri'].port)
+    store_kwargs = {
+        'host': config.etcd['uri'].hostname,
+        'port': config.etcd['uri'].port,
+        'protocol': config.etcd['uri'].scheme,
+    }
+
+    # We need both args to use a client side cert for etcd
+    if bool(args.etcd_cert_path) ^ bool(args.etcd_cert_key_path):
+        parser.error(
+            'Both etcd-cert-path and etcd-cert-key-path must be provided to '
+            'use a client side certificate with etcd.')
+    elif args.etcd_cert_path:
+        if config.etcd['uri'].scheme != 'https':
+            parser.error('An https URI is required when using '
+                         'client side certificates.')
+        store_kwargs['cert'] = (args.etcd_cert_path, args.etcd_cert_key_path)
+        config.etcd['certificate_path'] = args.etcd_cert_path
+        config.etcd['certificate_key_path'] = args.etcd_cert_key_path
+
+    ds = etcd.Client(**store_kwargs)
 
     try:
         logging.config.dictConfig(
@@ -206,15 +230,25 @@ def main():  # pragma: no cover
     config.etcd['listen'] = urlparse('http://{0}:{1}'.format(
         interface, port))
 
+    # Pull options for accessing kubernetes
     try:
         config.kubernetes['token'] = ds.get(
             '/commissaire/config/kubetoken').value
-        logging.debug('Config: {0}'.format(config))
-        PROCS['investigator'] = Process(
-            target=investigator, args=(INVESTIGATE_QUEUE, config, ds))
-        PROCS['investigator'].start()
     except etcd.EtcdKeyNotFound:
-        parser.error('"/commissaire/config/kubetoken" must be set in etcd!')
+        logging.debug('No kubetoken set.')
+    try:
+        config.kubernetes['certificate_path'] = ds.get(
+            '/commissaire/config/kube_certificate_path').value
+        config.kubernetes['certificate_key_path'] = ds.get(
+            '/commissaire/config/kube_certificate_key_path').value
+    except etcd.EtcdKeyNotFound:
+        logging.debug('No client side certificate set.')
+
+    # Start processes
+    PROCS['investigator'] = Process(
+        target=investigator, args=(INVESTIGATE_QUEUE, config, store_kwargs))
+    PROCS['investigator'].start()
+    logging.debug('Config: {0}'.format(config))
 
     app = create_app(ds)
     try:
