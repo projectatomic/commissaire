@@ -3,6 +3,8 @@
   hosts: commissaire_targets
   gather_facts: no
   tasks:
+    - name: Enable Package Repositories
+      command: "{{ commissaire_enable_pkg_repos }}"
     - name: Install libselinux-python
       command: "{{ commissaire_install_libselinux_python }}"
     - name: Install Flannel

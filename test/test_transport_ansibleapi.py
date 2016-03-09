@@ -18,7 +18,7 @@ Test cases for the commissaire.transport.ansibleapi module.
 
 import logging
 
-from . import TestCase, get_fixture_file_path
+from . import TestCase, available_os_types, get_fixture_file_path
 
 from ansible.executor.task_result import TaskResult
 from ansible.inventory import Host
@@ -26,7 +26,7 @@ from ansible.playbook.task import Task
 from commissaire.compat.urlparser import urlparse
 from commissaire.config import Config
 from commissaire.transport import ansibleapi
-from commissaire.oscmd import OSCmdBase
+from commissaire.oscmd import OSCmdBase, get_oscmd
 from mock import MagicMock, patch
 
 
@@ -153,3 +153,22 @@ class Test_Transport(TestCase):
             # We should see expected calls
             self.assertEquals(1, oscmd.install_docker.call_count)
             self.assertEquals(1, oscmd.install_kube.call_count)
+
+            # Check 'commissaire_enable_pkg_repos' playbook variable
+            # for various operating systems.
+            transport = ansibleapi.Transport()
+            transport._run = MagicMock()
+            transport._run.return_value = (0, {})
+
+            needs_enable_repos = ('redhat', 'rhel')
+
+            for os_type in available_os_types:
+                oscmd = get_oscmd(os_type)
+                result, facts = transport.bootstrap(
+                    '10.2.0.2.', 'test/fake_key', config, oscmd)
+                play_vars = transport._run.call_args[0][4]
+                command = play_vars['commissaire_enable_pkg_repos']
+                if os_type in needs_enable_repos:
+                    self.assertIn('subscription-manager repos', command)
+                else:
+                    self.assertEqual('true', command)  # no-op command

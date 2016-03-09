@@ -350,6 +350,23 @@ class Transport:
             'commissaire_kubelet_service': oscmd.kubelet_service,
             'commissaire_kubeproxy_service': oscmd.kubelet_proxy_service,
         }
+
+        # XXX: Need to enable some package repositories for OS 'rhel'
+        #      (or 'redhat').  This is a hack for a single corner case.
+        #      We discussed how to generalize future cases where we need
+        #      extra commands for a specific OS but decided to defer until
+        #      more crop up.
+        #
+        #      See https://github.com/projectatomic/commissaire/pull/56
+        #
+        if oscmd.os_type in ('rhel', 'redhat'):
+            play_vars['commissaire_enable_pkg_repos'] = (
+                'subscription-manager repos '
+                '--enable=rhel-7-server-extras-rpms '
+                '--enable=rhel-7-server-optional-rpms')
+        else:
+            play_vars['commissaire_enable_pkg_repos'] = 'true'
+
         self.logger.debug('Variables for bootstrap: {0}'.format(play_vars))
 
         play_file = resource_filename(
