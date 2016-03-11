@@ -1,8 +1,9 @@
 FROM fedora
 MAINTAINER Red Hat, Inc. <container-tools@redhat.com>
 
-ENV MHM_RELEASE v0.0.1rc1
+ENV MHM_RELEASE v0.0.1rc2
 ENV PYTHONPATH  /commissaire/src/
+ENV EXTRA_ARGS  ""
 
 # Install required dependencies and commissaire
 RUN dnf -y update && dnf -y install --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python-pip python-virtualenv git gcc libffi-devel ; dnf clean all && \
@@ -17,4 +18,4 @@ dnf remove -y gcc git redhat-rpm-config libffi-devel && dnf clean all
 
 EXPOSE 8000
 WORKDIR /commissaire
-CMD . /environment/bin/activate && python src/commissaire/script.py -e ${ETCD} -k ${KUBE}
+CMD . /environment/bin/activate && python src/commissaire/script.py -e ${ETCD} -k ${KUBE} ${EXTRA_ARGS}
