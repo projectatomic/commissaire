@@ -74,13 +74,28 @@ From Source
 ```````````
 From the repo root...
 
+**Not So Secure Mode**
+
 .. include:: examples/run_from_source.rst
+
+**More Secure Mode**
+
+.. include:: examples/run_from_source_more_secure.rst
+
 
 Via Docker
 ``````````
 To run the image specify the ETCD and KUBE variables pointing towards the specific services.
 
+**Not So Secure Mode**
+
 .. include:: examples/run_via_docker.rst
+
+
+**More Secure Mode**
+
+.. include:: examples/run_via_docker_more_secure.rst
+
 
 Adding a Cluster
 ~~~~~~~~~~~~~~~~

@@ -148,10 +148,10 @@ def main():  # pragma: no cover
         help='Full URI for kubernetes EX: http://127.0.0.1:8080')
     parser.add_argument(
         '--tls-keyfile', type=str, required=False,
-        help='Full path to the TLS keyfile')
+        help='Full path to the TLS keyfile for the commissaire server')
     parser.add_argument(
         '--tls-certfile', type=str, required=False,
-        help='Full path to the TLS certfile')
+        help='Full path to the TLS certfile for the commissaire server')
 
     args = parser.parse_args()
 
@@ -180,6 +180,7 @@ def main():  # pragma: no cover
         store_kwargs['cert'] = (args.etcd_cert_path, args.etcd_cert_key_path)
         config.etcd['certificate_path'] = args.etcd_cert_path
         config.etcd['certificate_key_path'] = args.etcd_cert_key_path
+        logging.info('Using client side certificate for etcd.')
 
     ds = etcd.Client(**store_kwargs)
 
@@ -219,10 +220,11 @@ def main():  # pragma: no cover
             'keyfile': tls_keyfile,
             'certfile': tls_certfile,
         }
-        logging.info('TLS will be enabled.')
+        logging.info('Commissaire server TLS will be enabled.')
     elif tls_keyfile is not None or tls_certfile is not None:
         parser.error(
-            'Both a keyfile and certfile must be given for TLS. Exiting ...')
+            'Both a keyfile and certfile must be '
+            'given for commissaire server TLS. Exiting ...')
 
     interface = cli_etcd_or_default(
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
@@ -234,6 +236,7 @@ def main():  # pragma: no cover
     try:
         config.kubernetes['token'] = ds.get(
             '/commissaire/config/kubetoken').value
+        logging.info('Using kubetoken for kubernetes.')
     except etcd.EtcdKeyNotFound:
         logging.debug('No kubetoken set.')
     try:
@@ -241,8 +244,9 @@ def main():  # pragma: no cover
             '/commissaire/config/kube_certificate_path').value
         config.kubernetes['certificate_key_path'] = ds.get(
             '/commissaire/config/kube_certificate_key_path').value
+        logging.info('Using client side certificate for kubernetes.')
     except etcd.EtcdKeyNotFound:
-        logging.debug('No client side certificate set.')
+        logging.debug('No kubernetes client side certificate set.')
 
     # Start processes
     PROCS['investigator'] = Process(
