@@ -158,3 +158,46 @@ class HostResource(Resource):
                         address, etcd_resp.key.split('/')[-1]))
                     cluster.hostset.remove(address)
                     self.store.set(etcd_resp.key, cluster.to_json(secure=True))
+
+
+class ImplicitHostResource(Resource):
+    """
+    Resource to handle direct requests from a Host.
+    The host's address is inferred from the falcon.Request.
+    """
+
+    def on_put(self, req, resp):
+        """
+        Handles the creation of a new Host.
+
+        :param req: Request instance that will be passed through.
+        :type req: falcon.Request
+        :param resp: Response instance that will be passed through.
+        :type resp: falcon.Response
+        """
+        try:
+            address = req.env['REMOTE_ADDR']
+        except KeyError:
+            self.logger.info('Unable to determine host address')
+            resp.status = falcon.HTTP_400
+            return
+
+        try:
+            # Extract what we need from the input data.
+            # Don't treat it as a skeletal host record.
+            req_data = req.stream.read()
+            req_body = json.loads(req_data.decode())
+            ssh_priv_key = req_body['ssh_priv_key']
+            # Cluster member is optional.
+            cluster_name = req_body.get('cluster', None)
+        except (KeyError, ValueError):
+            self.logger.info(
+                'Bad client PUT request for host {0}: {1}'.
+                format(address, req_data))
+            resp.status = falcon.HTTP_400
+            return
+
+        resp.status, host_model = util.etcd_host_create(
+            self.store, address, ssh_priv_key, cluster_name)
+
+        req.context['model'] = host_model

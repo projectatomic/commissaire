@@ -313,6 +313,13 @@ Creates a new host record.
 .. note::
    The rest of the host record will be filled out once the data has been pulled from the cluster host.
 
+.. note::
+   As a convenience to hosts wishing to add themselves as part of a boot
+   script, the endpoint /api/v0/host (without the {IP}) also accepts PUT
+   requests.  Here, the host address is inferred from the request itself
+   but otherwise works the same: creates a new host record accessible at
+   /api/v0/host/{IP}.
+
 Example
 ~~~~~~~
 

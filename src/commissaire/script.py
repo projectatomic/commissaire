@@ -38,7 +38,8 @@ from commissaire.handlers.clusters import (
     ClustersResource, ClusterResource,
     ClusterHostsResource, ClusterSingleHostResource,
     ClusterRestartResource, ClusterUpgradeResource)
-from commissaire.handlers.hosts import HostsResource, HostResource
+from commissaire.handlers.hosts import (
+    HostsResource, HostResource, ImplicitHostResource)
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.jobs import POOLS, PROCS
@@ -90,6 +91,7 @@ def create_app(
         '/api/v0/cluster/{name}/upgrade',
         ClusterUpgradeResource(store, None))
     app.add_route('/api/v0/clusters', ClustersResource(store, None))
+    app.add_route('/api/v0/host', ImplicitHostResource(store, None))
     app.add_route('/api/v0/host/{address}', HostResource(store, None))
     app.add_route('/api/v0/hosts', HostsResource(store, None))
     return app
