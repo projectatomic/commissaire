@@ -37,7 +37,8 @@ from commissaire.config import Config, cli_etcd_or_default
 from commissaire.handlers.clusters import (
     ClustersResource, ClusterResource,
     ClusterHostsResource, ClusterSingleHostResource,
-    ClusterRestartResource, ClusterUpgradeResource)
+    ClusterJoinResource, ClusterRestartResource,
+    ClusterUpgradeResource)
 from commissaire.handlers.hosts import HostsResource, HostResource
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
@@ -83,6 +84,9 @@ def create_app(
     app.add_route(
         '/api/v0/cluster/{name}/hosts/{address}',
         ClusterSingleHostResource(store, None))
+    app.add_route(
+        '/api/v0/cluster/{name}/join',
+        ClusterJoinResource(store, None))
     app.add_route(
         '/api/v0/cluster/{name}/restart',
         ClusterRestartResource(store, None))

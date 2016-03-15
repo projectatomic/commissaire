@@ -109,6 +109,35 @@ Removes host {IP} from cluster. (Idempotent)
 No body.
 
 
+Cluster Host Join
+-----------------
+**Endpoint**: /api/v0/cluster/{NAME}/join
+
+PUT
+```
+Allows hosts to create a new host record for themselves and join a cluster
+without explicitly specifying their own IP address.  Intended to aid host
+initialization.
+
+.. code-block:: javascript
+
+   {
+       "ssh_priv_key": string // base64 encoded ssh private key
+   }
+
+.. note::
+   The rest of the host record will be filled out once the data has been pulled from the cluster host.
+
+Example
+~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "ssh_priv_key": "dGVzdAo..."
+   }
+
+
 .. _cluster_op_upgrade:
 
 Cluster Operations: Upgrade
