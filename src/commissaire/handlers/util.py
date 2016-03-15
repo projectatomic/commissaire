@@ -17,9 +17,11 @@ Resource utilities.
 """
 
 import etcd
+import falcon
 import json
 
-from commissaire.handlers.models import Cluster
+from commissaire.queues import INVESTIGATE_QUEUE
+from commissaire.handlers.models import Cluster, Host
 
 
 def etcd_host_key(address):
@@ -164,3 +166,74 @@ def get_cluster_model(store, name):
     cluster = Cluster(**json.loads(etcd_resp.value))
     cluster.etcd = etcd_resp
     return cluster
+
+
+def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
+    """
+    Creates a new host record in etcd and optionally adds the host to
+    the specified cluster.  Returns a (status, host) tuple where status
+    is the Falcon HTTP status and host is a Host model instance, which
+    may be None if an error occurred.
+
+    This function is idempotent so long as the host parameters agree
+    with an existing host record and cluster membership.
+
+    :param store: Data store.
+    :type store: etcd.Client
+    :param address: Host address.
+    :type address: str
+    :param ssh_priv_key: Host's SSH key, base64-encoded.
+    :type ssh_priv_key: str
+    :param cluster_name: Name of the cluster to join, or None
+    :type cluster_name: str or None
+    :return: (status, host)
+    :rtype: tuple
+    """
+    key = etcd_host_key(address)
+    try:
+        etcd_resp = store.get(key)
+
+        # Check if the request conflicts with the existing host.
+        existing_host = Host(**json.loads(etcd_resp.value))
+        if existing_host.ssh_priv_key != ssh_priv_key:
+            return (falcon.HTTP_409, None)
+        if cluster_name:
+            try:
+                assert etcd_cluster_has_host(store, cluster_name, address)
+            except (AssertionError, KeyError):
+                return (falcon.HTTP_409, None)
+
+        # Request is compatible with the existing host, so
+        # we're done.  (Not using HTTP_201 since we didn't
+        # actually create anything.)
+        return (falcon.HTTP_200, existing_host)
+    except etcd.EtcdKeyNotFound:
+        pass
+
+    host_creation = {
+        'address': address,
+        'ssh_priv_key': ssh_priv_key,
+        'os': '',
+        'status': 'investigating',
+        'cpus': -1,
+        'memory': -1,
+        'space': -1,
+        'last_check': None
+    }
+
+    # Verify the cluster exists, if given.  Do it now
+    # so we can fail before writing anything to etcd.
+    if cluster_name:
+        if not etcd_cluster_exists(store, cluster_name):
+            return (falcon.HTTP_409, None)
+
+    host = Host(**host_creation)
+    new_host = store.set(key, host.to_json(secure=True))
+
+    # Add host to the requested cluster.
+    if cluster_name:
+        etcd_cluster_add_host(store, cluster_name, address)
+
+    INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
+
+    return (falcon.HTTP_201, Host(**json.loads(new_host.value)))

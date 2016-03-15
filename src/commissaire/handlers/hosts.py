@@ -20,7 +20,6 @@ import falcon
 import etcd
 import json
 
-from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.resource import Resource
 from commissaire.handlers.models import Cluster, Host, Hosts
 import commissaire.handlers.util as util
@@ -116,61 +115,10 @@ class HostResource(Resource):
             resp.status = falcon.HTTP_400
             return
 
-        key = util.etcd_host_key(address)
-        try:
-            etcd_resp = self.store.get(key)
-            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
+        resp.status, host_model = util.etcd_host_create(
+            self.store, address, ssh_priv_key, cluster_name)
 
-            # Check if the request conflicts with the existing host.
-            existing_host = Host(**json.loads(etcd_resp.value))
-            if existing_host.ssh_priv_key != ssh_priv_key:
-                resp.status = falcon.HTTP_409
-                return
-            if cluster_name:
-                try:
-                    assert util.etcd_cluster_has_host(
-                        self.store, cluster_name, address)
-                except (AssertionError, KeyError):
-                    resp.status = falcon.HTTP_409
-                    return
-
-            # Request is compatible with the existing host, so
-            # we're done.  (Not using HTTP_201 since we didn't
-            # actually create anything.)
-            resp.status = falcon.HTTP_200
-            req.context['model'] = existing_host
-            return
-        except etcd.EtcdKeyNotFound:
-            pass
-
-        host_creation = {
-            'address': address,
-            'ssh_priv_key': ssh_priv_key,
-            'os': '',
-            'status': 'investigating',
-            'cpus': -1,
-            'memory': -1,
-            'space': -1,
-            'last_check': None
-        }
-
-        # Verify the cluster exists, if given.  Do it now
-        # so we can fail before writing anything to etcd.
-        if cluster_name:
-            if not util.etcd_cluster_exists(self.store, cluster_name):
-                resp.status = falcon.HTTP_409
-                return
-
-        host = Host(**host_creation)
-        new_host = self.store.set(key, host.to_json(secure=True))
-
-        # Add host to the requested cluster.
-        if cluster_name:
-            util.etcd_cluster_add_host(self.store, cluster_name, address)
-
-        resp.status = falcon.HTTP_201
-        req.context['model'] = Host(**json.loads(new_host.value))
-        INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
+        req.context['model'] = host_model
 
     def on_delete(self, req, resp, address):
         """
