@@ -10,3 +10,6 @@ script:
   - "python setup.py nosetests"
 notifications:
   email: false
+  # This is Colin's instance of Homu, in the future
+  # we'll move this to a production cluster.
+  webhooks: http://escher.verbum.org:54856/travis
