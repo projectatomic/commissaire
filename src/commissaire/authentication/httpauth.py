@@ -15,7 +15,7 @@
 
 
 import bcrypt
-import etcd
+import cherrypy
 import falcon
 import json
 
@@ -117,15 +117,12 @@ class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
     HTTP Basic auth backed by Etcd JSON value.
     """
 
-    def __init__(self, ds):
+    def __init__(self):
         """
         Creates an instance of the HTTPBasicAuthByEtcd authenticator.
 
-        :param datastore: The Etcd client to use.
-        :type datastore: etcd.Client
         :returns: HTTPBasicAuthByEtcd
         """
-        self.ds = ds
         self._data = {}
         self.load()
 
@@ -133,20 +130,18 @@ class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
         """
         Loads the authentication information from etcd.
         """
-        try:
-            d = self.ds.get(
-                '/commissaire/config/httpbasicauthbyuserlist')
-            self._data = json.loads(d.value)
-            self.logger.info('Loaded authentication data from Etcd.')
-            # TODO: Watch endpoint and reload on changes
-        except etcd.EtcdKeyNotFound:
-            _, eknf, _ = exception.raise_if_not(etcd.EtcdKeyNotFound)
-            self.logger.warn(
-                'User configuration not found in Etcd. Raising...')
+        d, error = cherrypy.engine.publish(
+            'store-get', '/commissaire/config/httpbasicauthbyuserlist')[0]
+
+        if error:
+            if type(error) == ValueError:
+                self.logger.warn(
+                    'User configuration in Etcd is not valid JSON. Raising...')
+            else:
+                self.logger.warn(
+                    'User configuration not found in Etcd. Raising...')
             self._data = {}
-            raise eknf
-        except ValueError:
-            _, ve, _ = exception.raise_if_not(ValueError)
-            self.logger.warn(
-                'User configuration in Etcd is not valid JSON. Raising...')
-            raise ve
+            raise error
+
+        self._data = json.loads(d.value)
+        self.logger.info('Loaded authentication data from Etcd.')

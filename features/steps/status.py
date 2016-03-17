@@ -13,5 +13,5 @@ def impl(context):
 def impl(context):
     results = context.request.json()
     print(results.keys())
-    for key in ('investigator', 'etcd', 'clusterexecpool'):
+    for key in ('investigator', 'etcd'):
         assert key in results.keys()

@@ -16,15 +16,15 @@
 The investigator job.
 """
 
+import cherrypy
 import datetime
-import etcd
 import json
 import logging
 import os
 import sys
 import tempfile
 
-from gevent import sleep
+from time import sleep
 
 from commissaire.compat.b64 import base64
 from commissaire.containermgr.kubernetes import KubeContainerManager
@@ -50,27 +50,22 @@ def clean_up_key(key_file):
             '{0}. Exception:{1}'.format(key_file, exc_msg))
 
 
-def investigator(queue, config, store_kwargs, run_once=False):
+def investigator(queue, config, run_once=False):
     """
     Investigates new hosts to retrieve and store facts.
 
     :param queue: Queue to pull work from.
-    :type queue: gevent.queue.Queue
+    :type queue: Queue.Queue
     :param config: Configuration information.
     :type config: commissaire.config.Config
-    :param store_kwargs: Keyword arguments to use when creating an etcd.Client
-    :type store_kwargs: dict
     """
     logger = logging.getLogger('investigator')
     logger.info('Investigator started')
 
-    # Create our own client for use in this process
-    store = etcd.Client(**store_kwargs)
-
-    transport = ansibleapi.Transport()
     while True:
         # Statuses follow:
         # http://commissaire.readthedocs.org/en/latest/enums.html#host-statuses
+        transport = ansibleapi.Transport()
         to_investigate, ssh_priv_key = queue.get()
         address = to_investigate['address']
         logger.info('{0} is now in investigating.'.format(address))
@@ -87,7 +82,15 @@ def investigator(queue, config, store_kwargs, run_once=False):
         f.close()
 
         key = '/commissaire/hosts/{0}'.format(address)
-        data = json.loads(store.get(key).value)
+        etcd_resp, error = cherrypy.engine.publish('store-get', key)[0]
+        if error:
+            logger.warn(
+                'Unable to continue for {0} due to '
+                '{1}: {2}. Returning...'.format(address, type(error), error))
+            clean_up_key(key_file)
+            continue
+
+        data = json.loads(etcd_resp.value)
 
         try:
             result, facts = transport.get_info(address, key_file)
@@ -101,13 +104,13 @@ def investigator(queue, config, store_kwargs, run_once=False):
             logger.warn('Getting info failed for {0}: {1}'.format(
                 address, exc_msg))
             data['status'] = 'failed'
-            store.set(key, json.dumps(data))
+            cherrypy.engine.publish('store-save', key, json.dumps(data))[0]
             clean_up_key(key_file)
             if run_once:
                 break
             continue
 
-        store.set(key, json.dumps(data))
+        cherrypy.engine.publish('store-save', key, json.dumps(data))[0]
         logger.info(
             'Finished and stored investigation data for {0}'.format(address))
         logger.debug('Finished investigation update for {0}: {1}'.format(
@@ -119,13 +122,13 @@ def investigator(queue, config, store_kwargs, run_once=False):
             result, facts = transport.bootstrap(
                 address, key_file, config, oscmd)
             data['status'] = 'inactive'
-            store.set(key, json.dumps(data))
+            cherrypy.engine.publish('store-save', key, json.dumps(data))[0]
         except:
             exc_type, exc_msg, tb = sys.exc_info()
             logger.warn('Unable to start bootstraping for {0}: {1}'.format(
                 address, exc_msg))
             data['status'] = 'disassociated'
-            store.set(key, json.dumps(data))
+            cherrypy.engine.publish('store-save', key, json.dumps(data))[0]
             clean_up_key(key_file)
             if run_once:
                 break
@@ -156,7 +159,7 @@ def investigator(queue, config, store_kwargs, run_once=False):
                 'the container manager: {1}'.format(address, exc_msg))
             data['status'] = 'inactive'
 
-        store.set(key, json.dumps(data))
+        cherrypy.engine.publish('store-save', key, json.dumps(data))[0]
         logger.info(
             'Finished bootstrapping for {0}'.format(address))
         logging.debug('Finished bootstrapping for {0}: {1}'.format(

@@ -15,11 +15,7 @@
 """
 """
 
-from gevent.monkey import patch_all
-patch_all(thread=False)
-
-import datetime
-import base64
+import cherrypy
 import json
 import logging
 import logging.config
@@ -27,9 +23,6 @@ import os
 
 import etcd
 import falcon
-import gevent
-
-from gevent.pywsgi import WSGIServer, LoggingLogAdapter, socket
 
 from commissaire.compat.urlparser import urlparse
 from commissaire.compat import exception
@@ -42,7 +35,7 @@ from commissaire.handlers.hosts import (
     HostsResource, HostResource, ImplicitHostResource)
 from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
-from commissaire.jobs import POOLS, PROCS
+from commissaire.jobs import PROCS
 from commissaire.jobs.investigator import investigator
 from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
@@ -62,7 +55,7 @@ def create_app(
     :rtype: falcon.API
     """
     try:
-        http_auth = httpauth.HTTPBasicAuthByEtcd(store)
+        http_auth = httpauth.HTTPBasicAuthByEtcd()
     except etcd.EtcdKeyNotFound:
         if not hasattr(users_paths, '__iter__'):
             users_paths = [users_paths]
@@ -125,7 +118,7 @@ def main():  # pragma: no cover
     import argparse
 
     from multiprocessing import Process
-
+    from commissaire.cherrypy_plugins import CherryPyStorePlugin
     config = Config()
 
     epilog = ('Example: ./commissaire -e http://127.0.0.1:2379'
@@ -212,27 +205,14 @@ def main():  # pragma: no cover
         raise SystemExit(1)
 
     # TLS options
-    ssl_args = {}
     tls_keyfile = cli_etcd_or_default(
         'tlskeyfile', args.tls_keyfile, None, ds)
     tls_certfile = cli_etcd_or_default(
         'tlscertfile', args.tls_certfile, None, ds)
-    if tls_keyfile is not None and tls_certfile is not None:
-        ssl_args = {
-            'keyfile': tls_keyfile,
-            'certfile': tls_certfile,
-        }
-        logging.info('Commissaire server TLS will be enabled.')
-    elif tls_keyfile is not None or tls_certfile is not None:
-        parser.error(
-            'Both a keyfile and certfile must be '
-            'given for commissaire server TLS. Exiting ...')
 
     interface = cli_etcd_or_default(
         'listeninterface', args.listen_interface, '0.0.0.0', ds)
     port = cli_etcd_or_default('listenport', args.listen_port, 8000, ds)
-    config.etcd['listen'] = urlparse('http://{0}:{1}'.format(
-        interface, port))
 
     # Pull options for accessing kubernetes
     try:
@@ -250,36 +230,53 @@ def main():  # pragma: no cover
     except etcd.EtcdKeyNotFound:
         logging.debug('No kubernetes client side certificate set.')
 
-    # Start processes
-    PROCS['investigator'] = Process(
-        target=investigator, args=(INVESTIGATE_QUEUE, config, store_kwargs))
-    PROCS['investigator'].start()
+    # Add our config instance to the cherrypy global config so we can use it's
+    # values elsewhere
+    # TODO: Technically this should be in the cherrypy.request.app.config
+    # but it looks like that isn't accessable with WSGI based apps
+    cherrypy.config['commissaire.config'] = config
+
     logging.debug('Config: {0}'.format(config))
 
+    cherrypy.server.unsubscribe()
+    # Disable autoreloading and use our logger
+    cherrypy.config.update({'log.screen': False,
+                            'log.access_file': '',
+                            'log.error_file': '',
+                            'engine.autoreload.on': False})
+
+    server = cherrypy._cpserver.Server()
+    server.socket_host = interface
+    server.socket_port = int(port)
+    server.thread_pool = 10
+
+    if bool(tls_keyfile) ^ bool(tls_certfile):
+        parser.error(
+            'Both a keyfile and certfile must be '
+            'given for commissaire server TLS. Exiting ...')
+    if tls_keyfile and tls_certfile:
+        server.ssl_module = 'builtin'
+        server.ssl_certificate = tls_certfile
+        server.ssl_private_key = tls_keyfile
+        logging.info('Commissaire server TLS will be enabled.')
+    server.subscribe()
+
+    # Add our plugins
+    CherryPyStorePlugin(cherrypy.engine, store_kwargs).subscribe()
+    # NOTE: Anything that requires etcd should start AFTER
+    # the engine is started
+    cherrypy.engine.start()
+
+    # Start processes
+    PROCS['investigator'] = Process(
+        target=investigator, args=(INVESTIGATE_QUEUE, config))
+    PROCS['investigator'].start()
+
+    # Make and mount the app
     app = create_app(ds)
-    try:
-        access_logger = logging.getLogger('http-access')
-        error_logger = logging.getLogger('http-error')
-        kwargs = {
-            'listener': (interface, int(port)),
-            'application': app,
-            'log': LoggingLogAdapter(access_logger, access_logger.level),
-            'error_log': LoggingLogAdapter(error_logger, error_logger.level),
-        }
-        kwargs.update(ssl_args)
-        logging.debug('WSGIServer args: {0}'.format(kwargs))
-
-        server = WSGIServer(**kwargs)
-
-        # Catch SIGTERM and stop the server.
-        gevent.signal.signal(
-            gevent.signal._signal.SIGTERM, lambda s, f: server.stop())
-        server.serve_forever()
-    except socket.error:
-        _, ex, _ = exception.raise_if_not(socket.error)
-        logging.fatal(ex)
-    except KeyboardInterrupt:
-        pass
+    cherrypy.tree.graft(app, "/")
+    # Server forever
+    cherrypy.engine.block()
 
     PROCS['investigator'].terminate()
     PROCS['investigator'].join()

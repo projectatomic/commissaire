@@ -16,7 +16,9 @@
 The clusterexec job.
 """
 
+import cherrypy
 import datetime
+import etcd
 import json
 import logging
 import tempfile
@@ -26,7 +28,7 @@ from commissaire.compat.b64 import base64
 from commissaire.oscmd import get_oscmd
 
 
-def clusterexec(cluster_name, command, store):
+def clusterexec(cluster_name, command):
     """
     Remote executes a shell commands across a cluster.
 
@@ -61,12 +63,21 @@ def clusterexec(cluster_name, command, store):
     # Set the initial status in the store
     logger.info('Setting initial status.')
     logger.debug('Status={0}'.format(cluster_status))
-    store.set(
+    cherrypy.engine.publish(
+        'store-save',
         '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-        json.dumps(cluster_status))
+        json.dumps(cluster_status))[0]
 
     # Collect all host addresses in the cluster
-    etcd_resp = store.get('/commissaire/clusters/{0}'.format(cluster_name))
+    etcd_resp, error = cherrypy.engine.publish(
+        'store-get', '/commissaire/clusters/{0}'.format(cluster_name))[0]
+
+    if error:
+        logger.warn(
+            'Unable to continue for {0} due to '
+            '{1}: {2}. Returning...'.format(cluster_name, type(error), error))
+        return
+
     cluster_hosts = set(json.loads(etcd_resp.value).get('hostset', []))
     if cluster_hosts:
         logger.debug(
@@ -76,11 +87,19 @@ def clusterexec(cluster_name, command, store):
         logger.warn('No hosts in cluster {0}'.format(cluster_name))
 
     # TODO: Find better way to do this
-    for a_host_dict in store.get('/commissaire/hosts')._children:
+    a_hosts, error = cherrypy.engine.publish(
+        'store-get', '/commissaire/hosts')[0]
+    if error:
+        logger.warn(
+            'No hosts in the cluster. Error: {0}. Exiting clusterexec'.format(
+                error))
+        return
+    for a_host_dict in a_hosts._children:
         a_host = json.loads(a_host_dict['value'])
         if a_host['address'] not in cluster_hosts:
-            logger.debug('Skipping {0} as it is not in this cluster.'.format(
-                a_host['address']))
+            logger.debug(
+                'Skipping {0} as it is not in this cluster.'.format(
+                    a_host['address']))
             continue  # Move on to the next one
         oscmd = get_oscmd(a_host['os'])
 
@@ -89,7 +108,8 @@ def clusterexec(cluster_name, command, store):
             command_list, a_host['address']))
 
         cluster_status['in_process'].append(a_host['address'])
-        store.set(
+        cherrypy.engine.publish(
+            'store-set',
             '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
             json.dumps(cluster_status))
 
@@ -104,7 +124,8 @@ def clusterexec(cluster_name, command, store):
         f.close()
 
         transport = ansibleapi.Transport()
-        result, facts = getattr(transport, command)(
+        exe = getattr(transport, command)
+        result, facts = exe(
             a_host['address'], key_file, oscmd)
         try:
             f.unlink(key_file)
@@ -127,17 +148,20 @@ def clusterexec(cluster_name, command, store):
             logger.warn('Host {0} was not in_process for {1} {2}'.format(
                 a_host['address'], command, cluster_name))
 
-        store.set(
+        cherrypy.engine.publish(
+            'store-set',
             '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-            json.dumps(cluster_status))
+            json.dumps(cluster_status))[0]
         logger.info('Finished executing {0} for {1} in {2}'.format(
             command, a_host['address'], cluster_name))
 
     # Final set of command result
     cluster_status['finished_at'] = datetime.datetime.utcnow().isoformat()
     cluster_status['status'] = end_status
-    store.set(
+
+    cherrypy.engine.publish(
+        'store-set',
         '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-        json.dumps(cluster_status))
+        json.dumps(cluster_status))[0]
 
     logger.info('Clusterexec stopping')

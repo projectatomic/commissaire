@@ -16,12 +16,12 @@
 Test cases for the commissaire.script module.
 """
 
+import mock
 import falcon
 import etcd
 import os.path
 
 from . import TestCase
-from mock import MagicMock
 from commissaire import script
 
 
@@ -34,10 +34,12 @@ class Test_CreateApp(TestCase):
         """
         Verify cli_etcd_or_default works with cli input.
         """
-        store = MagicMock(get=MagicMock(side_effect=etcd.EtcdKeyNotFound))
-        app = script.create_app(store, os.path.realpath('../conf/users.json'))
-        self.assertTrue(isinstance(app, falcon.API))
-        self.assertEquals(2, len(app._middleware))
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.return_value = [[[], etcd.EtcdKeyNotFound]]
+            app = script.create_app(
+                None, os.path.realpath('../conf/users.json'))
+            self.assertTrue(isinstance(app, falcon.API))
+            self.assertEquals(2, len(app._middleware))
 
 
 class Test_ParseUri(TestCase):

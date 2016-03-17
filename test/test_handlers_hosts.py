@@ -17,6 +17,7 @@ Test cases for the commissaire.handlers.hosts module.
 """
 
 import json
+import mock
 
 import etcd
 import falcon
@@ -95,42 +96,43 @@ class Test_HostsResource(TestCase):
         """
         Verify listing Hosts.
         """
-        child = MagicMock(value=self.etcd_host)
-        self.return_value._children = [child]
-        self.return_value.leaves = self.return_value._children
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            child = MagicMock(value=self.etcd_host)
+            self.return_value._children = [child]
+            self.return_value.leaves = self.return_value._children
+            _publish.return_value = [[self.return_value, None]]
 
-        body = self.simulate_request('/api/v0/hosts')
-        # datasource's get should have been called once
-        self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        self.assertEqual(
-            [json.loads(self.ahost)],
-            json.loads(body[0]))
+            body = self.simulate_request('/api/v0/hosts')
+            # datasource's get should have been called once
+            self.assertEqual(self.srmock.status, falcon.HTTP_200)
+            self.assertEqual(
+                [json.loads(self.ahost)],
+                json.loads(body[0]))
 
     def test_hosts_listing_with_no_hosts(self):
         """
         Verify listing Hosts when no hosts exists.
         """
-        self.return_value._children = []
-        self.return_value.leaves = self.return_value._children
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            self.return_value._children = []
+            self.return_value.leaves = self.return_value._children
 
-        body = self.simulate_request('/api/v0/hosts')
-        # datasource's get should have been called once
-        self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        self.assertEqual({}, json.loads(body[0]))
+            _publish.return_value = [[self.return_value, None]]
+            body = self.simulate_request('/api/v0/hosts')
+            # datasource's get should have been called once
+            self.assertEqual(self.srmock.status, falcon.HTTP_200)
+            self.assertEqual({}, json.loads(body[0]))
 
     def test_hosts_listing_with_no_etcd_result(self):
         """
         Verify listing hosts handles no etcd result properly.
         """
-        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
-
-        body = self.simulate_request('/api/v0/hosts')
-        # datasource's get should have been called once
-        self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_404)
-        self.assertEqual('{}', body[0])
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.return_value = [[[], etcd.EtcdKeyNotFound()]]
+            body = self.simulate_request('/api/v0/hosts')
+            # datasource's get should have been called once
+            self.assertEqual(self.srmock.status, falcon.HTTP_404)
+            self.assertEqual('{}', body[0])
 
 
 class Test_Host(TestCase):
@@ -200,25 +202,25 @@ class Test_HostResource(TestCase):
         """
         Verify retrieving a Host.
         """
-        # Verify if the host exists the data is returned
-        self.return_value.value = self.etcd_host
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            # Verify if the host exists the data is returned
+            self.return_value.value = self.etcd_host
+            _publish.return_value = [[self.return_value, None]]
 
-        body = self.simulate_request('/api/v0/host/10.2.0.2')
-        # datasource's get should have been called once
-        self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        self.assertEqual(
-            json.loads(self.ahost),
-            json.loads(body[0]))
+            body = self.simulate_request('/api/v0/host/10.2.0.2')
+            # datasource's get should have been called once
+            self.assertEqual(self.srmock.status, falcon.HTTP_200)
+            self.assertEqual(
+                json.loads(self.ahost),
+                json.loads(body[0]))
 
-        # Verify no host returns the proper result
-        self.datasource.get.reset_mock()
-        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
+            # Verify no host returns the proper result
+            _publish.reset_mock()
+            _publish.return_value = [[[], etcd.EtcdKeyNotFound()]]
 
-        body = self.simulate_request('/api/v0/host/10.9.9.9')
-        self.assertEquals(1, self.datasource.get.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_404)
-        self.assertEqual({}, json.loads(body[0]))
+            body = self.simulate_request('/api/v0/host/10.9.9.9')
+            self.assertEqual(self.srmock.status, falcon.HTTP_404)
+            self.assertEqual({}, json.loads(body[0]))
 
     def test_host_delete(self):
         """
@@ -251,59 +253,62 @@ class Test_HostResource(TestCase):
         """
         Verify creation of a Host.
         """
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.side_effect = (
+                [[[], etcd.EtcdKeyNotFound()]],
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_cluster), None]],
+                [[MagicMock(value=self.etcd_cluster), None]])
+            data = ('{"ssh_priv_key": "dGVzdAo=",'
+                    ' "cluster": "testing"}')
+            body = self.simulate_request(
+                '/api/v0/host/10.2.0.2', method='PUT', body=data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_201)
+            self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
 
-        self.datasource.get.side_effect = (
-            etcd.EtcdKeyNotFound,
-            MagicMock(value=self.etcd_cluster),
-            MagicMock(value=self.etcd_cluster))
-        self.return_value.value = self.etcd_host
-        data = ('{"ssh_priv_key": "dGVzdAo=",'
-                ' "cluster": "testing"}')
-        body = self.simulate_request(
-            '/api/v0/host/10.2.0.2', method='PUT', body=data)
-        # datasource's set should have been called twice
-        self.assertEquals(1, self.datasource.set.call_count)
-        self.assertEquals(1, self.datasource.write.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_201)
-        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+            # Make sure creation fails if the cluster doesn't exist
+            _publish.side_effect = (
+                [[[], etcd.EtcdKeyNotFound()]],
+                [[[], etcd.EtcdKeyNotFound()]],
+                [[[], etcd.EtcdKeyNotFound()]],
+                [[[], etcd.EtcdKeyNotFound()]],
+                [[[], etcd.EtcdKeyNotFound()]])
 
-        # Make sure creation fails if the cluster doesn't exist
-        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        body = self.simulate_request(
-            '/api/v0/host/10.2.0.2', method='PUT', body=data)
-        # datasource's set should not have been called
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_409)
-        self.assertEqual({}, json.loads(body[0]))
+            body = self.simulate_request(
+                '/api/v0/host/10.2.0.2', method='PUT', body=data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_409)
+            self.assertEqual({}, json.loads(body[0]))
 
-        # Make sure creation is idempotent if the request parameters
-        # agree with an existing host.
-        self.datasource.get.side_effect = (
-            MagicMock(value=self.etcd_host),
-            MagicMock(value=self.etcd_cluster_with_host))
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        body = self.simulate_request(
-            '/api/v0/host/10.2.0.2', method='PUT', body=data)
-        # datasource's set should not have been called
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+            # Make sure creation is idempotent if the request parameters
+            # agree with an existing host.
+            _publish.side_effect = (
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]])
 
-        # Make sure creation fails if the request parameters conflict
-        # with an existing host.
-        self.datasource.get.side_effect = None
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        bad_data = '{"ssh_priv_key": "boguskey"}'
-        body = self.simulate_request(
-            '/api/v0/host/10.2.0.2', method='PUT', body=bad_data)
-        # datasource's set should not have been called once
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_409)
-        self.assertEqual({}, json.loads(body[0]))
+            body = self.simulate_request(
+                '/api/v0/host/10.2.0.2', method='PUT', body=data)
+            # datasource's set should not have been called
+            self.assertEqual(self.srmock.status, falcon.HTTP_200)
+            self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+
+            # Make sure creation fails if the request parameters conflict
+            # with an existing host.
+            _publish.side_effect = (
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]])
+            bad_data = '{"ssh_priv_key": "boguskey"}'
+            body = self.simulate_request(
+                '/api/v0/host/10.2.0.2', method='PUT', body=bad_data)
+            # datasource's set should not have been called once
+            self.assertEqual(self.srmock.status, falcon.HTTP_409)
+            self.assertEqual({}, json.loads(body[0]))
 
 
 class Test_ImplicitHostResource(TestCase):
@@ -344,56 +349,50 @@ class Test_ImplicitHostResource(TestCase):
         """
         Verify creation of a Host with an implied address.
         """
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.side_effect = (
+                [[[], etcd.EtcdKeyNotFound]],
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_cluster), None]],
+                [[MagicMock(value=self.etcd_host), None]])
 
-        self.datasource.get.side_effect = (
-            etcd.EtcdKeyNotFound,
-            MagicMock(value=self.etcd_cluster),
-            MagicMock(value=self.etcd_cluster))
-        self.return_value.value = self.etcd_host
-        data = ('{"ssh_priv_key": "dGVzdAo=",'
-                ' "cluster": "testing"}')
-        body = self.simulate_request(
-            '/api/v0/host', method='PUT', body=data)
-        # datasource's set should have been called twice
-        self.assertEquals(1, self.datasource.set.call_count)
-        self.assertEquals(1, self.datasource.write.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_201)
-        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+            data = ('{"ssh_priv_key": "dGVzdAo=",'
+                    ' "cluster": "testing"}')
+            body = self.simulate_request(
+                '/api/v0/host', method='PUT', body=data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_201)
+            self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
 
-        # Make sure creation fails if the cluster doesn't exist
-        self.datasource.get.side_effect = etcd.EtcdKeyNotFound
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        body = self.simulate_request(
-            '/api/v0/host', method='PUT', body=data)
-        # datasource's set should not have been called
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_409)
-        self.assertEqual({}, json.loads(body[0]))
+            # Make sure creation fails if the cluster doesn't exist
+            _publish.side_effect = (
+                [[MagicMock(value=self.etcd_host), None]],
+                [[[], etcd.EtcdKeyNotFound()]])
+            body = self.simulate_request(
+                '/api/v0/host', method='PUT', body=data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_409)
+            self.assertEqual({}, json.loads(body[0]))
 
-        # Make sure creation is idempotent if the request parameters
-        # agree with an existing host.
-        self.datasource.get.side_effect = (
-            MagicMock(value=self.etcd_host),
-            MagicMock(value=self.etcd_cluster_with_host))
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        body = self.simulate_request(
-            '/api/v0/host', method='PUT', body=data)
-        # datasource's set should not have been called
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_200)
-        self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+            # Make sure creation is idempotent if the request parameters
+            # agree with an existing host.
+            _publish.side_effect = (
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_cluster_with_host), None]],
+            )
 
-        # Make sure creation fails if the request parameters conflict
-        # with an existing host.
-        self.datasource.get.side_effect = None
-        self.datasource.get.reset_mock()
-        self.datasource.set.reset_mock()
-        bad_data = '{"ssh_priv_key": "boguskey"}'
-        body = self.simulate_request(
-            '/api/v0/host', method='PUT', body=bad_data)
-        # datasource's set should not have been called once
-        self.assertEquals(0, self.datasource.set.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_409)
-        self.assertEqual({}, json.loads(body[0]))
+            body = self.simulate_request(
+                '/api/v0/host', method='PUT', body=data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_200)
+            self.assertEqual(json.loads(self.ahost), json.loads(body[0]))
+
+            # Make sure creation fails if the request parameters conflict
+            # with an existing host.
+            _publish.side_effect = (
+                [[MagicMock(value=self.etcd_host), None]],
+                [[MagicMock(value=self.etcd_host), None]],
+            )
+            bad_data = '{"ssh_priv_key": "boguskey"}'
+            body = self.simulate_request(
+                '/api/v0/host', method='PUT', body=bad_data)
+            self.assertEqual(self.srmock.status, falcon.HTTP_409)
+            self.assertEqual({}, json.loads(body[0]))

@@ -442,14 +442,6 @@ Retrieve a the status of the system.
                "errors": [string,...],  // Errors from the pool
            },
        },
-       "clusterexecpool": {
-           "status": enum(string),      // Status of the clusterexec pool
-           "info": {
-               "size": int,             // Total size of the clusterexec pool
-               "in_use": int,           // Amount of the pool in use
-               "errors": [string,...],  // Errors from the pool
-           }
-       },
    }
 
 .. note::
@@ -473,14 +465,5 @@ Example
                "errors": []
            }
        }
-       "clusterexec": {
-           "status": "OK",
-           "info": {
-               "size": 5,
-               "in_use": 0,
-               "errors": []
-           }
-       }
-
    }
 

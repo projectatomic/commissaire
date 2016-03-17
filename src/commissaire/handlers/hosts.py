@@ -16,9 +16,12 @@
 Host(s) handlers.
 
 """
-import falcon
-import etcd
+
 import json
+
+import cherrypy
+import etcd
+import falcon
 
 from commissaire.resource import Resource
 from commissaire.handlers.models import Cluster, Host, Hosts
@@ -39,15 +42,17 @@ class HostsResource(Resource):
         :param resp: Response instance that will be passed through.
         :type resp: falcon.Response
         """
-        try:
-            hosts_dir = self.store.get('/commissaire/hosts/')
-            self.logger.debug('Etcd Response: {0}'.format(hosts_dir))
-        except etcd.EtcdKeyNotFound:
+        hosts_dir, error = cherrypy.engine.publish(
+            'store-get', '/commissaire/hosts/')[0]
+        self.logger.debug('Etcd Response: {0}'.format(hosts_dir))
+
+        if error:
             self.logger.warn(
                 'Etcd does not have any hosts. Returning [] and 404.')
             resp.status = falcon.HTTP_404
             req.context['model'] = None
             return
+
         results = []
         # Don't let an empty host directory through
         if len(hosts_dir._children):
@@ -79,10 +84,11 @@ class HostResource(Resource):
         :type address: str
         """
         # TODO: Verify input
-        try:
-            etcd_resp = self.store.get(util.etcd_host_key(address))
-            self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
-        except etcd.EtcdKeyNotFound:
+        etcd_resp, error = cherrypy.engine.publish(
+            'store-get', util.etcd_host_key(address))[0]
+        self.logger.debug('Etcd Response: {0}'.format(etcd_resp))
+
+        if error:
             resp.status = falcon.HTTP_404
             return
 
@@ -100,6 +106,7 @@ class HostResource(Resource):
         :param address: The address of the Host being requested.
         :type address: str
         """
+        # TODO: Move to bus.publish
         try:
             # Extract what we need from the input data.
             # Don't treat it as a skeletal host record.
@@ -116,7 +123,7 @@ class HostResource(Resource):
             return
 
         resp.status, host_model = util.etcd_host_create(
-            self.store, address, ssh_priv_key, cluster_name)
+            address, ssh_priv_key, cluster_name)
 
         req.context['model'] = host_model
 
@@ -175,6 +182,7 @@ class ImplicitHostResource(Resource):
         :param resp: Response instance that will be passed through.
         :type resp: falcon.Response
         """
+        # TODO: Move this to bus.publish
         try:
             address = req.env['REMOTE_ADDR']
         except KeyError:
@@ -198,6 +206,6 @@ class ImplicitHostResource(Resource):
             return
 
         resp.status, host_model = util.etcd_host_create(
-            self.store, address, ssh_priv_key, cluster_name)
+            address, ssh_priv_key, cluster_name)
 
         req.context['model'] = host_model

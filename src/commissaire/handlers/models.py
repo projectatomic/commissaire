@@ -101,4 +101,4 @@ class Status(Model):
     """
     _json_type = dict
     _attributes = (
-        'etcd', 'investigator', 'clusterexecpool')
+        'etcd', 'investigator')

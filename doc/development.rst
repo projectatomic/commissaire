@@ -27,7 +27,7 @@ As you can see commissaire uses a number of libraries.
 
 Of these, the most important to be up to speed on are:
 
-- gevent: http://www.gevent.org/
+- cherrypy: http://www.cherrypy.org/
 - falcon: http://falconframework.org/
 - ansible: https://www.ansible.com/
 

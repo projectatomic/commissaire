@@ -1,4 +1,4 @@
-gevent==1.1rc3
+cherrypy==3.2.2
 falcon>=0.3
 requests
 py-bcrypt

@@ -1,6 +1,6 @@
 Name:           commissaire
 Version:        0.0.1rc2
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Simple cluster host management
 License:        AGPLv3+
 URL:            http://github.com/projectatomic/commissaire
@@ -23,13 +23,13 @@ BuildRequires:  pkgconfig(systemd)
 # XXX: Waiting on python2-python-etcd to pass review
 #      https://bugzilla.redhat.com/show_bug.cgi?id=1310796
 Requires:  python-setuptools
+Requires:  python-cherrypy
 Requires:  python2-falcon
 Requires:  python2-python-etcd
-Requires:  python-gevent
 Requires:  python-jinja2
 Requires:  python-requests
 Requires:  py-bcrypt
-Requires:  ansible
+Requires:  ansible >= 2.0.1.0
 
 %description
 Commissaire allows administrators of a Kubernetes, Atomic Enterprise or
@@ -87,6 +87,9 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 
 
 %changelog
+* Thu Mar 17 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-3
+- Now using cherrypy rather than gevent.
+
 * Tue Mar  8 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-2
 - Adding in service items.
 

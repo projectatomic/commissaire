@@ -15,8 +15,7 @@
 """
 Resource utilities.
 """
-
-import etcd
+import cherrypy
 import falcon
 import json
 
@@ -44,43 +43,39 @@ def etcd_cluster_key(name):
     return '/commissaire/clusters/{0}'.format(name)
 
 
-def etcd_cluster_exists(store, name):
+def etcd_cluster_exists(name):
     """
     Returns whether a cluster with the given name exists.
 
-    :param store: Data store.
-    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     """
     key = etcd_cluster_key(name)
-    try:
-        store.get(key)
+
+    etcd_resp, error = cherrypy.engine.publish('store-get', key)[0]
+    if not error:
         return True
-    except etcd.EtcdKeyNotFound:
-        return False
+    return False
 
 
-def etcd_cluster_has_host(store, name, address):
+def etcd_cluster_has_host(name, address):
     """
     Checks if a host address belongs to a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
 
-    :param store: Data store.
-    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     :param address: Host address
     :type address: str
     """
-    cluster = get_cluster_model(store, name)
+    cluster = get_cluster_model(name)
     if not cluster:
         raise KeyError
 
     return address in cluster.hostset
 
 
-def etcd_cluster_add_host(store, name, address):
+def etcd_cluster_add_host(name, address):
     """
     Adds a host address to a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
@@ -88,14 +83,12 @@ def etcd_cluster_add_host(store, name, address):
     Note the function is idempotent: if the host address is
     already in the cluster, no change occurs.
 
-    :param store: Data store.
-    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     :param address: Host address to add
     :type address: str
     """
-    cluster = get_cluster_model(store, name)
+    cluster = get_cluster_model(name)
     if not cluster:
         raise KeyError
 
@@ -110,13 +103,15 @@ def etcd_cluster_add_host(store, name, address):
 
     if address not in cluster.hostset:
         cluster.hostset.append(address)
-        r = store.write(
-            cluster.etcd.key,
-            cluster.to_json(secure=True),
-            prevValue=cluster.etcd.value)
+
+    etcd_resp, _ = cherrypy.engine.publish(
+        'store-save',
+        cluster.etcd.key,
+        cluster.to_json(secure=True),
+        prevValue=cluster.etcd.value)[0]
 
 
-def etcd_cluster_remove_host(store, name, address):
+def etcd_cluster_remove_host(name, address):
     """
     Removes a host address from a cluster with the given name.
     If no such cluster exists, the function raises KeyError.
@@ -124,14 +119,13 @@ def etcd_cluster_remove_host(store, name, address):
     Note the function is idempotent: if the host address is
     not in the cluster, no change occurs.
 
-    :param store: Data store.
-    :type store: etcd.Client
+
     :param name: Name of a cluster
     :type name: str
     :param address: Host address to remove
     :type address: str
     """
-    cluster = get_cluster_model(store, name)
+    cluster = get_cluster_model(name)
     if not cluster:
         raise KeyError
 
@@ -142,10 +136,13 @@ def etcd_cluster_remove_host(store, name, address):
 
     if address in cluster.hostset:
         cluster.hostset.remove(address)
-        store.set(cluster.etcd.key, cluster.to_json(secure=True))
+        cherrypy.engine.publish(
+            'store-save',
+            cluster.etcd.key,
+            cluster.to_json(secure=True))[0]
 
 
-def get_cluster_model(store, name):
+def get_cluster_model(name):
     """
     Returns a Cluster instance from the etcd record for the given
     cluster name, if it exists, or else None.
@@ -153,22 +150,21 @@ def get_cluster_model(store, name):
     For convenience, the EtcdResult is embedded in the Cluster instance
     as an 'etcd' property.
 
-    :param store: Data store.
-    :type store: etcd.Client
     :param name: Name of a cluster
     :type name: str
     """
     key = etcd_cluster_key(name)
-    try:
-        etcd_resp = store.get(key)
-    except etcd.EtcdKeyNotFound:
+    etcd_resp, error = cherrypy.engine.publish('store-get', key)[0]
+
+    if error:
         return None
+
     cluster = Cluster(**json.loads(etcd_resp.value))
     cluster.etcd = etcd_resp
     return cluster
 
 
-def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
+def etcd_host_create(address, ssh_priv_key, cluster_name=None):
     """
     Creates a new host record in etcd and optionally adds the host to
     the specified cluster.  Returns a (status, host) tuple where status
@@ -178,8 +174,6 @@ def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
     This function is idempotent so long as the host parameters agree
     with an existing host record and cluster membership.
 
-    :param store: Data store.
-    :type store: etcd.Client
     :param address: Host address.
     :type address: str
     :param ssh_priv_key: Host's SSH key, base64-encoded.
@@ -190,16 +184,16 @@ def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
     :rtype: tuple
     """
     key = etcd_host_key(address)
-    try:
-        etcd_resp = store.get(key)
+    etcd_resp, error = cherrypy.engine.publish('store-get', key)[0]
 
+    if not error:
         # Check if the request conflicts with the existing host.
         existing_host = Host(**json.loads(etcd_resp.value))
         if existing_host.ssh_priv_key != ssh_priv_key:
             return (falcon.HTTP_409, None)
         if cluster_name:
             try:
-                assert etcd_cluster_has_host(store, cluster_name, address)
+                assert etcd_cluster_has_host(cluster_name, address)
             except (AssertionError, KeyError):
                 return (falcon.HTTP_409, None)
 
@@ -207,8 +201,6 @@ def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
         # we're done.  (Not using HTTP_201 since we didn't
         # actually create anything.)
         return (falcon.HTTP_200, existing_host)
-    except etcd.EtcdKeyNotFound:
-        pass
 
     host_creation = {
         'address': address,
@@ -224,15 +216,17 @@ def etcd_host_create(store, address, ssh_priv_key, cluster_name=None):
     # Verify the cluster exists, if given.  Do it now
     # so we can fail before writing anything to etcd.
     if cluster_name:
-        if not etcd_cluster_exists(store, cluster_name):
+        if not etcd_cluster_exists(cluster_name):
             return (falcon.HTTP_409, None)
 
     host = Host(**host_creation)
-    new_host = store.set(key, host.to_json(secure=True))
+
+    new_host, _ = cherrypy.engine.publish(
+        'store-save', key, host.to_json(secure=True))[0]
 
     # Add host to the requested cluster.
     if cluster_name:
-        etcd_cluster_add_host(store, cluster_name, address)
+        etcd_cluster_add_host(cluster_name, address)
 
     INVESTIGATE_QUEUE.put((host_creation, ssh_priv_key))
 

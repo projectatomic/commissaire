@@ -24,7 +24,7 @@ from . import TestCase
 from commissaire.compat.urlparser import urlparse
 
 from commissaire.jobs.investigator import clean_up_key, investigator
-from gevent.queue import Queue
+from Queue import Queue
 from mock import MagicMock
 
 
@@ -59,8 +59,9 @@ class Test_JobsInvestigator(TestCase):
         Verify the investigator.
         """
         with contextlib.nested(
+                mock.patch('cherrypy.engine.publish'),
                 mock.patch('commissaire.transport.ansibleapi.Transport'),
-                mock.patch('etcd.Client')) as (_tp, _client):
+                mock.patch('etcd.Client')) as (_publish, _tp, _store):
             _tp().get_info.return_value = (
                 0,
                 {
@@ -72,11 +73,8 @@ class Test_JobsInvestigator(TestCase):
             )
 
             q = Queue()
-            client = _client()
-            client.get = MagicMock('get')
-            client.get.return_value = MagicMock(value=self.etcd_host)
-            client.set = MagicMock('set')
-            client.set.return_value = self.etcd_host
+            _publish.return_value = [[
+                MagicMock('etcd.EtcdResult', value=self.etcd_host), None]]
 
             to_investigate = {
                 'address': '10.0.0.2',
@@ -94,7 +92,6 @@ class Test_JobsInvestigator(TestCase):
             }
 
             q.put_nowait((to_investigate, ssh_priv_key))
-            investigator(q, connection_config, {}, True)
+            investigator(q, connection_config, True)
 
-            self.assertEquals(1, client.get.call_count)
-            self.assertEquals(2, client.set.call_count)
+            self.assertEquals(3, _publish.call_count)

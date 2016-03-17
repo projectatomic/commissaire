@@ -147,105 +147,93 @@ class TestHTTPBasicAuthByEtcd(TestCase):
         """
         Sets up a fresh instance of the class before each run.
         """
-        self.ds = mock.MagicMock(etcd.Client)
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        return_value.value = '{}'
-        self.ds.get.return_value = return_value
-
         self.user_config = get_fixture_file_path('conf/users.json')
-
-        self.http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd(self.ds)
-        self.ds.get.reset_mock()
 
     def test_load_with_non_key(self):
         """
         Verify load raises when the key does not exist in etcd.
         """
-        self.ds.get.side_effect = etcd.EtcdKeyNotFound()
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        return_value.value = None
-        self.ds.get.return_value = return_value
-        self.assertRaises(
-            etcd.EtcdKeyNotFound,
-            self.http_basic_auth_by_etcd.load)
-        self.assertEquals(1, self.ds.get.call_count)
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.return_value = [[[], etcd.EtcdKeyNotFound()]]
+
+            self.assertRaises(
+                etcd.EtcdKeyNotFound,
+                httpauth.HTTPBasicAuthByEtcd)
 
     def test_load_with_bad_data(self):
         """
         Verify load raises when the data in Etcd is bad.
         """
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        return_value.value = '{"a": {'
-        self.ds.get.return_value = return_value
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            _publish.return_value = [[[], ValueError()]]
 
-        self.assertRaises(
-            ValueError,
-            self.http_basic_auth_by_etcd.load)
-        self.assertEquals(1, self.ds.get.call_count)
+            self.assertRaises(
+                ValueError,
+                httpauth.HTTPBasicAuthByEtcd)
 
     def test_authenticate_with_valid_user(self):
         """
         Verify authenticate works with a proper JSON in Etcd, Authorization header, and a matching user.
         """
-        # Mock the return of the Etcd get result
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        with open(self.user_config, 'r') as users_file:
-            return_value.value = users_file.read()
-        self.ds.get.return_value = return_value
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            # Mock the return of the Etcd get result
+            return_value = mock.MagicMock(etcd.EtcdResult)
+            with open(self.user_config, 'r') as users_file:
+                return_value.value = users_file.read()
 
-        # Reload with the data from the mock'd Etcd
-        self.http_basic_auth_by_etcd.load()
+            _publish.return_value = [[return_value, None]]
 
-        # Test the call
-        req = falcon.Request(
-            create_environ(headers={'Authorization': 'basic YTph'}))
-        resp = falcon.Response()
-        self.assertEquals(
-            None,
-            self.http_basic_auth_by_etcd.authenticate(req, resp))
-        self.assertEquals(1, self.ds.get.call_count)
+            # Reload with the data from the mock'd Etcd
+            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
+
+            # Test the call
+            req = falcon.Request(
+                create_environ(headers={'Authorization': 'basic YTph'}))
+            resp = falcon.Response()
+            self.assertEquals(
+                None,
+                http_basic_auth_by_etcd.authenticate(req, resp))
 
     def test_authenticate_with_invalid_user(self):
         """
         Verify authenticate denies with a proper JSON in Etcd, Authorization header, and no matching user.
         """
-        # Mock the return of the Etcd get result
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        with open(self.user_config, 'r') as users_file:
-            return_value.value = users_file.read()
-        self.ds.get.return_value = return_value
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            # Mock the return of the Etcd get result
+            return_value = mock.MagicMock(etcd.EtcdResult)
+            with open(self.user_config, 'r') as users_file:
+                return_value.value = users_file.read()
+            _publish.return_value = [[return_value, None]]
 
-        # Reload with the data from the mock'd Etcd
-        self.http_basic_auth_by_etcd.load()
+            # Reload with the data from the mock'd Etcd
+            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
 
-        # Test the call
-        req = falcon.Request(
-            create_environ(headers={'Authorization': 'basic Yjpi'}))
-        resp = falcon.Response()
-        self.assertRaises(
-            falcon.HTTPForbidden,
-            self.http_basic_auth_by_etcd.authenticate,
-            req, resp)
-        self.assertEquals(1, self.ds.get.call_count)
+            # Test the call
+            req = falcon.Request(
+                create_environ(headers={'Authorization': 'basic Yjpi'}))
+            resp = falcon.Response()
+            self.assertRaises(
+                falcon.HTTPForbidden,
+                http_basic_auth_by_etcd.authenticate,
+                req, resp)
 
     def test_authenticate_with_invalid_password(self):
         """
         Verify authenticate denies with a proper JSON file, Authorization header, and the wrong password.
         """
-        # Mock the return of the Etcd get result
-        return_value = mock.MagicMock(etcd.EtcdResult)
-        with open(self.user_config, 'r') as users_file:
-            return_value.value = users_file.read()
-        self.ds.get.return_value = return_value
+        with mock.patch('cherrypy.engine.publish') as _publish:
+            return_value = mock.MagicMock(etcd.EtcdResult)
+            with open(self.user_config, 'r') as users_file:
+                return_value.value = users_file.read()
+            _publish.return_value = [[return_value, None]]
 
-        # Reload with the data from the mock'd Etcd
-        self.http_basic_auth_by_etcd.load()
+            # Reload with the data from the mock'd Etcd
+            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
 
-        req = falcon.Request(
-            create_environ(headers={'Authorization': 'basic YTpiCg=='}))
-        resp = falcon.Response()
-        self.assertRaises(
-            falcon.HTTPForbidden,
-            self.http_basic_auth_by_etcd.authenticate,
-            req, resp)
-        self.assertEquals(1, self.ds.get.call_count)
+            req = falcon.Request(
+                create_environ(headers={'Authorization': 'basic YTpiCg=='}))
+            resp = falcon.Response()
+            self.assertRaises(
+                falcon.HTTPForbidden,
+                http_basic_auth_by_etcd.authenticate,
+                req, resp)

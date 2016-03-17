@@ -3,6 +3,9 @@
     "formatters": {
         "simple": {
             "format": "%(asctime)s - %(name)s - %(process)d -  %(thread)d - %(levelname)s - %(message)s"
+        },
+        "void": {
+            "format": ""
         }
     },
     "handlers": {
@@ -11,16 +14,22 @@
             "formatter": "simple",
             "level": "DEBUG",
             "stream": "ext://sys.stdout"
+        },
+        "cherrypy": {
+            "class": "logging.StreamHandler",
+            "formatter": "void",
+            "level": "DEBUG",
+            "stream": "ext://sys.stdout"
         }
     },
     "loggers": {
-        "http-access": {
-            "handlers": ["console"],
+        "cherrypy.access": {
+            "handlers": ["cherrypy"],
             "level": "INFO",
             "propagate": false
         },
-        "http-error": {
-            "handlers": ["console"],
+        "cherrypy.error": {
+            "handlers": ["cherrypy"],
             "level": "INFO",
             "propagate": false
         },

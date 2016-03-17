@@ -24,6 +24,7 @@ Submodules
 
 .. toctree::
 
+   commissaire.cherrypy_plugins
    commissaire.client_script
    commissaire.config
    commissaire.hash_pass_script

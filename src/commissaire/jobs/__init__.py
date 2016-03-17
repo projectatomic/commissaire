@@ -15,13 +15,6 @@
 """
 Storage for greenlets.
 """
-from gevent.pool import Pool
-
-
-#: All green pools
-POOLS = {
-    'clusterexecpool': Pool(5),
-}
 
 #: All multiprocessing processes
 PROCS = {
