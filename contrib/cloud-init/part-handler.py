@@ -51,8 +51,8 @@
 #             --attach commissaire.txt:x-commissaire-host \
 #             > user-data
 #
-# Alternatively, this part handler script could be included at boot time
-# from a URL by attaching a text/x-include-url file:
+# Alternatively, you can instruct cloud-init to download this part handler
+# script from a URL at boot time by attaching a text/x-include-url file:
 #
 #    $ python make-mime.py \
 #             --attach config.txt:cloud-config \

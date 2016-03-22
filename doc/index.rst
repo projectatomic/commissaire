@@ -22,6 +22,7 @@ Development
    development
    authentication_devel
    packaging
+   cloud_init
 
 Indices and tables
 ==================

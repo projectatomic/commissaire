@@ -66,6 +66,11 @@ and using the **-w0** switch.
 
 For specifics on the endpoint see :ref:`host_op`
 
+.. note::
+
+   commissaire can help automate the bootstrapping of new hosts using
+   cloud-init for early initialization.  See :ref:`cloud_init`.
+
 
 Cluster Operations with commctl
 -------------------------------
