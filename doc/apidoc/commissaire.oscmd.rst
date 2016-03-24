@@ -1,11 +1,6 @@
 commissaire.oscmd package
 =========================
 
-.. automodule:: commissaire.oscmd
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -16,3 +11,10 @@ Submodules
    commissaire.oscmd.redhat
    commissaire.oscmd.rhel
 
+Module contents
+---------------
+
+.. automodule:: commissaire.oscmd
+    :members:
+    :undoc-members:
+    :show-inheritance:

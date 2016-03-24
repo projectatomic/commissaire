@@ -1,11 +1,6 @@
 commissaire.jobs package
 ========================
 
-.. automodule:: commissaire.jobs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -14,3 +9,10 @@ Submodules
    commissaire.jobs.clusterexec
    commissaire.jobs.investigator
 
+Module contents
+---------------
+
+.. automodule:: commissaire.jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:

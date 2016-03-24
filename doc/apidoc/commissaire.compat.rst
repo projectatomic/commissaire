@@ -1,11 +1,6 @@
 commissaire.compat package
 ==========================
 
-.. automodule:: commissaire.compat
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -15,3 +10,10 @@ Submodules
    commissaire.compat.exception
    commissaire.compat.urlparser
 
+Module contents
+---------------
+
+.. automodule:: commissaire.compat
+    :members:
+    :undoc-members:
+    :show-inheritance:

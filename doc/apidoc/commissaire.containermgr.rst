@@ -1,11 +1,6 @@
 commissaire.containermgr package
 ================================
 
-.. automodule:: commissaire.containermgr
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Subpackages
 -----------
 
@@ -13,3 +8,10 @@ Subpackages
 
     commissaire.containermgr.kubernetes
 
+Module contents
+---------------
+
+.. automodule:: commissaire.containermgr
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,11 +1,6 @@
 commissaire package
 ===================
 
-.. automodule:: commissaire
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Subpackages
 -----------
 
@@ -34,3 +29,10 @@ Submodules
    commissaire.resource
    commissaire.script
 
+Module contents
+---------------
+
+.. automodule:: commissaire
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,11 +1,6 @@
 commissaire.authentication package
 ==================================
 
-.. automodule:: commissaire.authentication
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -13,3 +8,10 @@ Submodules
 
    commissaire.authentication.httpauth
 
+Module contents
+---------------
+
+.. automodule:: commissaire.authentication
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,11 +1,6 @@
 commissaire.handlers package
 ============================
 
-.. automodule:: commissaire.handlers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -17,3 +12,10 @@ Submodules
    commissaire.handlers.status
    commissaire.handlers.util
 
+Module contents
+---------------
+
+.. automodule:: commissaire.handlers
+    :members:
+    :undoc-members:
+    :show-inheritance:

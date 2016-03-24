@@ -1,11 +1,6 @@
 commissaire.transport package
 =============================
 
-.. automodule:: commissaire.transport
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -13,3 +8,10 @@ Submodules
 
    commissaire.transport.ansibleapi
 
+Module contents
+---------------
+
+.. automodule:: commissaire.transport
+    :members:
+    :undoc-members:
+    :show-inheritance:
