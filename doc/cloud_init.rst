@@ -13,32 +13,8 @@ file containing the server parameters.
 
 Here's a sample config file showing all recognized parameters:
 
-::
-
-  # Host name of the commissaire service.
-  COMMISSAIRE_SERVER_HOST = master.example.com
-
-  # (optional) Port number of the commissaire service. Defaults to 8000.
-  COMMISSAIRE_SERVER_PORT = 8000
-
-  # (optional) User name to use for commissaire service authentication.
-  COMMISSAIRE_SERVER_USERNAME = user
-
-  # (optional) Password to use for commissaire service authentication.
-  COMMISSAIRE_SERVER_PASSWORD = 12345
-
-  # (optional) Boolean value indicates whether to connect to the
-  # service using Transport Layer Security (TLS). Defaults to true.
-  COMMISSAIRE_SERVER_SECURE = true
-
-  # (optional) The name of the cluster to join.
-  COMMISSAIRE_CLUSTER = mycluster
-
-  # (optional) The private SSH key file for the root account of this
-  # host. Defaults to '/root/.ssh/id_rsa' and, if necessary, generates
-  # a public/private key pair with no passphrase.
-  ROOT_SSH_KEY_PATH = /root/.ssh/id_rsa
-
+.. literalinclude:: ../contrib/cloud-init/commissaire.txt
+   :language: shell
 
 Create the User-Data File
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,3 +59,31 @@ script from a URL at boot time by attaching a ``text/x-include-url`` file:
    Whether the part handler is included by way of direct embedding or a URL,
    it must appear in the multipart file `before` the ``text/x-commissaire-host``
    part so cloud-init knows how to handle the ``text/x-commissaire-host`` part.
+
+
+Example
+-------
+
+.. code-block:: shell
+
+  $ wget "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/download/head:/makemime.py-20130122042101-yeyh09eokb87l6oa-1/make-mime.py"
+  # <snip>
+  2016-03-24 10:54:33 (167 MB/s) - ‘make-mime.py’ saved [1946/1946]
+
+  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/contrib/cloud-init/part-handler.py"
+  # <snip>
+  2016-03-24 10:56:33 (772 MB/s) - ‘part-handler.py’ saved [4848/4848]
+
+  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/contrib/cloud-init/commissaire.txt"
+  # <snip>
+  2016-03-24 10:57:07 (752 MB/s) - ‘commissaire.txt’ saved [866/866]
+
+  $ $EDITOR config.txt     # Edit the cloud config to your liking
+  $ $EDITOR commisaire.txt # Edit the commissaire config to your liking
+  $ python make-mime.py \
+         --attach config.txt:cloud-config \
+         --attach part-handler.py:part-handler \
+         --attach commissaire.txt:x-commissaire-host \
+         > user-data
+  WARNING: content type 'text/x-commissaire-host' for attachment 3 may be incorrect!
+  $
