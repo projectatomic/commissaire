@@ -167,6 +167,35 @@ class Client(object):
         uri = '{0}/api/v0/cluster/{1}/upgrade'.format(self.endpoint, name)
         return self._put(uri, {'upgrade_to': kwargs['upgrade_to']})
 
+    def list_clusters(self, **kwargs):
+        """
+        Attempts to list available clusters.
+
+        :param kwargs: Keyword arguments
+        :type kwargs: dict
+        """
+        uri = '{0}/api/v0/clusters'.format(self.endpoint)
+        return self._get(uri)
+
+    def list_hosts(self, name, **kwargs):
+        """
+        Attempts to list all hosts or hosts in particular cluster.
+
+        :param name: The name of the cluster (optional)
+        :type name: str or None
+        :param kwargs: Any other keyword arguments
+        :type kwargs: dict
+        """
+        if not name:
+            uri = '{0}/api/v0/hosts'.format(self.endpoint)
+            result = self._get(uri)
+            if result:
+                result = [host['address'] for host in result]
+            return result
+        else:
+            uri = '{0}/api/v0/cluster/{1}/hosts'.format(self.endpoint, name)
+            return self._get(uri)
+
 
 def main():
     """
@@ -214,6 +243,17 @@ def main():
         '-n', '--name', required=True, help='Name of the cluster')
     upgrade_parser.add_argument(
         '-u', '--upgrade-to', required=True, help='Version to upgrade to')
+
+    list_parser = sp.add_parser('list')
+    list_sp = list_parser.add_subparsers(dest='sub_command')
+
+    list_clusters_parser = list_sp.add_parser('clusters')
+    # No arguments for 'list clusters' at present.
+
+    list_hosts_parser = list_sp.add_parser('hosts')
+    list_hosts_parser.add_argument(
+        '-n', '--name', required=False,
+        help='Name of the cluster (omit to list all hosts)')
 
     args = parser.parse_args()
 

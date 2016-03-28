@@ -80,3 +80,26 @@ class TestClientScript(TestCase):
                 client_script.main()
                 self.assertEquals(1, _put.call_count)
                 _put.reset_mock()
+
+    def test_client_script_list(self):
+        """
+        Verify use cases for the client_script list command.
+        """
+        sys.argv = ['', 'list']
+        with contextlib.nested(
+                mock.patch('requests.Session.get'),
+                mock.patch('os.path.realpath')) as (_get, _realpath):
+            _realpath.return_value = self.conf
+            for subcmd, content in ((['clusters'], '[]'),
+                                    (['hosts'], '{}'),
+                                    (['hosts', '-n', 'test'], '[]')):
+                mock_return = requests.Response()
+                mock_return._content = content
+                mock_return.status_code = 200
+                _get.return_value = mock_return
+
+                sys.argv[2:] = subcmd
+                print sys.argv
+                client_script.main()
+                self.assertEquals(1, _get.call_count)
+                _get.reset_mock()
