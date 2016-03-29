@@ -1,6 +1,12 @@
 Overview
 ========
 
+.. pull-quote::
+
+   It actually configured Kubernetes when I could not remember how to.
+
+   -- Ryan Cook
+
 commissaire provides a lightweight, unified REST endpoint for common operational
 tasks across groups of hosts. These tasks include:
 
