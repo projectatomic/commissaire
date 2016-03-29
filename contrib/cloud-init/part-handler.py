@@ -66,6 +66,8 @@
 #
 
 import sys
+import stat
+import os
 import os.path
 import configparser
 import subprocess
@@ -113,15 +115,29 @@ def handle_part(data, ctype, filename, payload):
     cluster = keys.get('COMMISSAIRE_CLUSTER')
     keyfile = keys.get('ROOT_SSH_KEY_PATH', '/root/.ssh/id_rsa')
 
-    if keyfile and not os.path.isfile(keyfile):
+    if keyfile:
+        if not os.path.isfile(keyfile):
+            try:
+                subprocess.check_call(
+                    ['/usr/bin/ssh-keygen', '-q', '-N', '',
+                     '-t', 'rsa', '-f', keyfile])
+            except FileNotFoundError:
+                print('Missing /usr/bin/ssh-keygen', file=sys.stderr)
+                raise
+            except subprocess.CalledProcessError as ex:
+                print(str(ex), file=sys.stderr)
+                raise
+
         try:
-            subprocess.check_call(
-                ['/usr/bin/ssh-keygen', '-q', '-N', '',
-                 '-t', 'rsa', '-f', keyfile])
-        except FileNotFoundError:
-            print('Missing /usr/bin/ssh-keygen', file=sys.stderr)
-            raise
-        except subprocess.CalledProcessError as ex:
+            authorized_keys = '/root/.ssh/authorized_keys'
+            with open(keyfile + '.pub') as inpf:
+                # If creating a new file, set mode to 0600.
+                fd = os.open(authorized_keys,
+                             os.O_WRONLY | os.O_APPEND | os.O_CREAT,
+                             stat.S_IRUSR | stat.S_IWUSR)
+                with os.fdopen(fd, 'a') as outf:
+                    outf.writelines(inpf.readlines())
+        except Exception as ex:
             print(str(ex), file=sys.stderr)
             raise
 
