@@ -1,5 +1,7 @@
+include CONTRIBUTORS
 include COPYING
 include LICENSE
+include MAINTAINERS
 include README.md
 include requirements.txt
 include test-requirements.txt

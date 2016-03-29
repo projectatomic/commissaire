@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'commissaire'
-author = 'Matthew Barnes, Ryan Cook, Steve Milner, and Chris Murphy'
+author = 'See CONTRIBUTORS'
 copyright = u'2016, {0}'.format(author)
 
 # The version info for the project you're documenting, acts as replacement for
@@ -227,7 +227,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'commissaire.tex', u'commissaire Documentation',
-   u'Steve Milner, Chris Murphy, Ryan Cook', 'manual'),
+   u'See CONTRIBUTORS'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

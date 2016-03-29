@@ -1,6 +1,6 @@
 Name:           commissaire
 Version:        0.0.1rc2
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Simple cluster host management
 License:        AGPLv3+
 URL:            http://github.com/projectatomic/commissaire
@@ -77,6 +77,8 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 %files
 %license COPYING
 %doc README.md
+%doc CONTRIUBUTORS
+%doc MAINTAINERS
 %doc doc/apidoc/*.rst
 %{_bindir}/commctl
 %{_bindir}/commissaire
@@ -87,6 +89,9 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 
 
 %changelog
+* Tue Mar 29 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-4
+- Added author files
+
 * Thu Mar 17 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-3
 - Now using cherrypy rather than gevent.
 

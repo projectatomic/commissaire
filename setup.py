@@ -18,7 +18,16 @@
 Source build and installation script.
 """
 
+import string
+
 from setuptools import setup, find_packages
+
+
+def extract_names(filename):
+    names = ''
+    with open(filename, 'r') as m:
+        names = ', '.join(map(string.strip, m.readlines()))
+    return names
 
 
 def extract_requirements(filename):
@@ -34,7 +43,8 @@ setup(
     name='commissaire',
     version='0.0.1rc2',
     description='Simple cluster host management',
-    author='Steve Milner',
+    author=extract_names('CONTRIBUTORS'),
+    maintainer=extract_names('MAINTAINERS'),
     url='https://github.com/projectatomic/commissaire',
     license="AGPLv3+",
 
