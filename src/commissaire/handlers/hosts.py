@@ -140,7 +140,7 @@ class HostResource(Resource):
         """
         resp.body = '{}'
         try:
-            host = self.store.delete(util.etcd_host_key(address))
+            self.store.delete(util.etcd_host_key(address))
             resp.status = falcon.HTTP_410
         except etcd.EtcdKeyNotFound:
             resp.status = falcon.HTTP_404

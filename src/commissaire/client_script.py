@@ -247,7 +247,7 @@ def main():
     list_parser = sp.add_parser('list')
     list_sp = list_parser.add_subparsers(dest='sub_command')
 
-    list_clusters_parser = list_sp.add_parser('clusters')
+    list_sp.add_parser('clusters')
     # No arguments for 'list clusters' at present.
 
     list_hosts_parser = list_sp.add_parser('hosts')
