@@ -17,7 +17,7 @@ BuildRequires:  python-sphinx
 BuildRequires:  python-coverage
 BuildRequires:  python-mock
 BuildRequires:  python-nose
-BuildRequires:  python-pep8
+BuildRequires:  python-flake8
 BuildRequires:  pkgconfig(systemd)
 
 # XXX: Waiting on python2-python-etcd to pass review
@@ -91,6 +91,7 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 %changelog
 * Tue Mar 29 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-4
 - Added author files
+- Changed from pep8 to flake8
 
 * Thu Mar 17 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-3
 - Now using cherrypy rather than gevent.

@@ -1,6 +1,6 @@
 behave
 requests
 nose
-pep8
+flake8
 coverage
 mock
