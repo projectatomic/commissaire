@@ -20,6 +20,7 @@ import logging
 
 from collections import namedtuple
 from pkg_resources import resource_filename
+from time import sleep
 
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
@@ -195,21 +196,33 @@ class Transport:
                 ips, play_source, play.vars))
 
         # actually run it
-        tqm = None
-        try:
-            tqm = TaskQueueManager(
-                inventory=inventory,
-                variable_manager=self.variable_manager,
-                loader=self.loader,
-                options=options,
-                passwords=self.passwords,
-                stdout_callback=LogForward(),
-            )
-            result = tqm.run(play)
-        finally:
-            if tqm is not None:
-                self.logger.debug('Cleaning up after the TaskQueueManager.')
-                tqm.cleanup()
+        for cnt in range(0, 3):
+            tqm = None
+            try:
+                tqm = TaskQueueManager(
+                    inventory=inventory,
+                    variable_manager=self.variable_manager,
+                    loader=self.loader,
+                    options=options,
+                    passwords=self.passwords,
+                    stdout_callback=LogForward(),
+                )
+                result = tqm.run(play)
+
+                # Deal with unreachable hosts (result == 3) by retrying
+                # up to 3 times, sleeping 5 seconds after each attempt.
+                if result == 3 and cnt < 2:
+                    self.logger.warn(
+                        'One or more hosts in {0} is unreachable, '
+                        'retrying in 5 seconds...'.format(ips))
+                    sleep(5)
+                else:
+                    break
+            finally:
+                if tqm is not None:
+                    self.logger.debug(
+                        'Cleaning up after the TaskQueueManager.')
+                    tqm.cleanup()
 
         if result in expected_results:
             self.logger.debug('{0}: Good result {1}'.format(ip, result))
