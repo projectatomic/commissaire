@@ -18,15 +18,13 @@
 Source build and installation script.
 """
 
-import string
-
 from setuptools import setup, find_packages
 
 
 def extract_names(filename):
     names = ''
     with open(filename, 'r') as m:
-        names = ', '.join(map(string.strip, m.readlines()))
+        names = ', '.join([x.strip() for x in m.readlines()])
     return names
 
 
