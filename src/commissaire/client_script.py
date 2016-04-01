@@ -19,8 +19,13 @@ Client CLI for commissaire.
 import argparse
 import json
 import os.path
+import platform
 
 import requests
+
+# If we are on Python 2.x use raw_input as input
+if platform.python_version_tuple()[0] == 2:
+    input = raw_input
 
 
 class ClientError(Exception):
@@ -212,33 +217,43 @@ def main():
 
     # Create command structure
     sp = parser.add_subparsers(dest='main_command')
+    sp.required = True
+
     get_parser = sp.add_parser('get')
     get_sp = get_parser.add_subparsers(dest='sub_command')
-
+    get_sp.required = True
     cluster_parser = get_sp.add_parser('cluster')
+    cluster_parser.required = True
     cluster_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
 
     restart_parser = get_sp.add_parser('restart')
+    restart_parser.required = True
     restart_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
 
     upgrade_parser = get_sp.add_parser('upgrade')
+    upgrade_parser.required = True
     upgrade_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
 
     create_parser = sp.add_parser('create')
+    create_parser.required = True
     create_sp = create_parser.add_subparsers(dest='sub_command')
+    create_sp.required = True
 
     cluster_parser = create_sp.add_parser('cluster')
+    cluster_parser.required = True
     cluster_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
 
     restart_parser = create_sp.add_parser('restart')
+    restart_parser.required = True
     restart_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
 
     upgrade_parser = create_sp.add_parser('upgrade')
+    upgrade_parser.required = True
     upgrade_parser.add_argument(
         '-n', '--name', required=True, help='Name of the cluster')
     upgrade_parser.add_argument(
@@ -246,7 +261,7 @@ def main():
 
     list_parser = sp.add_parser('list')
     list_sp = list_parser.add_subparsers(dest='sub_command')
-
+    list_sp.required = True
     list_sp.add_parser('clusters')
     # No arguments for 'list clusters' at present.
 
@@ -264,7 +279,7 @@ def main():
             conf = json.load(cf)
             for required in ('username', 'endpoint'):
                 if required not in conf.keys():
-                    conf[required] = raw_input(
+                    conf[required] = input(
                         '{0}: '.format(required.capitalize()))
 
             # Check password on it's own
