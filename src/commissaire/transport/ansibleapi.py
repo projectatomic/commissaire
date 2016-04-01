@@ -291,25 +291,22 @@ class Transport:
         facts['space'] = space
 
         # Special case for atomic: Since Atomic doesn't advertise itself
-        # and instead calls itself 'redhat' or 'fedora' we need to check
-        # for 'atomicos' in other ansible_cmdline facts
-        if facts['os'] == 'redhat':
+        # and instead calls itself 'redhat' or 'centos' or 'fedora', we
+        # need to check for 'atomicos' in other ansible_cmdline facts.
+        atomic_os_types = {
+            'redhat': '/ostree/rhel-atomic-host',
+            'centos': '/ostree/centos-atomic-host',
+            'fedora': '/ostree/fedora-atomic'
+        }
+        os_type = facts['os']
+        if os_type in atomic_os_types:
             self.logger.debug(
-                'Found os of redhat. Checking for special atomic case...')
+                'Found os of {0}. Checking for special '
+                'atomic case...'.format(os_type))
             boot_image = fact_cache.get(
                 'ansible_cmdline', {}).get('BOOT_IMAGE', '')
             root_mapper = fact_cache.get('ansible_cmdline', {}).get('root', '')
-            if (boot_image.startswith('/ostree/rhel-atomic-host') or
-                    'atomicos' in root_mapper):
-                facts['os'] = 'atomic'
-            self.logger.debug('Facts: {0}'.format(facts))
-        if facts['os'] == 'fedora':
-            self.logger.debug(
-                'Found os of fedora. Checking for special atomic case...')
-            boot_image = fact_cache.get(
-                'ansible_cmdline', {}).get('BOOT_IMAGE', '')
-            root_mapper = fact_cache.get('ansible_cmdline', {}).get('root', '')
-            if (boot_image.startswith('/ostree/fedora-atomic') or
+            if (boot_image.startswith(atomic_os_types[os_type]) or
                     'atomicos' in root_mapper):
                 facts['os'] = 'atomic'
             self.logger.debug('Facts: {0}'.format(facts))
