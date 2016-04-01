@@ -16,7 +16,7 @@
 Test cases for the commissaire.oscmd module.
 """
 
-from . import TestCase
+from . import TestCase, available_os_types
 from commissaire import oscmd
 
 
@@ -59,7 +59,7 @@ class Test_get_oscmd(TestCase):
         """
         Verify get_oscmd returns proper modules.
         """
-        for os_type in ('atomic', 'fedora', 'rhel'):
+        for os_type in available_os_types:
             self.assertEquals(
                 'commissaire.oscmd.{0}'.format(os_type),
                 oscmd.get_oscmd(os_type).__module__)

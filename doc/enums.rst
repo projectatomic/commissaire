@@ -8,6 +8,7 @@ OS's
 
 * **atomic**: http://www.projectatomic.io/
 * **rhel**:  http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux
+* **centos**: https://www.centos.org/
 * **fedora**: https://getfedora.org/
 
 
