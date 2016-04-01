@@ -1,23 +1,7 @@
-# Host name of the commissaire service.
-COMMISSAIRE_SERVER_HOST = master.example.com
-
-# (optional) Port number of the commissaire service. Defaults to 8000.
-COMMISSAIRE_SERVER_PORT = 8000
-
-# (optional) User name to use for commissaire service authentication.
-COMMISSAIRE_SERVER_USERNAME = user
-
-# (optional) Password to use for commissaire service authentication.
-COMMISSAIRE_SERVER_PASSWORD = 12345
-
-# (optional) Boolean value indicates whether to connect to the
-# service using Transport Layer Security (TLS). Defaults to true.
-COMMISSAIRE_SERVER_SECURE = true
-
-# (optional) The name of the cluster to join.
-COMMISSAIRE_CLUSTER = mycluster
-
-# (optional) The private SSH key file for the root account of this
-# host. Defaults to '/root/.ssh/id_rsa' and, if necessary, generates
-# a public/private key pair with no passphrase.
-#ROOT_SSH_KEY_PATH = /root/.ssh/id_rsa
+{
+  "endpoint": "https://master.example.com:8000",
+  "username": "user",                             # Optional
+  "password": "12345",                            # Optional
+  "cluster": "mycluster",                         # Optional
+  "root_ssh_key_path": "/root/.ssh/id_rsa"        # Optional
+}

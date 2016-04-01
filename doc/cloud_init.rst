@@ -8,8 +8,8 @@ to help automatically register hosts to the commissaire server during
 bootup by way of cloud-init.
 
 The script is intended to be embedded or referenced by an ``#include``
-directive in a multi-part ``user-data`` file, along with a simple config
-file containing the server parameters.
+directive in a multi-part ``user-data`` file, along with a simple JSON
+config file containing the server parameters.
 
 Here's a sample config file showing all recognized parameters:
 
