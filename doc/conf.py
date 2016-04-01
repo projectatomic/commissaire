@@ -227,8 +227,9 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'commissaire.tex', u'commissaire Documentation',
-   u'See CONTRIBUTORS'),
+   u'See CONTRIBUTORS', 'manual'),
 ]
+
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
