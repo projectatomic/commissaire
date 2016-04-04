@@ -1,6 +1,6 @@
 Name:           commissaire
 Version:        0.0.1rc2
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Simple cluster host management
 License:        AGPLv3+
 URL:            http://github.com/projectatomic/commissaire
@@ -80,15 +80,16 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 %doc CONTRIUBUTORS
 %doc MAINTAINERS
 %doc doc/apidoc/*.rst
-%{_bindir}/commctl
 %{_bindir}/commissaire
-%{_bindir}/commissaire-hashpass
 %{python2_sitelib}/*
 %{_sysconfdir}/sysconfig/commissaire
 %{_unitdir}/commissaire.service
 
 
 %changelog
+* Mon Apr  4 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-5
+* commctl and commissaire-hash-pass are now their own package.
+
 * Tue Mar 29 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-4
 - Added author files
 - Changed from pep8 to flake8
