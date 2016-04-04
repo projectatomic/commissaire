@@ -1,4 +1,4 @@
 .. code-block:: shell
 
-   commctl get upgrade -n datacenter1
+   commctl get upgrade datacenter1
    ...

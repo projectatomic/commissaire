@@ -1,4 +1,4 @@
 .. code-block:: shell
 
-   commctl get restart -n datacenter1
+   commctl get restart datacenter1
    ...
