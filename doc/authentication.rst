@@ -22,7 +22,9 @@ using the same JSON schema.
 
 Generating a hash
 ~~~~~~~~~~~~~~~~~
-commissaire comes with a utility to create bcrypt hashes.
+commissaire has a utility to create bcrypt hashes.
+
+.. include:: examples/commctl_note.rst
 
 .. code-block:: shell
 

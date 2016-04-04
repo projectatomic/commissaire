@@ -6,6 +6,9 @@ Preface
 All operations via commissaire are done via REST. While any HTTP client can
 be used this document will show examples using *commctl* as well as *curl*.
 
+.. include:: examples/commctl_note.rst
+
+
 commctl
 ~~~~~~~
 commctl can be used directly but for repeated use it's best to set up a
