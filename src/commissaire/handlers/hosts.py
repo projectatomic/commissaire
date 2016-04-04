@@ -161,10 +161,14 @@ class HostResource(Resource):
             for etcd_resp in clusters_dir.leaves:
                 cluster = Cluster(**json.loads(etcd_resp.value))
                 if address in cluster.hostset:
+                    cluster_name = etcd_resp.key.split('/')[-1]
                     self.logger.info('Removing {0} from cluster {1}'.format(
-                        address, etcd_resp.key.split('/')[-1]))
+                        address, cluster_name))
                     cluster.hostset.remove(address)
                     self.store.set(etcd_resp.key, cluster.to_json(secure=True))
+                    self.logger.info(
+                        '{0} has been removed from cluster {1}'.format(
+                            address, cluster_name))
 
 
 class ImplicitHostResource(Resource):
