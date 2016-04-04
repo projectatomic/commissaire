@@ -80,6 +80,21 @@ Cluster Operations with commctl
 
 These operations are done across all hosts associated with a cluster.
 
+List
+~~~~
+To list all clusters:
+
+.. include:: examples/commctl_list_clusters.rst
+
+To list all hosts:
+
+.. include:: examples/commctl_list_hosts.rst
+
+To list all hosts in a specific cluster:
+
+.. include:: examples/commctl_list_hosts_in_cluster.rst
+
+
 Restart
 ~~~~~~~
 To restart a cluster:
