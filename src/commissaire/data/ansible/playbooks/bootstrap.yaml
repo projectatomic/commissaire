@@ -62,7 +62,7 @@
       service:
         name: "{{ item }}"
         enabled: yes
-        state: started
+        state: restarted
       with_items:
         - "{{ commissaire_flannel_service }}"
         - "{{ commissaire_docker_service }}"
