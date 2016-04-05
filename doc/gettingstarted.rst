@@ -26,6 +26,13 @@ the unittests run. From the repo root...
 .. include:: examples/run_unittest_example.rst
 
 
+Setup Overlay Network Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Flannel requires a configuration inside of etcd.
+
+.. include:: examples/flannel_overlay_network_example.rst
+
+
 (Optional): Put Configs in Etcd
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 commissaire will default back to the local files but using Etcd is where configuration should be stored.
