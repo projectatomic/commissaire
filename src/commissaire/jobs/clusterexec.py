@@ -122,22 +122,24 @@ def clusterexec(cluster_name, command):
         logger.debug('Wrote key for {0}'.format(a_host['address']))
         f.close()
 
-        transport = ansibleapi.Transport()
-        exe = getattr(transport, command)
-        result, facts = exe(
-            a_host['address'], key_file, oscmd)
         try:
-            f.unlink(key_file)
-            logger.debug('Removed temporary key file {0}'.format(key_file))
-        except:
-            logger.warn(
-                'Unable to remove the temporary key file: {0}'.format(
-                    key_file))
-
-        # If there was a failure set the end_status and break out
-        if result != 0:
+            transport = ansibleapi.Transport()
+            exe = getattr(transport, command)
+            result, facts = exe(
+                a_host['address'], key_file, oscmd)
+        # XXX: ansibleapi explicitly raises Exception()
+        except Exception:
+            # If there was a failure set the end_status and break out
             end_status = 'failed'
             break
+        finally:
+            try:
+                f.unlink(key_file)
+                logger.debug('Removed temporary key file {0}'.format(key_file))
+            except:
+                logger.warn(
+                    'Unable to remove the temporary key file: {0}'.format(
+                        key_file))
 
         cluster_status[finished_hosts_key].append(a_host['address'])
         try:
