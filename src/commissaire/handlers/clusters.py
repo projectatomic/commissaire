@@ -421,7 +421,7 @@ class ClusterRestartResource(Resource):
             'finished_at': None
         }
         cluster_restart = ClusterRestart(**cluster_restart_default)
-        cherrypy.engine.publish('store-set', cluster_restart.to_json())
+        cherrypy.engine.publish('store-save', key, cluster_restart.to_json())
         resp.status = falcon.HTTP_201
         req.context['model'] = cluster_restart
 
@@ -533,6 +533,6 @@ class ClusterUpgradeResource(Resource):
         }
         cluster_upgrade = ClusterUpgrade(**cluster_upgrade_default)
         cherrypy.engine.publish(
-            'store-save', key, cluster_upgrade.to_json())[0]
+            'store-save', key, cluster_upgrade.to_json())
         resp.status = falcon.HTTP_201
         req.context['model'] = cluster_upgrade

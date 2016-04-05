@@ -65,7 +65,7 @@ def clusterexec(cluster_name, command):
     cherrypy.engine.publish(
         'store-save',
         '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-        json.dumps(cluster_status))[0]
+        json.dumps(cluster_status))
 
     # Collect all host addresses in the cluster
     etcd_resp, error = cherrypy.engine.publish(
@@ -108,7 +108,7 @@ def clusterexec(cluster_name, command):
 
         cluster_status['in_process'].append(a_host['address'])
         cherrypy.engine.publish(
-            'store-set',
+            'store-save',
             '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
             json.dumps(cluster_status))
 
@@ -148,9 +148,9 @@ def clusterexec(cluster_name, command):
                 a_host['address'], command, cluster_name))
 
         cherrypy.engine.publish(
-            'store-set',
+            'store-save',
             '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-            json.dumps(cluster_status))[0]
+            json.dumps(cluster_status))
         logger.info('Finished executing {0} for {1} in {2}'.format(
             command, a_host['address'], cluster_name))
 
@@ -158,9 +158,12 @@ def clusterexec(cluster_name, command):
     cluster_status['finished_at'] = datetime.datetime.utcnow().isoformat()
     cluster_status['status'] = end_status
 
+    logger.debug('Cluster {0} final {1} status: {2}'.format(
+        cluster_name, command, cluster_status))
+
     cherrypy.engine.publish(
-        'store-set',
+        'store-save',
         '/commissaire/cluster/{0}/{1}'.format(cluster_name, command),
-        json.dumps(cluster_status))[0]
+        json.dumps(cluster_status))
 
     logger.info('Clusterexec stopping')
