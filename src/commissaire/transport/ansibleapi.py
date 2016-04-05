@@ -27,10 +27,11 @@ from ansible.vars import VariableManager
 from ansible.inventory import Inventory, Host, Group
 from ansible.playbook.play import Play
 from ansible.executor.task_queue_manager import TaskQueueManager
-from ansible.plugins.callback import CallbackBase
+from ansible.plugins.callback import default
+from ansible.utils.display import Display
 
 
-class LogForward(CallbackBase):
+class LogForward(default.CallbackModule):
     """
     Forwards Ansible's output into a logger.
     """
@@ -47,8 +48,15 @@ class LogForward(CallbackBase):
         """
         Creates the instance and sets the logger.
         """
-        super(LogForward, self).__init__()
+        display = Display()
         self.log = logging.getLogger('transport')
+        # TODO: Make verbosity more configurable
+        display.verbosity = 1
+        if logging.getLevelName(self.log.level) == 'DEBUG':
+            display.verbosity = 5
+        # replace Displays display method with our own
+        display.display = lambda msg, *a, **k: self.log.info(msg)
+        super(LogForward, self).__init__(display)
 
     def v2_runner_on_failed(self, result, *args, **kwargs):
         """
@@ -66,18 +74,6 @@ class LogForward(CallbackBase):
                 'An exception occurred for {0}: {1}'.format(
                     result._host.get_name(), result._result['exception']))
             self.log.debug('{0}'.format(result.__dict__))
-
-    def v2_runner_on_ok(self, result):
-        """
-        Called when everything went smoothly.
-
-        :param result: Ansible's result.
-        :type result: ansible.executor.task_result.TaskResult
-        """
-        self._clean_results(result._result, result._task.action)
-        self.log.info('SUCCESS {0}: {1}'.format(
-            result._host.get_name(), result._task.get_name().strip()))
-        self.log.debug('{0}'.format(result.__dict__))
 
     def v2_runner_on_skipped(self, result):
         """
@@ -100,20 +96,6 @@ class LogForward(CallbackBase):
         self.log.warn('UNREACHABLE {0}: {1}'.format(
             result._host.get_name(), result._task.get_name().strip()))
         self.log.debug('{0}'.format(result.__dict__))
-
-    def v2_playbook_on_task_start(self, task, *args, **kwargs):
-        """
-        Called on the start of a task.
-
-        :param task: The task being called.
-        :type task: ansible.executor.task_executor.Task
-        :param args: All other ignored non-keyword arguments.
-        :type args: tuple
-        :param kwargs: All other ignored keyword arguments.
-        :type kwargs: dict
-        """
-        self.log.info("START TASK: {0}".format(task.get_name().strip()))
-        self.log.debug('{0}'.format(task.__dict__))
 
 
 class Transport:
