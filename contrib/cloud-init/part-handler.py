@@ -144,6 +144,8 @@ def handle_part(data, ctype, filename, payload):
     uri = '{0}/api/v0/host'.format(endpoint)
     auth = (username, password) if username and password else None
 
-    resp = requests.put(uri, json=body, auth=auth)
+    # XXX: Older versions of requests.put() had no json= kwarg.
+    headers = {'Content-Type': 'application/json'}
+    resp = requests.put(uri, data=json.dumps(body), auth=auth, headers=headers)
     print('Commissaire response: {0} {1}'.format(
         resp.status_code, resp.reason))
