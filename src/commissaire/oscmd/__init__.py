@@ -42,6 +42,8 @@ class OSCmdBase:
     etcd_client_cert = '/etc/etcd/client.crt'
     #: Full path to the etcd client key
     etcd_client_key = '/etc/etcd/key.crt'
+    #: Full path to the etcd ca file
+    etcd_ca = '/etc/etcd/cacert.pem'
 
     #: Docker service name
     docker_service = 'docker'

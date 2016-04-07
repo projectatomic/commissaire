@@ -139,6 +139,9 @@ def main():  # pragma: no cover
         '--etcd-cert-key-path', '-K', type=str, required=False,
         help='Full path to the client side certificate key.')
     parser.add_argument(
+        '--etcd-ca-path', '-A', type=str, required=False,
+        help='Full path to the CA file.')
+    parser.add_argument(
         '--kube-uri', '-k', type=str, required=True,
         help='Full URI for kubernetes EX: http://127.0.0.1:8080')
     parser.add_argument(
@@ -163,12 +166,15 @@ def main():  # pragma: no cover
         'protocol': config.etcd['uri'].scheme,
     }
 
-    # We need both args to use a client side cert for etcd
+    if bool(args.etcd_ca_path):
+        config.etcd['certificate_ca_path'] = args.etcd_ca_path
+
+    # We need all args to use a client side cert for etcd
     if bool(args.etcd_cert_path) ^ bool(args.etcd_cert_key_path):
         parser.error(
-            'Both etcd-cert-path and etcd-cert-key-path must be provided to '
-            'use a client side certificate with etcd.')
-    elif args.etcd_cert_path:
+            'Both etcd-cert-path and etcd-cert-key-path must be '
+            'provided to use a client side certificate with etcd.')
+    elif bool(args.etcd_cert_path):
         if config.etcd['uri'].scheme != 'https':
             parser.error('An https URI is required when using '
                          'client side certificates.')

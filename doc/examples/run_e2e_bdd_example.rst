@@ -5,6 +5,11 @@
    ...
 
 
+.. note::
+
+   you can pass ``-D server-args=""`` to append server arguments when starting the server from behave.
+
+
 You can also run the tests against any commissaire/etcd instance directly.
 
 .. warning::

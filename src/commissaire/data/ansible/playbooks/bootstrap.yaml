@@ -24,6 +24,11 @@
         dest: "{{ commissaire_etcd_client_key_path }}"
         src: "{{ commissaire_etcd_client_key_path_local }}"
       when: "{{ commissaire_etcd_use_cert }}"
+    - name: Add Etcd CA
+      copy:
+        dest: "{{ commissaire_etcd_ca_path }}"
+        src: "{{ commissaire_etcd_ca_path_local }}"
+      when: "commissaire_etcd_ca_path is defined"
     - name: Install Docker
       command: "{{ commissaire_install_docker }}"
     - name: Configure Docker

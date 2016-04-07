@@ -84,8 +84,10 @@ commissaire_docker_registry_port              The docker registry port
 commissaire_etcd_scheme                       The etcd server scheme (http/https)
 commissaire_etcd_host                         The etcd host
 commissaire_etcd_port                         The etcd port
+commissaire_etcd_ca_path                      Path to the etcd certificate authority
 commissaire_etcd_client_cert_path             Path to the etcd client certificate
 commissaire_etcd_client_key_path              Path to the etcd client key
+commissaire_etcd_ca_path_local                Path to the local etcd certificate authority
 commissaire_etcd_client_cert_path_local       Path to the local etcd client certificate
 commissaire_etcd_client_key_path_local        Path to the local etcd client key
 commissaire_flannel_key                       The flannel configuration key

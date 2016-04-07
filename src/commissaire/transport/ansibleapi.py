@@ -359,6 +359,14 @@ class Transport:
             'commissaire_kubeproxy_service': oscmd.kubelet_proxy_service,
         }
 
+        # Provide the CA if etcd is being used over https
+        if (
+                config.etcd['uri'].scheme == 'https' and
+                config.etcd.get('certificate_ca_path', None)):
+            play_vars['commissaire_etcd_ca_path'] = oscmd.etcd_ca
+            play_vars['commissaire_etcd_ca_path_local'] = (
+                config.etcd['certificate_ca_path'])
+
         # Client Certificate additions
         if config.etcd.get('certificate_path', None):
             self.logger.info('Using etcd client certs')

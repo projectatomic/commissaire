@@ -69,10 +69,19 @@ def before_all(context):
             server_port = random.randint(8500, 9000)
             context.SERVER = 'http://127.0.0.1:{0}'.format(server_port)
             # TODO: add kubernetes URL to options
-            context.SERVER_PROCESS = subprocess.Popen(
-                ['python', 'src/commissaire/script.py',
-                 '-e', context.ETCD, '-k', 'http://127.0.0.1:8080',
-                 '--listen-port', str(server_port)])
+            server_cli_args = [
+                'python', 'src/commissaire/script.py',
+                '-e', context.ETCD, '-k', 'http://127.0.0.1:8080',
+                '--listen-port', str(server_port)]
+
+            # Add any other server-args
+            extra_server_args = context.config.userdata.get(
+                'server-args', None)
+            if extra_server_args:
+                server_cli_args += extra_server_args.split(' ')
+
+            print("Running server: {0}".format(" ".join(server_cli_args)))
+            context.SERVER_PROCESS = subprocess.Popen(server_cli_args)
             time.sleep(3)
             context.SERVER_PROCESS.poll()
             # If the returncode is not set then etcd is running
