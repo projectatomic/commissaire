@@ -18,12 +18,12 @@
       copy:
         dest: "{{ commissaire_etcd_client_cert_path }}"
         src: "{{ commissaire_etcd_client_cert_path_local }}"
-      when: "{{ commissaire_etcd_use_cert }}"
+      when: "commissaire_etcd_client_cert_path is defined"
     - name: Add Etcd Client Side Key
       copy:
         dest: "{{ commissaire_etcd_client_key_path }}"
         src: "{{ commissaire_etcd_client_key_path_local }}"
-      when: "{{ commissaire_etcd_use_cert }}"
+      when: "commissaire_etcd_client_key_path is defined"
     - name: Add Etcd CA
       copy:
         dest: "{{ commissaire_etcd_ca_path }}"
@@ -47,12 +47,12 @@
       copy:
         dest: "{{ commissaire_kubernetes_client_cert_path }}"
         src: "{{ commissaire_kubernetes_client_cert_path_local }}"
-      when: "{{ commissaire_kubernetes_use_cert }}"
+      when: "commissaire_kubernetes_client_cert_path is defined"
     - name: Add Kubernetes Client Side Key
       copy:
         dest: "{{ commissaire_kubernetes_client_key_path }}"
         src: "{{ commissaire_kubernetes_client_key_path_local }}"
-      when: "{{ commissaire_kubernetes_use_cert }}"
+      when: "commissaire_kubernetes_client_key_path is defined"
     - name: Add Kubernetes kubeconfig
       template:
         dest: "{{ commissaire_kubeconfig_config }}"

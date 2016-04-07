@@ -1,5 +1,5 @@
 FLANNEL_ETCD="{{ commissaire_etcd_scheme }}://{{ commissaire_etcd_host }}:{{ commissaire_etcd_port }}"
 FLANNEL_ETCD_KEY="{{ commissaire_flannel_key }}"
-{%- if commissaire_etcd_use_cert %}
-FLANNEL_OPTIONS="-remote-keyfile={{ commissaire_etcd_client_key_path }} -remote-certfile={{ commissaire_etcd_client_cert_path }} -etcd-cafile={{ commissaire_etcd_ca_path }}"{% elif commissaire_etcd_ca_path %}
+{%- if commissaire_etcd_client_key_path is defined %}
+FLANNEL_OPTIONS="-remote-keyfile={{ commissaire_etcd_client_key_path }} -remote-certfile={{ commissaire_etcd_client_cert_path }} -etcd-cafile={{ commissaire_etcd_ca_path }}"{% elif commissaire_etcd_ca_path is defined %}
 FLANNEL_OPTIONS="-etcd-cafile={{ commissaire_etcd_ca_path }}"{% endif %}

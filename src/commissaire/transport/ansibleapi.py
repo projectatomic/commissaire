@@ -313,8 +313,6 @@ class Transport:
             oscmd.os_type, ip))
 
         play_vars = {
-            'commissaire_etcd_use_cert': False,
-            'commissaire_kubernetes_use_cert': False,
             'commissaire_bootstrap_ip': ip,
             'commissaire_kubernetes_api_server_scheme': config.kubernetes.get(
                 'uri').scheme,
@@ -378,7 +376,6 @@ class Transport:
                 oscmd.etcd_client_key)
             play_vars['commissaire_etcd_client_key_path_local'] = (
                 config.etcd['certificate_key_path'])
-            play_vars['commissaire_etcd_use_cert'] = True
 
         if config.kubernetes.get('certificate_path', None):
             self.logger.info('Using kubernetes client certs')
@@ -390,7 +387,6 @@ class Transport:
                 oscmd.kube_client_key)
             play_vars['commissaire_kubernetes_client_key_path_local'] = (
                 config.kubernetes['certificate_key_path'])
-            play_vars['commissaire_kubernetes_use_cert'] = True
 
         # XXX: Need to enable some package repositories for OS 'rhel'
         #      (or 'redhat').  This is a hack for a single corner case.
