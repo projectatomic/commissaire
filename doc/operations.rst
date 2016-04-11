@@ -11,20 +11,26 @@ be used this document will show examples using *commctl* as well as *curl*.
 
 commctl
 ~~~~~~~
-commctl can be used directly but for repeated use it's best to set up a
-configuration file.
+commctl requires a configuration file. The default path is
+``~/.commissaire.json`` though it can be changed with the ``--config``/``-c``
+option.
 
-.. code-block:: shell
+.. include:: examples/commctl_config.rst
 
-   cat ~/.commissaire.json
-   {
-       "username": "a",
-       "endpoint": "http://127.0.0.1:8080"
-   }
+The password may be stored in the configuration file as well.
 
-.. note::
+.. warning::
 
-   "password" can also be set in ~/.commissaire.json.
+   The configuration file is plain text. If you choose to keep a password in the file make sure to keep the file permissions locked down.
+
+.. include:: examples/commctl_config_with_password.rst
+
+
+Multiple endpoints may be specified. If the first endpoint is unreachable
+the next endpoint in the list is used.
+
+.. include:: examples/commctl_config_multihost.rst
+
 
 curl
 ~~~~
