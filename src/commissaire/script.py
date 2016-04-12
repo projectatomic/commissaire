@@ -161,6 +161,7 @@ def main():  # pragma: no cover
         parser.error(ex)
 
     store_kwargs = {
+        'read_timeout': 2,
         'host': config.etcd['uri'].hostname,
         'port': config.etcd['uri'].port,
         'protocol': config.etcd['uri'].scheme,
@@ -187,7 +188,7 @@ def main():  # pragma: no cover
 
     try:
         logging.config.dictConfig(
-            json.loads(ds.get('/commissaire/config/logger').value))
+            json.loads(ds.read('/commissaire/config/logger').value))
         logging.info('Using Etcd for logging configuration.')
     except etcd.EtcdKeyNotFound:
         found_logger_config = False
