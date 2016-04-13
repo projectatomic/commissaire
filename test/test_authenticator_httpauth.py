@@ -23,6 +23,8 @@ import mock
 from . import TestCase, get_fixture_file_path
 from falcon.testing.helpers import create_environ
 from commissaire.authentication import httpauth
+from commissaire.authentication import httpauthbyetcd
+from commissaire.authentication import httpauthbyfile
 
 
 class Test_HTTPBasicAuth(TestCase):
@@ -81,7 +83,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         Sets up a fresh instance of the class before each run.
         """
         self.user_config = get_fixture_file_path('conf/users.json')
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+        self.http_basic_auth_by_file = httpauthbyfile.HTTPBasicAuthByFile(
             self.user_config)
 
     def test_load_with_non_parsable_file(self):
@@ -100,7 +102,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         """
         Verify authenticate works with a proper JSON file, Authorization header, and a matching user.
         """
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+        self.http_basic_auth_by_file = httpauthbyfile.HTTPBasicAuthByFile(
             self.user_config)
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic YTph'}))
@@ -113,7 +115,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         """
         Verify authenticate denies with a proper JSON file, Authorization header, and no matching user.
         """
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+        self.http_basic_auth_by_file = httpauthbyfile.HTTPBasicAuthByFile(
             self.user_config)
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic Yjpi'}))
@@ -127,7 +129,7 @@ class TestHTTPBasicAuthByFile(TestCase):
         """
         Verify authenticate denies with a proper JSON file, Authorization header, and the wrong password.
         """
-        self.http_basic_auth_by_file = httpauth.HTTPBasicAuthByFile(
+        self.http_basic_auth_by_file = httpauthbyfile.HTTPBasicAuthByFile(
             self.user_config)
         req = falcon.Request(
             create_environ(headers={'Authorization': 'basic YTpiCg=='}))
@@ -158,7 +160,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
 
             self.assertRaises(
                 etcd.EtcdKeyNotFound,
-                httpauth.HTTPBasicAuthByEtcd)
+                httpauthbyetcd.HTTPBasicAuthByEtcd)
 
     def test_load_with_bad_data(self):
         """
@@ -169,7 +171,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
 
             self.assertRaises(
                 ValueError,
-                httpauth.HTTPBasicAuthByEtcd)
+                httpauthbyetcd.HTTPBasicAuthByEtcd)
 
     def test_authenticate_with_valid_user(self):
         """
@@ -184,7 +186,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
             _publish.return_value = [[return_value, None]]
 
             # Reload with the data from the mock'd Etcd
-            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
+            http_basic_auth_by_etcd = httpauthbyetcd.HTTPBasicAuthByEtcd()
 
             # Test the call
             req = falcon.Request(
@@ -206,7 +208,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
             _publish.return_value = [[return_value, None]]
 
             # Reload with the data from the mock'd Etcd
-            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
+            http_basic_auth_by_etcd = httpauthbyetcd.HTTPBasicAuthByEtcd()
 
             # Test the call
             req = falcon.Request(
@@ -228,7 +230,7 @@ class TestHTTPBasicAuthByEtcd(TestCase):
             _publish.return_value = [[return_value, None]]
 
             # Reload with the data from the mock'd Etcd
-            http_basic_auth_by_etcd = httpauth.HTTPBasicAuthByEtcd()
+            http_basic_auth_by_etcd = httpauthbyetcd.HTTPBasicAuthByEtcd()
 
             req = falcon.Request(
                 create_environ(headers={'Authorization': 'basic YTpiCg=='}))

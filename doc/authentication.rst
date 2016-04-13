@@ -1,6 +1,20 @@
 Authentication
 ==============
 
+Defining Authentication Plugin
+------------------------------
+
+The default authentication plugin uses a JSON schema in etcd to lookup users.
+To change to another plugin use the ``--authentication-plugin`` switch. If the
+plugin has required configuration options you may also need to use the
+``--authentication-plugin-kwargs``.
+
+.. code-block:: shell
+
+   $ commissaire [...] \
+   --authentication-plugin commissaire.authentication.httpauthbyfile
+   --authentication-plugin-kwargs "filepath=/path/to/users.json"
+
 
 Modifying Users
 ---------------
@@ -8,8 +22,8 @@ Modifying Users
 By default commissaire will look at Etcd for user/hash combinations under
 the ``/commissaire/config/httpbasicauthbyuserlist`` key.
 
-If the key does not exist the backup is to use local file authentication
-using the same JSON schema.
+commissaire can also use a local file for authentication using the same JSON
+schema.
 
 .. code-block:: javascript
 

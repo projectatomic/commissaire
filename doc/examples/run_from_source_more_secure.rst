@@ -10,5 +10,7 @@
        --tls-certificate /path/to/server.crt \
        --etcd-uri https://127.0.0.1:2379
        --etcd-cert-path /path/to/etcd_clientside.crt \
-       --etcd-cert-key-path /path/to/etcd_clientside.key &
+       --etcd-cert-key-path /path/to/etcd_clientside.key \
+       --authentication-plugin commissaire.authentication.httpauthbyfile \
+       --authentication-plugin-kwargs "filepath=conf/users.json" &
    ...

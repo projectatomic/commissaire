@@ -94,6 +94,11 @@ Via Docker
 ``````````
 To run the image specify the ETCD and KUBE variables pointing towards the specific services.
 
+.. note::
+
+   These commands assume you have put user configuration in etcd and are using
+   the ``commissaire.authentication.httpauthbyetcd`` authentication plugin.
+
 **Not So Secure Mode**
 
 .. include:: examples/run_via_docker.rst

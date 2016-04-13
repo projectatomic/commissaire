@@ -37,37 +37,36 @@ from commissaire.handlers.status import StatusResource
 from commissaire.queues import INVESTIGATE_QUEUE
 from commissaire.jobs import PROCS
 from commissaire.jobs.investigator import investigator
-from commissaire.authentication import httpauth
 from commissaire.middleware import JSONify
 
 
 def create_app(
         store,
+        authentication_module_name,
+        authentication_kwargs,
         users_paths=('/etc/commissaire/users.json', './conf/users.json')):
     """
     Creates a new WSGI compliant commissaire application.
 
     :param store: The etcd client to for storing/retrieving data.
     :type store: etcd.Client
-    :param users_paths: Path(s) to where the users.json can be found.
-    :type users_paths: str or iterable
+    :param authentication_module_name: Full name of the authentication module.
+    :type authentication_module_name: str
+    :param authentication_kwargs: Keyword arguments to pass to the auth mod.
+    :type authentication_kwargs: dict
     :returns: The commissaire application.
     :rtype: falcon.API
     """
     try:
-        http_auth = httpauth.HTTPBasicAuthByEtcd()
-    except etcd.EtcdKeyNotFound:
-        if not hasattr(users_paths, '__iter__'):
-            users_paths = [users_paths]
-        http_auth = None
-        for user_path in users_paths:
-            if os.path.isfile(user_path):
-                http_auth = httpauth.HTTPBasicAuthByFile(user_path)
-        if http_auth is None:
-            raise Exception('User configuration must be set in Etcd '
-                            'or on the file system ({0}).'.format(users_paths))
+        authentication_class = getattr(__import__(
+            authentication_module_name, fromlist=["True"]),
+            'AuthenticationPlugin')
+        authentication = authentication_class(**authentication_kwargs)
+    except ImportError:
+        raise Exception('Can not import {0} for authentication'.format(
+            authentication_module_name))
 
-    app = falcon.API(middleware=[http_auth, JSONify()])
+    app = falcon.API(middleware=[authentication, JSONify()])
 
     app.add_route('/api/v0/status', StatusResource(store, None))
     app.add_route('/api/v0/cluster/{name}', ClusterResource(store, None))
@@ -150,6 +149,15 @@ def main():  # pragma: no cover
     parser.add_argument(
         '--tls-certfile', type=str, required=False,
         help='Full path to the TLS certfile for the commissaire server')
+    parser.add_argument(
+        '--authentication-plugin', type=str, required=False,
+        default='commissaire.authentication.httpauthbyetcd',
+        help=('Authentication Plugin module. '
+              'EX: commissaire.authentication.httpauth'))
+    parser.add_argument(
+        '--authentication-plugin-kwargs', type=str,
+        required=False, default={},
+        help='Authentication Plugin configuration (key=value)')
 
     args = parser.parse_args()
 
@@ -279,11 +287,23 @@ def main():  # pragma: no cover
         target=investigator, args=(INVESTIGATE_QUEUE, config))
     PROCS['investigator'].start()
 
-    # Make and mount the app
-    app = create_app(ds)
-    cherrypy.tree.graft(app, "/")
-    # Server forever
-    cherrypy.engine.block()
+    try:
+        # Make and mount the app
+        authentication_kwargs = {}
+        if '=' in args.authentication_plugin_kwargs:
+            for item in args.authentication_plugin_kwargs.split(','):
+                key, value = item.split('=')
+                authentication_kwargs[key.strip()] = value.strip()
+        app = create_app(
+            ds,
+            args.authentication_plugin,
+            authentication_kwargs)
+        cherrypy.tree.graft(app, "/")
+
+        # Serve forever
+        cherrypy.engine.block()
+    except:
+        cherrypy.engine.stop()
 
     PROCS['investigator'].terminate()
     PROCS['investigator'].join()

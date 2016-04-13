@@ -15,12 +15,9 @@
 
 
 import bcrypt
-import cherrypy
 import falcon
-import json
 
 from commissaire.authentication import Authenticator
-from commissaire.compat import exception
 from commissaire.compat.b64 import base64
 
 
@@ -77,71 +74,3 @@ class _HTTPBasicAuth(Authenticator):
 
         # Forbid by default
         raise falcon.HTTPForbidden('Forbidden', 'Forbidden')
-
-
-class HTTPBasicAuthByFile(_HTTPBasicAuth):
-    """
-    HTTP Basic auth backed by a JSON file.
-    """
-
-    def __init__(self, filepath):
-        """
-        Creates an instance of the HTTPBasicAuthByFile authenticator.
-
-        :param filepath: The file path to the JSON file backing authentication.
-        :type filepath: string
-        :returns: HTTPBasicAuthByFile
-        """
-        self.filepath = filepath
-        self._data = {}
-        self.load()
-
-    def load(self):
-        """
-        Loads the authentication information from the JSON file.
-        """
-        try:
-            with open(self.filepath, 'r') as afile:
-                self._data = json.load(afile)
-                self.logger.info('Loaded authentication data from local file.')
-        except:
-            _, ve, _ = exception.raise_if_not((ValueError, IOError))
-            self.logger.warn(
-                'Denying all access due to problem parsing '
-                'JSON file: {0}'.format(ve))
-            self._data = {}
-
-
-class HTTPBasicAuthByEtcd(_HTTPBasicAuth):
-    """
-    HTTP Basic auth backed by Etcd JSON value.
-    """
-
-    def __init__(self):
-        """
-        Creates an instance of the HTTPBasicAuthByEtcd authenticator.
-
-        :returns: HTTPBasicAuthByEtcd
-        """
-        self._data = {}
-        self.load()
-
-    def load(self):
-        """
-        Loads the authentication information from etcd.
-        """
-        d, error = cherrypy.engine.publish(
-            'store-get', '/commissaire/config/httpbasicauthbyuserlist')[0]
-
-        if error:
-            if type(error) == ValueError:
-                self.logger.warn(
-                    'User configuration in Etcd is not valid JSON. Raising...')
-            else:
-                self.logger.warn(
-                    'User configuration not found in Etcd. Raising...')
-            self._data = {}
-            raise error
-
-        self._data = json.loads(d.value)
-        self.logger.info('Loaded authentication data from Etcd.')
