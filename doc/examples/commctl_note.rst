@@ -1,4 +1,4 @@
 .. note::
 
-   **commctl** and **commissaire-hashpass** are part of the `commctl <https://github.com/projectatomic/commctl>`_ python package
+   **commctl** can be found in the `commctl <https://github.com/projectatomic/commctl>`_ python package
 
