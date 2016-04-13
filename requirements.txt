@@ -4,4 +4,4 @@ requests
 py-bcrypt
 python-etcd==0.4.2
 setuptools
-ansible>=2.0.1.0
+ansible>=2.0.1.0,<2.0.2.0

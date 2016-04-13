@@ -30,6 +30,7 @@ Requires:  python-jinja2
 Requires:  python-requests
 Requires:  py-bcrypt
 Requires:  ansible >= 2.0.1.0
+Requires:  ansible < 2.0.2.0
 
 %description
 Commissaire allows administrators of a Kubernetes, Atomic Enterprise or
