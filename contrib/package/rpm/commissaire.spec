@@ -1,6 +1,6 @@
 Name:           commissaire
-Version:        0.0.1rc2
-Release:        5%{?dist}
+Version:        0.0.1rc3
+Release:        1%{?dist}
 Summary:        Simple cluster host management
 License:        GPLv3+
 URL:            http://github.com/projectatomic/commissaire
@@ -86,6 +86,9 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 
 
 %changelog
+* Tue Apr 19 2016 Matthew Barnes <mbarnes@redhat.com> - 0.0.1rc3-1
+- Update for RC3.
+
 * Mon Apr  4 2016 Steve Milner <smilner@redhat.com> - 0.0.1rc2-5
 * commctl and commissaire-hash-pass are now their own package.
 
