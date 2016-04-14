@@ -76,7 +76,7 @@ install -D contrib/systemd/commissaire.service %{buildroot}%{_unitdir}/commissai
 %files
 %license COPYING
 %doc README.md
-%doc CONTRIUBUTORS
+%doc CONTRIBUTORS
 %doc MAINTAINERS
 %doc doc/apidoc/*.rst
 %{_bindir}/commissaire
