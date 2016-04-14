@@ -20,8 +20,6 @@ BuildRequires:  python-nose
 BuildRequires:  python-flake8
 BuildRequires:  pkgconfig(systemd)
 
-# XXX: Waiting on python2-python-etcd to pass review
-#      https://bugzilla.redhat.com/show_bug.cgi?id=1310796
 Requires:  python-setuptools
 Requires:  python-cherrypy
 Requires:  python2-falcon
