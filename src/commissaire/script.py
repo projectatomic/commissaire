@@ -302,7 +302,9 @@ def main():  # pragma: no cover
 
         # Serve forever
         cherrypy.engine.block()
-    except:
+    except Exception:
+        _, ex, _ = exception.raise_if_not(Exception)
+        logging.fatal('Unable to start server: {0}'.format(ex))
         cherrypy.engine.stop()
 
     PROCS['investigator'].terminate()
