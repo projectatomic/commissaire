@@ -242,7 +242,7 @@ class Test_ClusterResource(TestCase):
             body = self.simulate_request(
                 '/api/v0/cluster/development', method='DELETE')
             # Get is called to verify cluster exists
-            self.assertEquals(falcon.HTTP_410, self.srmock.status)
+            self.assertEquals(falcon.HTTP_200, self.srmock.status)
             self.assertEquals('{}', body[0])
 
             # Verify when key doesn't exist

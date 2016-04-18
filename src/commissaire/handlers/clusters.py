@@ -184,7 +184,7 @@ class ClusterResource(Resource):
             resp.status = falcon.HTTP_404
         else:
             self.store.delete(util.etcd_cluster_key(name))
-            resp.status = falcon.HTTP_410
+            resp.status = falcon.HTTP_200
             self.logger.info(
                 'Deleted cluster {0} per request.'.format(name))
 

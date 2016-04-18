@@ -238,7 +238,7 @@ class Test_HostResource(TestCase):
         body = self.simulate_request('/api/v0/host/10.2.0.2', method='DELETE')
         # datasource's delete should have been called once
         self.assertEquals(1, self.datasource.delete.call_count)
-        self.assertEqual(self.srmock.status, falcon.HTTP_410)
+        self.assertEqual(self.srmock.status, falcon.HTTP_200)
         self.assertEqual({}, json.loads(body[0]))
 
         # Verify deleting of a non existing host returns the proper result

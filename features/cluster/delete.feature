@@ -26,4 +26,4 @@ Feature: Deleting A Cluster
        and we have a cluster named honeynut
       when we delete the cluster honeynut
       then commissaire will allow access
-       and commissaire will note it's gone
+       and commissaire will note success

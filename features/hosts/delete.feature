@@ -26,4 +26,4 @@ Feature: Deleting Hosts
        and we have a host at 10.2.0.2
       when we delete the host 10.2.0.2
       then commissaire will allow access
-       and commissaire will note it's gone
+       and commissaire will note success
