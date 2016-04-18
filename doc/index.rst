@@ -14,6 +14,7 @@ Contents
    components
    enums
    endpoints
+   license
 
 Development
 -----------
