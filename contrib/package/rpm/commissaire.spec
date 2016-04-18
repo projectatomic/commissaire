@@ -2,7 +2,7 @@ Name:           commissaire
 Version:        0.0.1rc2
 Release:        5%{?dist}
 Summary:        Simple cluster host management
-License:        AGPLv3+
+License:        GPLv3+
 URL:            http://github.com/projectatomic/commissaire
 Source0:        https://github.com/projectatomic/%{name}/archive/%{version}.tar.gz
 
