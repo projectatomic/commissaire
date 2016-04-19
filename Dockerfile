@@ -1,7 +1,7 @@
 FROM fedora
 MAINTAINER Red Hat, Inc. <container-tools@redhat.com>
 
-ENV MHM_RELEASE v0.0.1rc2
+ENV MHM_RELEASE v0.0.1rc3
 ENV PYTHONPATH  /commissaire/src/
 ENV EXTRA_ARGS  ""
 
