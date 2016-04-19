@@ -99,6 +99,10 @@ To run the image specify the ETCD and KUBE variables pointing towards the specif
    These commands assume you have put user configuration in etcd and are using
    the ``commissaire.authentication.httpauthbyetcd`` authentication plugin.
 
+.. note::
+
+   Make sure that your firewall allows access to the etcd and kubernetes hosts and ports!
+
 **Not So Secure Mode**
 
 .. include:: examples/run_via_docker.rst
