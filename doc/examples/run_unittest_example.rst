@@ -1,0 +1,4 @@
+.. code-block:: shell
+
+   $ tox
+   ...

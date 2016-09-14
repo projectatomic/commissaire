@@ -1,0 +1,6 @@
+tox
+behave
+requests
+nose
+flake8
+coverage
