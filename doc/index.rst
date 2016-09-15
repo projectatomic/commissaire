@@ -21,6 +21,7 @@ Contents:
    logging
    components
    services
+   http
    enums
    endpoints
    license
