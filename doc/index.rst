@@ -20,6 +20,7 @@ Contents:
    commctl
    logging
    components
+   services
    enums
    endpoints
    license
