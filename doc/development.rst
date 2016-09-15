@@ -56,8 +56,6 @@ As you can see commissaire uses a number of libraries.
 
 Of these, the most important to be up to speed on are:
 
-- cherrypy: http://www.cherrypy.org/
-- falcon: http://falconframework.org/
 - ansible: https://www.ansible.com/
 
 Standards
@@ -125,13 +123,6 @@ commissaire_etcd_client_cert_path_local       Path to the local etcd client cert
 commissaire_etcd_client_key_path_local        Path to the local etcd client key
 commissaire_flannel_key                       The flannel configuration key
 ============================================= ======================================================
-
-Compatibility
-~~~~~~~~~~~~~
-Code should attempt to be compatible with both Python 2 and Python 3. When
-this is not possible it's assumed a workaround can be created in the
-`commissaire.compat package <apidoc/commissaire.compat.html>`_  module.
-If that is also not possible then Python 2 should be the fallback syntax.
 
 Testing
 ~~~~~~~
