@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    commissaire_http.authentication
     commissaire_http.bus
     commissaire_http.dispatcher
     commissaire_http.handlers
