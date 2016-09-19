@@ -14,8 +14,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import unittest
 
-from commissaire.model import Model
+from commissaire.models import Model
 
 # Keep this list synchronized with oscmd modules.
 available_os_types = ('fedora', 'redhat', 'rhel', 'centos')
@@ -41,7 +42,7 @@ def get_fixture_file_path(filename):
         'Can not find path for config: {0}'.format(filename))
 
 
-class TestCase(TestBase):
+class TestCase(unittest.TestCase):
     """
     Parent class for all unittests.
     """
@@ -54,7 +55,7 @@ class TestModel(Model):
     """
     _json_type = dict
     _attribute_map = {
-        'foo': {'type': basestring}
+        'foo': {'type': str}
     }
     _attribute_defaults = {'foo': ''}
     _primary_key = 'foo'
