@@ -18,7 +18,7 @@ The kubernetes container manager package.
 
 import requests
 
-from urllib.parse import urljoin as _urljoin
+from urllib.parse import urljoin
 
 from commissaire import constants as C
 from commissaire.containermgr import ContainerManagerBase
