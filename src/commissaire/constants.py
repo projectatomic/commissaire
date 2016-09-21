@@ -39,7 +39,7 @@ DEFAULT_CLUSTER_NETWORK_JSON = {
 # Default etcd configuration
 # (server URL provided by store handler)
 DEFAULT_ETCD_STORE_HANDLER = {
-    'name': 'commissaire.store.etcdstorehandler',
+    'name': 'commissaire.storage.etcd',
     'models': []
 }
 

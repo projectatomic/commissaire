@@ -3,9 +3,8 @@
    $ cat /etc/commissaire/commissaire.conf
    {
      ...
-     "register-store-handler": [
-       "name": "commissaire.store.kubestorehandler",
+     "storage-handlers": [
+       "name": "commissaire.storage.etcd",
        ...
-       "token": "$KUBERNETES_ACCESS_TOKEN"
      ]
    }
