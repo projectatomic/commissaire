@@ -1,6 +1,13 @@
 commissaire_http.handlers package
 =================================
 
+Submodules
+----------
+
+.. toctree::
+
+   commissaire_http.handlers.clusters
+
 Module contents
 ---------------
 

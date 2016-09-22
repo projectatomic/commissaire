@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     commissaire_service.service
+    commissaire_service.storage
 
 Module contents
 ---------------
