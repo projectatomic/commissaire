@@ -16,6 +16,7 @@
 Tests for the commissaire.bus module.
 """
 
+import json
 import uuid
 
 from unittest import mock
@@ -48,10 +49,16 @@ class TestCommissaireBusMixin(TestCase):
         """
         Verify BusMixin.request can request method calls.
         """
+        result_dict = {'jsonrpc': '2.0', 'result': []}
+
         instance = bus.BusMixin() 
         instance.logger = mock.MagicMock()
         instance.connection = mock.MagicMock()
         instance.producer = mock.MagicMock()
+        instance.connection.SimpleQueue().get.return_value = mock.MagicMock(
+           payload=json.dumps(result_dict))
+        # Reset call count
+        instance.connection.SimpleQueue.call_count = 0
         instance._exchange = 'exchange'
 
         routing_key = 'routing_key'
@@ -59,8 +66,9 @@ class TestCommissaireBusMixin(TestCase):
         params = {}
         queue_opts={'durable': False, 'auto_delete': True}
 
-        instance.request(
+        result = instance.request(
             routing_key, method, params=params)
+        self.assertEquals(result_dict, result)
         # A new SimpleQueue should have been created
         instance.connection.SimpleQueue.assert_called_once_with(
             mock.ANY,

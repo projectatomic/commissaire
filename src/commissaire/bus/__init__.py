@@ -16,6 +16,7 @@
 Common bus class for Commissaire.
 """
 
+import json
 import uuid
 
 
@@ -99,14 +100,18 @@ class BusMixin:
         result = response_queue.get(block=True, timeout=10)
         result.ack()
 
-        if 'error' in result.payload.keys():
+        payload = result.payload
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+
+        if 'error' in payload.keys():
             self.logger.warn(
-                'Error returned from the message id "{}"'.format(
-                    id, result.payload))
+                'Error returned from the messageid: {} payload: "{}"'.format(
+                    id, payload))
 
         self.logger.debug(
-            'Result retrieved from response queue "{}": payload="{}"'.format(
+            'Result retrieved from response queue "{}": result="{}"'.format(
                 response_queue_name, result))
         self.logger.debug('Closing queue {}'.format(response_queue_name))
         response_queue.close()
-        return result.payload
+        return payload
