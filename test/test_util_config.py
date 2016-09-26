@@ -22,7 +22,7 @@ from unittest import mock
 
 from . import TestCase
 
-from commissaire import config
+from commissaire.util import config
 
 
 
