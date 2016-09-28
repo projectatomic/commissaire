@@ -95,7 +95,12 @@ class Test_ConfigFile(TestCase):
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
-            self.assertEquals(data, conf)
+            self.assertEquals(
+                data['authentication-plugin']['name'],
+                conf['authentication-plugin'])
+            self.assertEquals(
+                data['authentication-plugin']['users'],
+                conf['authentication-plugin-kwargs']['users'])
 
     def test_read_config_file_with_invalid_authentication_plugin(self):
         """

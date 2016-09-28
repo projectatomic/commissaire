@@ -73,6 +73,11 @@ def read_config_file(path=None):
             raise ValueError(
                 '{0}: "{1}" is missing a "name" member'.format(
                     path, auth_key))
+        # Since it's valid we can parse it down into the expected
+        # format for loading.
+        auth_plugin_name = json_object[auth_key].pop('name')
+        json_object[auth_key + '-kwargs'] = json_object[auth_key]
+        json_object[auth_key] = auth_plugin_name
 
     # Special case:
     #
