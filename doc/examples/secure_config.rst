@@ -4,8 +4,8 @@
    {
      "listen-interface": "127.0.0.1",
      "listen-port": 8000,
-     "tls-certfile": "/path/to/server.crt",
-     "tls-keyfile": "/path/to/server.key",
+     "tls-pemfile": "/path/to/server.pem",
+     "bus-uri": "redis://127.0.0.1:6379/",
      "storage-handlers": [
        {
          "name": "commissaire.storage.etcd",

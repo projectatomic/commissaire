@@ -3,5 +3,5 @@
 
    (virtualenv)$ pip install -e /path/to/commissaire/checkout
    ...
-   (virtualenv)$ commissaire --config-file=/etc/commissaire/commissaire.conf &
+   (virtualenv)$ commissaire-server --config-file=/etc/commissaire/commissaire.conf &
    ...

@@ -5,6 +5,7 @@
    {
      "listen-interface": "127.0.0.1",
      "listen-port": 8000,
+     "bus-uri": "redis://127.0.0.1:6379/",
      "storage-handlers": [
        {
          "name": "commissaire.storage.etcd",
