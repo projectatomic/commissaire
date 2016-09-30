@@ -44,10 +44,13 @@ class BusMixin:
         """
         return str(uuid.uuid4())
 
-    def request(self, routing_key, method, params={}, **kwargs):
+    def request(self, routing_key, method=None, params={}, **kwargs):
         """
         Sends a request to a simple queue. Requests create the initial response
         queue and wait for a response.
+
+        For convenience, if a method argument is omitted then the last
+        segment of the routing_key is used as the method name.
 
         :param routing_key: The routing key to publish on.
         :type routing_key: str
@@ -77,6 +80,9 @@ class BusMixin:
             response_queue_name,
             queue_opts=queue_opts,
             **kwargs)
+
+        if method is None:
+            method = routing_key.split('.')[-1]
 
         jsonrpc_msg = {
             'jsonrpc': '2.0',

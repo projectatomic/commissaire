@@ -61,13 +61,13 @@ class TestCommissaireBusMixin(TestCase):
         instance.connection.SimpleQueue.call_count = 0
         instance._exchange = 'exchange'
 
-        routing_key = 'routing_key'
         method = 'ping'
+        routing_key = 'routing_key.' + method
         params = {}
         queue_opts={'durable': False, 'auto_delete': True}
 
-        result = instance.request(
-            routing_key, method, params=params)
+        # Omit the method to test extracting it from the routing key.
+        result = instance.request(routing_key, params=params)
         self.assertEquals(result_dict, result)
         # A new SimpleQueue should have been created
         instance.connection.SimpleQueue.assert_called_once_with(
