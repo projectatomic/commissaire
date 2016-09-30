@@ -91,3 +91,38 @@ class TestCommissaireBusMixin(TestCase):
         # And finally the queue should be closed
         instance.connection.SimpleQueue.__call__(
             ).close.assert_called_once_with()
+
+    def test_failed_request(self):
+        """
+        Verify BusMixin.request raises an exception for failed method calls.
+        """
+        result_dict = {
+            'jsonrpc': '2.0',
+            'error': {
+                'code': -32601,
+                'message': 'Method not found',
+                'data': {'exception': 'whatever'}
+            }
+        }
+
+        instance = bus.BusMixin()
+        instance.logger = mock.MagicMock()
+        instance.connection = mock.MagicMock()
+        instance.producer = mock.MagicMock()
+        instance.connection.SimpleQueue().get.return_value = mock.MagicMock(
+            payload=json.dumps(result_dict))
+        # Reset call count
+        instance.connection.SimpleQueue.call_count = 0
+        instance._exchange = 'exchange'
+
+        routing_key = 'routing_key'
+        method = 'ping'
+        params = {}
+        queue_opts={'durable': False, 'auto_delete': True}
+
+        with self.assertRaises(bus.RemoteProcedureCallError) as cm:
+            instance.request(routing_key, method, param=params)
+
+        self.assertEqual(cm.exception.code, -32601)
+        self.assertEqual(cm.exception.message, 'Method not found')
+        self.assertIn('exception', cm.exception.data)

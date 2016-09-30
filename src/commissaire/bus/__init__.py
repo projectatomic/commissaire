@@ -20,6 +20,33 @@ import json
 import uuid
 
 
+class RemoteProcedureCallError(Exception):
+    """
+    Exception class for remote procedure call errors.
+    """
+    def __init__(self, message, code=0, data=None):
+        """
+        Creates a RemoteProcedureCallError instance.
+
+        :param message: Error message.
+        :type message: str
+        :param code: Error code.
+        :type code: int
+        :param data: Additional error data.
+        :type data: dict
+        """
+        super(RemoteProcedureCallError, self).__init__(message, code, data)
+        self.message = message
+        self.code = code
+        self.data = data
+
+    def __str__(self):
+        """
+        Returns a string representation of the error.
+        """
+        return '({0}) {1}'.format(self.code, self.message)
+
+
 class BusMixin:
     """
     Common methods for classes which utilize the Commissaire bus.
@@ -110,14 +137,19 @@ class BusMixin:
         if isinstance(payload, str):
             payload = json.loads(payload)
 
-        if 'error' in payload.keys():
-            self.logger.warn(
-                'Error returned from the messageid: {} payload: "{}"'.format(
-                    id, payload))
-
         self.logger.debug(
             'Result retrieved from response queue "{}": result="{}"'.format(
                 response_queue_name, result))
         self.logger.debug('Closing queue {}'.format(response_queue_name))
         response_queue.close()
+
+        if 'error' in payload:
+            error_data = payload['error']
+            self.logger.warn(
+                'Message "{}" contains error: {}'.format(id, error_data))
+            raise RemoteProcedureCallError(
+                error_data.get('message', 'Internal error'),
+                error_data.get('code', -32603),
+                error_data.get('data', {}))
+
         return payload
