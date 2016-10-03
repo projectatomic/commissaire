@@ -22,6 +22,8 @@ CLUSTER_TYPE_HOST = 'host_only'
 CLUSTER_TYPE_KUBERNETES = 'kubernetes'
 #: Cluster type to use if none is specified
 CLUSTER_TYPE_DEFAULT = CLUSTER_TYPE_KUBERNETES
+#: All cluster types
+CLUSTER_TYPES = [CLUSTER_TYPE_HOST, CLUSTER_TYPE_KUBERNETES]
 
 #: Flannel using etcd as it's configuration end
 NETWORK_TYPE_FLANNEL_ETCD = 'flannel_etcd'

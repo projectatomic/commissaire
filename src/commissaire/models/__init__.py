@@ -173,13 +173,15 @@ class Model(object):
         # of going between native and json
         return json.loads(self.to_json(secure))
 
-    def _validate(self):
+    def _validate(self, errors=[]):
         """
         Validates the attribute data of the current instance.
 
+        :param errors: Errors from any pre-validation.
+        :type errors: list
+
         :raises: ValidationError
         """
-        errors = []
         for attr, spec in self._attribute_map.items():
             value = getattr(self, attr)
             if not isinstance(value, spec['type']):
@@ -300,6 +302,14 @@ class Cluster(Model):
                 data[key] = getattr(self, key)
         data['hosts'] = self.hosts
         return json.dumps(data)
+
+    def _validate(self):
+        errors = []
+        if self.type not in C.CLUSTER_TYPES:
+            errors.append(
+                'Cluster type must be one of the following: {}'.format(
+                    ', '.join(C.CLUSTER_TYPES)))
+        super()._validate(errors)
 
 
 class ClusterDeploy(Model):
