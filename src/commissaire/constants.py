@@ -51,3 +51,12 @@ DEFAULT_KUBERNETES_STORE_HANDLER = {
     'name': 'commissaire.store.kubestorehandler',
     'models': ['*']
 }
+
+# JSONRPC error codes
+JSONRPC_ERRORS = {
+    'INVALID_JSON': -32700,
+    'INVALID_REQUEST': -32602,
+    'METHOD_NOT_FOUND': -32601,
+    'INVALID_PARAMETERS': -32602,
+    'INTERNAL_ERROR': -32603,
+}
