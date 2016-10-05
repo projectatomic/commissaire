@@ -59,4 +59,6 @@ JSONRPC_ERRORS = {
     'METHOD_NOT_FOUND': -32601,
     'INVALID_PARAMETERS': -32602,
     'INTERNAL_ERROR': -32603,
+    # Custom codes
+    'CONFLICT': 409,
 }
