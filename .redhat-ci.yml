@@ -1,0 +1,9 @@
+host:
+    distro: fedora/24/atomic
+tests:
+    - systemctl start docker
+    - docker run --rm -v /root:/root -v $(pwd):/code:Z --workdir /code fedora:24 ./rhci.sh
+timeout: 5m
+artifacts:
+    - build/cover/
+    - nosetests.html
