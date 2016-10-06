@@ -4,3 +4,4 @@ requests
 nose
 flake8
 coverage
+nose-htmloutput
