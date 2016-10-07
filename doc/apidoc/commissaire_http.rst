@@ -13,6 +13,13 @@ Subpackages
     commissaire_http.router
     commissaire_http.server
 
+Submodules
+----------
+
+.. toctree::
+
+   commissaire_http.constants
+
 Module contents
 ---------------
 
