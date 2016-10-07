@@ -20,7 +20,10 @@ Retrieve the status of the cluster.
 .. code-block:: javascript
 
    {
+       "name": string,
        "status" string,
+       "network": string,
+       "type": string,
        "hosts": {
            "total": int,
            "available": int,
@@ -28,17 +31,21 @@ Retrieve the status of the cluster.
        }
    }
 
+
 Example
 ~~~~~~~
 
 .. code-block:: javascript
 
    {
+       "name": "mycluster",
        "status": "ok",
+       "network": "default",
+       "type": "kubernetes",
        "hosts": {
            "total": 3,
-           "available": 3,
-           "unavailable": 0
+           "available": 2,
+           "unavailable": 1
        }
    }
 
@@ -130,17 +137,40 @@ GET
 ```
 Membership test.  Returns 200 if host {IP} is in cluster, else 404.
 
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   ['192.168.100.50']
+
+
 PUT
 ```
-Adds host {IP} to cluster. (Idempotent)
+Adds host {IP} to cluster and returns the host added in a list. (Idempotent)
 
 No body.
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   ['192.168.100.50']
+
 
 DELETE
 ``````
-Removes host {IP} from cluster. (Idempotent)
+Removes host {IP} from cluster returning an empty list. (Idempotent)
 
 No body.
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   []
 
 
 .. _cluster_op_deploy:
