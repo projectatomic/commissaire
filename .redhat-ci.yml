@@ -1,8 +1,11 @@
-host:
-    distro: fedora/24/atomic
+container:
+    image: fedora:24
+packages:
+    - gcc
+    - python3-virtualenv
+    - python3-tox
 tests:
-    - systemctl start docker
-    - docker run --rm -v /root:/root -v $(pwd):/code:Z --workdir /code fedora:24 ./rhci.sh
+    - python3-tox
 timeout: 5m
 artifacts:
     - build/cover/
