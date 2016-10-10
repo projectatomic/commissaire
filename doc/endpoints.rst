@@ -706,8 +706,16 @@ Example
 
 DELETE
 ``````
-Deletes a network record.
+Deletes a network record. (Idempotent)
 
+No body.
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   []
 
 
 Status
