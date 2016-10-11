@@ -16,6 +16,8 @@
 Storage related module for Commissaire.
 """
 
+import logging
+
 
 class ConfigurationError(Exception):
     """
@@ -29,7 +31,7 @@ class StoreHandlerBase(object):
     Base class for all StoreHandler classes.
     """
 
-    # Subclasses override this, if applicable.
+    #: Subclasses override this, if applicable.
     container_manager_class = None
 
     @classmethod
@@ -48,11 +50,14 @@ class StoreHandlerBase(object):
 
     def __init__(self, config):
         """
+        Initializes a new instance of the StoreHandlerBase.
+
         :param config: Configuration details for the StoreHandler.
         :type config: dict
         """
         self._config = config
         self._store = None
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def _get_connection(self):
         """

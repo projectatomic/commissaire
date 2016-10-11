@@ -71,6 +71,7 @@ class EtcdStoreHandler(StoreHandlerBase):
         :param config: Configuration details
         :type config: dict
         """
+        super().__init__()
         url = urlparse(config.get('server_url', self.DEFAULT_SERVER_URL))
         client_args = {
             'host': url.hostname,
@@ -158,7 +159,14 @@ class EtcdStoreHandler(StoreHandlerBase):
 
         # populate the results
         for item in self._store.read(key, recursive=True).children:
-            results.append(model_cls(**json.loads(item.value)))
+            try:
+                results.append(model_cls(**json.loads(item.value)))
+            except TypeError as error:
+                # XXX: This usually means there were not results. it's
+                #      possible that bad data could trigger a response.
+                self.logger.warn(
+                    'Etcd returned unserializable data. Skipping the record.'
+                    'TypeError: {}'.format(error))
 
         # If this is a list then fill the list container with the results
         # and return the model
