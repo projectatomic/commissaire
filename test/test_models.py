@@ -22,9 +22,8 @@ from unittest import mock
 
 from . import TestCase
 
+from commissaire import constants as C
 from commissaire import models
-
-
 
 
 class TestModel(TestCase):
@@ -65,3 +64,54 @@ class TestModel(TestCase):
         self.assertIn(
             'ssh_priv_key',
             instance.to_dict(secure=True))
+
+
+class _TypeValidationTest(TestCase):
+    """
+    Mixin to test models that need to do type testing.
+    """
+
+    #: The model to test
+    model = None
+    #: Keyword arguments to pass to the Model.new() method
+    model_kwargs = {'name': 'test'}
+    #: Valid types
+    valid_types = []
+
+    def test__validate_with_valid_types(self):
+        """
+        Ensure that _validate allows all known valid types.
+        """
+        local_kwargs = self.model_kwargs.copy()
+        for valid_type in self.valid_types:
+            local_kwargs['type'] = valid_type
+            instance = self.model.new(**local_kwargs)
+            self.assertIsNone(instance._validate())
+
+    def test__validate_with_invalid_types(self):
+        """
+        Ensure that _validate enforces type rules.
+        """
+        local_kwargs = self.model_kwargs.copy()
+        local_kwargs['type'] = 'idonotexist'
+        instance = self.model.new(**local_kwargs)
+
+        self.assertRaises(
+            models.ValidationError,
+            instance._validate,
+        )
+
+class TestClusterModel(_TypeValidationTest):
+    """
+    Extra tests for the Cluster model.
+    """
+    model = models.Cluster
+    valid_types = C.CLUSTER_TYPES
+
+
+class TestNetworkModel(_TypeValidationTest):
+    """
+    Extra tests for the Network model.
+    """
+    model = models.Network
+    valid_types = C.NETWORK_TYPES

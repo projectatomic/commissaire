@@ -31,6 +31,8 @@ NETWORK_TYPE_FLANNEL_ETCD = 'flannel_etcd'
 NETWORK_TYPE_FLANNEL_SERVER = 'flannel_server'
 #: Network type to use if none is specified
 NETWORK_TYPE_DEFAULT = NETWORK_TYPE_FLANNEL_ETCD
+#: All network types
+NETWORK_TYPES = [NETWORK_TYPE_FLANNEL_ETCD, NETWORK_TYPE_FLANNEL_SERVER]
 
 #: Default network if non is provided
 DEFAULT_CLUSTER_NETWORK_JSON = {

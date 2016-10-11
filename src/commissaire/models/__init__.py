@@ -251,6 +251,17 @@ class Network(Model):
     }
     _primary_key = 'name'
 
+    def _validate(self):
+        """
+        Extra validation to ensure the type is valid.
+        """
+        errors = []
+        if self.type not in C.NETWORK_TYPES:
+            errors.append(
+                'Network type must be one of the following: {}'.format(
+                    ', '.join(C.NETWORK_TYPES)))
+        super()._validate(errors)
+
 
 class Networks(Model):
     """
