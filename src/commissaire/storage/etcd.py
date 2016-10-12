@@ -71,7 +71,7 @@ class EtcdStoreHandler(StoreHandlerBase):
         :param config: Configuration details
         :type config: dict
         """
-        super().__init__()
+        super().__init__(config)
         url = urlparse(config.get('server_url', self.DEFAULT_SERVER_URL))
         client_args = {
             'host': url.hostname,
