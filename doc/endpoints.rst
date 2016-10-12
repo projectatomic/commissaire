@@ -494,12 +494,6 @@ GET
 ```
 Retrieve a specific hosts status.
 
-**Query Parameters**
- * *raw*:
-
-   * **Examples**: ``true``, ``false``, ``True``, ``False``, ``0``, ``1``
-   * **Optional**: Yes
-   * **Description**: If set to true only the status structure from the container manager will be returned
 
 .. code-block:: javascript
 
@@ -523,30 +517,6 @@ Example: Default
       },
       "container_manager": {...}
   }
-
-
-Example: Raw
-~~~~~~~~~~~~
-
-This example is partially what would be returned from a kubernetes type cluster.
-
-  .. code-block:: javascript
-
-    {
-        "status": {
-            "capacity": {
-              "cpu": "1",
-              "memory": "500680Ki",
-              "pods": "110"
-            },
-            "allocatable": {
-              "cpu": "1",
-              "memory": "500680Ki",
-              "pods": "110"
-            },
-            ...
-        }
-    }
 
 
 Hosts

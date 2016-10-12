@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    commissaire_http.handlers.clusters
+   commissaire_http.handlers.hosts
    commissaire_http.handlers.networks
 
 Module contents
