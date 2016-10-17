@@ -5,7 +5,7 @@ The following instructions will setup a development environment
 for commissaire.
 
 If something does not work as expected, please create an issue or
-propsoe a PR.
+propose a PR.
 
 
 ## Prepare environment
