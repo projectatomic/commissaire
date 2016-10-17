@@ -9,7 +9,7 @@ A lightweight REST interface for under-the-covers cluster system management.
 
 Related projects are:
 
-  * `commissaire-service` which provides the microservices and base code ofr the services.
+  * `commissaire-service` which provides the microservices and base code for the services.
   * `commissaire-http` provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
 
 
