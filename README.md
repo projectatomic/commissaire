@@ -6,6 +6,13 @@ A lightweight REST interface for under-the-covers cluster system management.
 
 **Note**: This repo now contains the common code used by Commissaire components. If you have an older checkout you will need to re-clone. For the original repo see [commissaire-mvp](https://www.github.com/projectatomic/commissaire-mvp/)
 
+
+Related projects are:
+
+  * `commissaire-service` which provides the microservices and base code ofr the services.
+  * `commissaire-http` provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
+
+
 Python Version
 ==============
 Commissaire is intended to work on [Python 3.5+](https://docs.python.org/3.5/).
