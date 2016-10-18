@@ -76,8 +76,9 @@ class Model(object):
         for key in self._attribute_map.keys():
             if key not in kwargs:
                 raise TypeError(
-                    '__init__() missing 1 or more required '
-                    'keyword arguments: {0}'.format(
+                    '{0}.__init__() missing 1 or more required '
+                    'keyword arguments: {1}'.format(
+                        self.__class__.__name__,
                         ', '.join(self._attribute_map.keys())))
             setattr(self, key, kwargs[key])
 

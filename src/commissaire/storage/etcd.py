@@ -126,8 +126,7 @@ class EtcdStoreHandler(StoreHandlerBase):
         """
         key = self._format_key(model_instance)
         etcd_resp = self._store.get(key)
-        return model_instance.__class__(
-            **json.loads(etcd_resp.value))
+        return model_instance.new(**json.loads(etcd_resp.value))
 
     def _delete(self, model_instance):
         """
