@@ -3,7 +3,7 @@
 Cloud-Init Integration
 ======================
 
-commissaire provides a script in ``contrib/cloud-init/part-handler.py``
+commissaire provides a script in ``tools/cloud-init/part-handler.py``
 to help automatically register hosts to the commissaire server during
 bootup by way of cloud-init.
 
@@ -13,7 +13,7 @@ config file containing the server parameters.
 
 Here's a sample config file showing all recognized parameters:
 
-.. literalinclude:: ../contrib/cloud-init/commissaire.txt
+.. literalinclude:: ../tools/cloud-init/commissaire.txt
    :language: shell
 
 
@@ -21,10 +21,10 @@ Create the Cloud-Config File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A cloud-config file is required when using Cloud-Init. Commissaire doesn't
 require any special data within the cloud-config file itself. A cloud-config
-as simple as the following, found in ``contrib/cloud-init/cloud-config.txt``
+as simple as the following, found in ``tools/cloud-init/cloud-config.txt``
 will work fine:
 
-.. literalinclude:: ../contrib/cloud-init/cloud-config.txt
+.. literalinclude:: ../tools/cloud-init/cloud-config.txt
    :language: yaml
 
 
@@ -85,15 +85,15 @@ details on how to pass the user-data file properly.
   # <snip>
   2016-03-24 10:54:33 (167 MB/s) - ‘make-mime.py’ saved [1946/1946]
 
-  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/contrib/cloud-init/part-handler.py"
+  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/tools/cloud-init/part-handler.py"
   # <snip>
   2016-03-24 10:56:33 (772 MB/s) - ‘part-handler.py’ saved [4848/4848]
 
-  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/contrib/cloud-init/commissaire.txt"
+  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/tools/cloud-init/commissaire.txt"
   # <snip>
   2016-03-24 10:57:07 (752 MB/s) - ‘commissaire.txt’ saved [866/866]
 
-  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/contrib/cloud-init/cloud-config.txt"
+  $ wget "https://raw.githubusercontent.com/projectatomic/commissaire/master/tools/cloud-init/cloud-config.txt"
   # <snip>
   2016-03-24 10:59:01 (677 MB/s) - ‘cloud-config.txt’ saved [48/48]
 
