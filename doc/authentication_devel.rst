@@ -3,7 +3,7 @@
 Authentication Plugins
 ======================
 
-commissaire's authentication is handled by a simple
+commissaire's authentication is handled by a simple WSGI based
 plugin based system. To create a new authentication plugin you must:
 
 - subclass ``commissaire_http.authentication.Authenticator``
@@ -18,6 +18,40 @@ override ``__init__`` adding in keyword arguments.
    The ``authenticate`` should always return ``True`` for success or
    ``False`` on failure.
 
-Example
-```````
-See `httpbasicauth <https://github.com/projectatomic/commissaire-http/tree/master/src/commissaire_http/authentication/httpbasicauth.py>`_
+Examples
+````````
+
+Basic
+~~~~~
+
+.. code-block:: python
+
+    from commissaire_http.authentication import Authenticator
+
+    class AlwaysAllowOnSSL(Authenticator):
+        """
+        Example: Allows anyone if they use https.
+        """
+
+        def authenticate(self, environ, start_response):
+            """
+            Allows access if https is in use.
+
+            :param environ: WSGI environment instance.
+            :type environ: dict
+            :param start_response: WSGI start response callable.
+            :type start_response: callable
+            :returns: True on success, False on failure
+            :rtype: bool
+            """
+            if environ.get('wsgi.url_scheme', 'http') == 'https':
+                return True
+            return False
+
+    #: Alias AlwaysAllowOnSSL
+    AuthenticationPlugin = AlwaysAllowOnSSL
+
+
+Real Code
+~~~~~~~~~
+See `httpauthclientcert <https://github.com/projectatomic/commissaire-http/blob/master/src/commissaire_http/authentication/httpauthclientcert.py>`_
