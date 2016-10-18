@@ -63,6 +63,14 @@ For specifics on the endpoint see :ref:`host_op`
 Cluster Operations with curl
 ----------------------------
 
+.. todo::
+
+    Currently not ported to new architecture.
+
+.. todo::
+
+    Reference commctl docs since most users will likely rather than than direct curl
+
 These operations are done across all hosts associated with a cluster.
 
 Restart

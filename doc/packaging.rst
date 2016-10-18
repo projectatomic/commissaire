@@ -3,9 +3,8 @@ Building Packages
 
 RPM
 ---
-
-commissaire provides a spec file in ``contrib/packaging/rpm/``. This file can
-be used to create a commissaire rpm.
+commissaire's spec file is located in the `Fedora package
+repo <http://pkgs.fedoraproject.org/cgit/rpms/commissaire-client.git/tree/>`_.
 
 Generate the Source Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -14,7 +13,6 @@ Generate the Source Distribution
 
    (virtualenv)$ ./setup.py sdist
    ...
-
 
 
 Move Source Distribution To RPM Source

@@ -9,6 +9,10 @@ https://github.com/projectatomic/commissaire.
 Development Setup
 -----------------
 
+.. todo::
+
+    Maybe reference INSTALL.md instead?
+
 You will want to set up a virtualenv to work with. This will keep from poluting
 your system with application only dependencies while you code.
 
@@ -22,6 +26,11 @@ your system with application only dependencies while you code.
 
 Vagrant
 -------
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 A ``Vagrantfile`` is provided which will give you a full local development setup.
 
 To run the vagrant development environment make sure you have a support
@@ -80,6 +89,7 @@ user experience, etc.. For information on the CPD process see
 
 Ansible Templates
 `````````````````
+
 Variables are used with jinja2 templates and should always prefix
 **commissaire_**. Here is a current list variables in use as examples:
 
@@ -140,6 +150,11 @@ To run unit tests locally and see where your code stands:
 
 End-to-End/BDD Testing
 ``````````````````````
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 commissaire uses `Behave <http://pythonhosted.org/behave/>`_ to execute
 end to end/BDD tests.
 

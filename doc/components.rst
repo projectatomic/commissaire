@@ -5,18 +5,38 @@ Internal
 --------
 The following are internal components of commissaire.
 
+.. todo::
+
+    REST Interface -> commissaire-server
+
 REST Interface
 ~~~~~~~~~~~~~~
 The rest interface is the way an administrator works with commissaire. It
 attempts to follow REST as strictly as possible through the interpretation of
 commissaire developers.
 
+
 Investigator
 ~~~~~~~~~~~~
+
+.. todo::
+
+    Rename to commissaire-investigator-service and update text.
+
 The investigator is a subprocess which is tasked with investigating
 and bootstrapping new host nodes. When a new host is added it's the
 investigator which populates the host data in etcd and gets the right services
 going on the new host.
+
+
+.. todo::
+
+    Add commissaire-storage-service
+
+
+.. todo::
+
+    Add commissaire-clusterexec-service
 
 
 External

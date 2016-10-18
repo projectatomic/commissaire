@@ -16,6 +16,11 @@ connect to and bootstrap new hosts wanting to be managed by Commissaire.
 
 Commissaire Watcher
 ```````````````````
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 Commissaire's ``Watcher`` is a set of long running processes which periodically
 connects to hosts that have already been bootstrapped and checks their status.
 

@@ -7,6 +7,9 @@ Preface
 
 .. _commctl_preface:
 
+.. todo::
+
+    Give a fuller description.
 
 ``commctl`` is the official command line utility for Commissaire.
 
@@ -14,6 +17,10 @@ Preface
 
 Installation
 ------------
+
+.. todo::
+
+    Explain when you'd want to install from source, docker, or rpm.
 
 Via Source
 ~~~~~~~~~~
@@ -30,7 +37,9 @@ Via Docker
 Via RPM
 ~~~~~~~
 
-If you want to roll your own RPM, the spec file can be found in ``contrib/package/rpm/commissaire.spec``.
+If you want to roll your own RPM, the spec file can be found in the `Fedora package
+repo <http://pkgs.fedoraproject.org/cgit/rpms/commissaire-client.git/tree/>`_.
+
 On RHEL/CentOS/Fedora based systems you will also need to make sure to have an RPM build environment set up.
 This includes packages such as:
 
@@ -61,6 +70,10 @@ The password may be stored in the configuration file as well.
 
 .. include:: examples/commctl_config_with_password.rst
 
+
+.. todo::
+
+    The kubernetes authentication plugin has not been ported yet.
 
 If you are using the :ref:`Kubernetes authentication plugin <kubeauth>` you can opt to reuse the credentials from your kubeconfig like so:
 
@@ -145,6 +158,10 @@ To list all clusters:
 deploy start
 ````````````
 
+.. todo::
+
+    Currently not ported to new architecture.
+
 ``deploy start`` will create a new deployment on an Atomic host. This is an
 asynchronous action. See :ref:`deploy_status` on checking the results.
 
@@ -164,6 +181,10 @@ asynchronous action. See :ref:`deploy_status` on checking the results.
 deploy status
 `````````````
 
+.. todo::
+
+    Currently not ported to new architecture.
+
 ``deploy status`` will retrieve the status of an deploy
 
 ``deploy status`` requires one positional argument:
@@ -177,6 +198,10 @@ deploy status
 
 restart start
 `````````````
+
+.. todo::
+
+    Currently not ported to new architecture.
 
 ``restart start`` will create a new restart roll on a cluster of hosts. This is an
 asynchronous action. See :ref:`restart_status` on checking the results.
@@ -194,6 +219,10 @@ asynchronous action. See :ref:`restart_status` on checking the results.
 restart status
 ``````````````
 
+.. todo::
+
+    Currently not ported to new architecture.
+
 ``restart status`` will retrieve the status of an restart
 
 ``restart status`` requires one positional argument:
@@ -205,6 +234,10 @@ restart status
 
 upgrade start
 `````````````
+
+.. todo::
+
+    Currently not ported to new architecture.
 
 ``upgrade start`` will create a new upgrade on a cluster of hosts. This is an
 asynchronous action. See :ref:`upgrade_status` on checking the results.
@@ -221,6 +254,10 @@ asynchronous action. See :ref:`upgrade_status` on checking the results.
 
 upgrade status
 ``````````````
+
+.. todo::
+
+    Currently not ported to new architecture.
 
 ``upgrade status`` will retrieve the status of an upgrade
 

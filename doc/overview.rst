@@ -26,6 +26,15 @@ Feature Overview
 Flow
 ----
 
+.. todo::
+
+    Remove this flow diagram. It's out of date.
+
+.. todo::
+
+    Add a new flow diagram.
+
+
 .. image:: commissaire-flow-diagram.png
 
 
@@ -41,6 +50,10 @@ commissaire is not as much as what it is. commissaire is not:
 
 Example Uses
 ------------
+
+.. todo::
+
+    Add more use cases!
 
 .. note::
 

@@ -11,6 +11,10 @@ The ``Router`` maps URI paths to controllers. The following example would route
 the path /hello/ to the controller at ``commissaire_http.handlers.hello_world``
 if the HTTP method is ``GET``.
 
+.. todo::
+
+    Add example when a controller is a callable instead of a string.
+
 .. code-block:: python
 
    mapper = Router()
@@ -42,6 +46,11 @@ Handlers
 ``Handlers``, also called controllers, do the majority of the business logic.
 A ``Handler`` can be a function or a class, but must follow a specific
 convention so the ``Dispatcher`` knows it's valid during loading.
+
+.. todo::
+
+    Add section on creating a _register function for routing
+    (see commissaire_http.handlers.clusters._register)
 
 Function Handler
 ````````````````

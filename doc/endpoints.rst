@@ -3,6 +3,11 @@
 REST Endpoints
 ==============
 
+.. todo::
+
+    Give a quick blurb about REST.
+
+
 .. _cluster_op:
 
 Cluster
@@ -177,6 +182,11 @@ Example Response
 
 Cluster Operations: Deploy
 --------------------------
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 **Endpoint**: /api/v0/cluster/{NAME}/deploy
 
 (Internal model name: ``ClusterDeploy``)
@@ -248,6 +258,11 @@ Example Response
 
 Cluster Operations: Upgrade
 ---------------------------
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 **Endpoint**: /api/v0/cluster/{NAME}/upgrade
 
 (Internal model name: ``ClusterUpgrade``)
@@ -303,6 +318,11 @@ Example Response
 
 Cluster Operations: Restart
 ---------------------------
+
+.. todo::
+
+    Currently not ported to new architecture.
+
 **Endpoint**: /api/v0/cluster/{NAME}/restart
 
 (Internal model name: ``ClusterRestart``)

@@ -10,6 +10,11 @@ Commissaire
 
     Update the docs to reflect changes in ``0.0.2`` as development progresses.
 
+.. todo::
+
+    The layout of documentation could use work. It doesn't flow all that well.
+
+
 Contents:
 
 .. toctree::
