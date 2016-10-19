@@ -1,7 +1,7 @@
-tox
-behave
-requests
-nose
-flake8
-coverage
-nose-htmloutput
+tox #license=MIT
+behave #license=BSD
+requests #license=ASLv2.0
+nose #license=LGPLv2.1
+flake8 #license=MIT
+coverage #license=ASLv2.0
+nose-htmloutput #license=BSD

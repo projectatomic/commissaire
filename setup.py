@@ -30,7 +30,7 @@ def extract_names(filename):
 
 def extract_requirements(filename):
     with open(filename, 'r') as requirements_file:
-        return [x[:-1] for x in requirements_file.readlines()]
+        return [x.split()[0] for x in requirements_file.readlines()]
 
 
 install_requires = extract_requirements('requirements.txt')

@@ -1,4 +1,5 @@
-setuptools
-sphinx_rtd_theme
-requests
-kombu
+setuptools #license=MIT
+sphinx_rtd_theme #license=BSD
+python-etcd #license=MIT
+requests #license=ASLv2.0
+kombu #license=BSD
