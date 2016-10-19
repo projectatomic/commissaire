@@ -53,8 +53,8 @@ class EtcdStoreHandler(StoreHandlerBase):
         and throws a ConfigurationError if any parameters are invalid.
         """
         url = urlparse(config.get('server_url', cls.DEFAULT_SERVER_URL))
-        if (bool(config.get('certificate-path')) ^
-                bool(config.get('certificate-key-path'))):
+        if (bool(config.get('certificate_path')) ^
+                bool(config.get('certificate_key_path'))):
             raise ConfigurationError(
                 'Both "certificate_path" and "certificate_key_path" '
                 'must be provided to use a client side certificate')
@@ -79,10 +79,12 @@ class EtcdStoreHandler(StoreHandlerBase):
         }
         if url.port is not None:
             client_args['port'] = url.port
-        if config.get('certificate-path'):
+        if config.get('certificate_path'):
             client_args['cert'] = (
-                config['certificate-path'],
-                config['certificate-key-path'])
+                config['certificate_path'],
+                config['certificate_key_path'])
+        if config.get('certificate_ca_path'):
+                client_args['ca_cert'] = config['certificate_ca_path']
         self._store = etcd.Client(**client_args)
         self._etcd_namespace = '/commissaire'
 
