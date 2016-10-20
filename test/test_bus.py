@@ -44,14 +44,13 @@ class TestCommissaireBusMixin(TestCase):
         # And it should be 36 chars in length (uuid.uuid4())
         self.assertEquals(len(ID), len(uid))
 
-
     def test_request(self):
         """
         Verify BusMixin.request can request method calls.
         """
         result_dict = {'jsonrpc': '2.0', 'result': []}
 
-        instance = bus.BusMixin() 
+        instance = bus.BusMixin()
         instance.logger = mock.MagicMock()
         instance.connection = mock.MagicMock()
         instance.producer = mock.MagicMock()
@@ -126,3 +125,33 @@ class TestCommissaireBusMixin(TestCase):
         self.assertEqual(cm.exception.code, -32601)
         self.assertEqual(cm.exception.message, 'Method not found')
         self.assertIn('exception', cm.exception.data)
+
+    def test_notify(self):
+        """
+        Verify BusMixin.notify can send off notifications.
+        """
+        result_dict = {'jsonrpc': '2.0', 'result': []}
+
+        instance = bus.BusMixin()
+        instance.logger = mock.MagicMock()
+        instance.connection = mock.MagicMock()
+        instance.producer = mock.MagicMock()
+        instance._exchange = 'exchange'
+
+        method = 'ping'
+        routing_key = 'routing_key.' + method
+        params = {}
+
+        # Omit the method to test extracting it from the routing key.
+        result = instance.notify(routing_key, params=params)
+        self.assertIsNone(result)
+
+        # A jsonrpc notification should have been published to the bus
+        instance.producer.publish.assert_called_once_with(
+            {
+                'jsonrpc': '2.0',
+                'method': method,
+                'params': params,
+            },
+            routing_key,
+            declare=[instance._exchange])
