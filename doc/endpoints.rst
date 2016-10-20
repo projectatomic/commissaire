@@ -87,6 +87,20 @@ Example
    }
 
 
+Delete
+``````
+Deletes an existing cluster.
+
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   []
+
+
+
 Cluster Members
 ---------------
 **Endpoint**: /api/v0/cluster/{NAME}/hosts
