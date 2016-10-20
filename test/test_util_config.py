@@ -43,9 +43,9 @@ class Test_ConfigFile(TestCase):
         Test the read_config_file function with valid data.
         """
 
-        # Check handling of storage-handler.
+        # Check handling of storage_handler.
         data = {
-            'storage-handlers': [
+            'storage_handlers': [
                 {'name': 'commissaire.storage.etcd'},
             ],
         }
@@ -67,10 +67,10 @@ class Test_ConfigFile(TestCase):
 
     def test_read_config_file_with_storge_handler_as_dict(self):
         """
-        Verify the read_config_file function turns storage-handlers into a list.
+        Verify the read_config_file function turns storage_handlers into a list.
         """
         data = {
-            'storage-handlers': {
+            'storage_handlers': {
                 'name': 'commissaire.storage.etcd',
             }
         }
@@ -78,15 +78,16 @@ class Test_ConfigFile(TestCase):
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
-            data['storage-handlers'] = [data['storage-handlers']]
+            data['storage_handlers'] = [data['storage_handlers']]
             self.assertEquals(data, conf)
 
     def test_read_config_file_with_valid_authentication_plugin(self):
         """
-        Verify the read_config_file function parses valid authentication-plugin directives.
+        Verify the read_config_file function parses valid
+        authentication_plugin directives.
         """
         data = {
-            'authentication-plugin': {
+            'authentication_plugin': {
                 'name': 'commissaire_htp.authentication.httpbasicauth',
                 'users': {},
             }
@@ -96,18 +97,19 @@ class Test_ConfigFile(TestCase):
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
             self.assertEquals(
-                data['authentication-plugin']['name'],
-                conf['authentication-plugin'])
+                data['authentication_plugin']['name'],
+                conf['authentication_plugin'])
             self.assertEquals(
-                data['authentication-plugin']['users'],
-                conf['authentication-plugin-kwargs']['users'])
+                data['authentication_plugin']['users'],
+                conf['authentication_plugin_kwargs']['users'])
 
     def test_read_config_file_with_invalid_authentication_plugin(self):
         """
-        Verify the read_config_file function raises on invalid authentication-plugin directives.
+        Verify the read_config_file function raises on invalid
+        authentication_plugin directives.
         """
         data = {
-            'authentication-plugin': {
+            'authentication_plugin': {
             }
         }
         with mock.patch('builtins.open',

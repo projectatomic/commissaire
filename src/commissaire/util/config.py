@@ -61,12 +61,27 @@ def read_config_file(path=None):
         raise TypeError(
             '{0}: File content must be a JSON object'.format(path))
 
+    def normalize_member_names(json_object):
+        """
+        Normalize member names by converting hyphens to underscores.
+        """
+        normalized = {}
+        for k, v in json_object.items():
+            k = k.replace('-', '_')
+            if isinstance(v, dict):
+                v = normalize_member_names(v)
+            normalized[k] = v
+        return normalized
+
+    # Recursively normalize the JSON member names.
+    json_object = normalize_member_names(json_object)
+
     # Special case:
     #
-    # In the configuration file, the "authentication-plugin" member
+    # In the configuration file, the "authentication_plugin" member
     # can also be specified as a JSON object.  The object must have
     # at least a 'name' member specifying the plugin module name.
-    auth_key = 'authentication-plugin'
+    auth_key = 'authentication_plugin'
     auth_plugin = json_object.get(auth_key)
     if type(auth_plugin) is dict:
         if 'name' not in auth_plugin:
@@ -76,14 +91,14 @@ def read_config_file(path=None):
         # Since it's valid we can parse it down into the expected
         # format for loading.
         auth_plugin_name = json_object[auth_key].pop('name')
-        json_object[auth_key + '-kwargs'] = json_object[auth_key]
+        json_object[auth_key + '_kwargs'] = json_object[auth_key]
         json_object[auth_key] = auth_plugin_name
 
     # Special case:
     #
-    # In the configuration file, the "storage-handlers" member can
+    # In the configuration file, the "storage_handlers" member can
     # be specified as a JSON object or a list of JSON objects.
-    handler_key = 'storage-handlers'
+    handler_key = 'storage_handlers'
     handler_list = json_object.get(handler_key)
     if type(handler_list) is dict:
         json_object[handler_key] = [handler_list]
