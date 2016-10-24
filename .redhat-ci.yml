@@ -5,7 +5,7 @@ packages:
     - python3-virtualenv
     - python3-tox
 tests:
-    - python3-tox
+    - python3-tox -e py35 -vv
 timeout: 5m
 artifacts:
     - build/cover/
