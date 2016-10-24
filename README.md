@@ -1,6 +1,6 @@
 Commissaire
 ===========
-A lightweight REST interface for under-the-covers cluster system management.
+The lightweight REST API for Clusters.
 
 [![Documentation](https://readthedocs.org/projects/commissaire/badge/?version=latest)](http://commissaire.readthedocs.org/) [![Build Status](https://travis-ci.org/projectatomic/commissaire.svg)](https://travis-ci.org/projectatomic/commissaire)
 
@@ -9,8 +9,14 @@ A lightweight REST interface for under-the-covers cluster system management.
 
 Related projects are:
 
-  * `commissaire-service` which provides the microservices and base code for the services.
-  * `commissaire-http` provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
+**Official**:
+
+  * [commissaire-service](https://github.com/projcetatomic/commissaire-service) which provides the microservices and base code for the services.
+  * [commissaire-http](https://github.com/projcetatomic/commissaire-http) provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
+
+**Community Projects**:
+
+  * [commissaire-openstack](https://github.com/portdirect/commissaire-openstack)
 
 
 Python Version
