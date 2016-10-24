@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euf -o pipefail
+
+behave --expand --no-skipped -D start-etcd=true -D start-http-server=true "$@"
