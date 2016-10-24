@@ -64,3 +64,6 @@ JSONRPC_ERRORS = {
     # Custom codes
     'CONFLICT': 409,
 }
+
+#: Expected date format (isoformat)
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'

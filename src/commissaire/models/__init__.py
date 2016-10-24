@@ -20,6 +20,8 @@ import copy
 import re
 import json
 
+from datetime import datetime
+
 from commissaire import constants as C
 
 
@@ -477,3 +479,30 @@ class Status(Model):
         'watcher': {'type': dict},
     }
     _attribute_defaults = {'etcd': {}, 'investigator': {}, 'watcher': {}}
+
+
+class WatcherRecord(Model):
+    """
+    Representation of a single record in a watcher queue.
+    """
+    _json_type = dict
+    _attribute_map = {
+        'address': {'type': str},
+        'last_check': {'type': str},
+    }
+    _attribute_defaults = {
+        'address': '',
+        'last_check': datetime.max.isoformat(),
+    }
+
+    def _validate(self):
+        """
+        Extra validation for WatcherRecord.
+        """
+        errors = []
+        try:
+            datetime.strptime(self.last_check, C.DATE_FORMAT)
+        except ValueError:
+            errors.append(
+                'last_check must be in isoformat: "{}"'.format(C.DATE_FORMAT))
+        super()._validate(errors)
