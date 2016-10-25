@@ -4,5 +4,8 @@ slow:
 .. code-block:: shell
 
    # Set up ...
-   (virtualenv)$ behave -k -t create,~slow -D server=http://127.0.0.1:8000 -D etcd=http://127.0.0.1:2379
+   (virtualenv)$ behave -k -t create,~slow \
+       -D commissaire-server=http://127.0.0.1:8000 \
+       -D etcd=http://127.0.0.1:2379 \
+       -D bus-uri=redis://127.0.0.1:6379
    ...
