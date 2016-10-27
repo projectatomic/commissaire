@@ -70,14 +70,14 @@ def read_config_file(path=None):
         with open(path, 'r') as fp:
             json_object = json.load(fp)
         if using_default:
-            print('Using configuration in {0}'.format(path))
+            print('Using configuration in {}'.format(path))
     except IOError:
         if not using_default:
             raise
 
     if type(json_object) is not dict:
         raise TypeError(
-            '{0}: File content must be a JSON object'.format(path))
+            '{}: File content must be a JSON object'.format(path))
 
     # Recursively normalize the JSON member names.
     json_object = _normalize_member_names(json_object)
@@ -96,7 +96,7 @@ def read_config_file(path=None):
                 path, auth_plugins, type(auth_plugins)))
 
     for plugin in auth_plugins:
-        if type(plugin) is dict:
+        if isinstance(plugin, dict):
             if 'name' not in plugin.keys():
                 raise ValueError(
                     '{}: "{}" is missing a "name" member'.format(
@@ -114,7 +114,7 @@ def read_config_file(path=None):
     # be specified as a JSON object or a list of JSON objects.
     handler_key = 'storage_handlers'
     handler_list = json_object.get(handler_key)
-    if type(handler_list) is dict:
+    if isinstance(handler_list, dict):
         json_object[handler_key] = [handler_list]
 
     return json_object
