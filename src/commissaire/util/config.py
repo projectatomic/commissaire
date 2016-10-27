@@ -26,6 +26,24 @@ class ConfigurationError(Exception):
     pass
 
 
+def _normalize_member_names(json_object):
+    """
+    Normalize member names by converting hyphens to underscores.
+
+    :param json_object: Dictionary to normalize.
+    :type json_object: dict
+    :returns: A normalized dictionary.
+    :rtype: dict
+    """
+    normalized = {}
+    for k, v in json_object.items():
+        k = k.replace('-', '_')
+        if isinstance(v, dict):
+            v = _normalize_member_names(v)
+        normalized[k] = v
+    return normalized
+
+
 def read_config_file(path=None):
     """
     Attempts to parse a configuration file, formatted as a JSON object.
@@ -61,20 +79,8 @@ def read_config_file(path=None):
         raise TypeError(
             '{0}: File content must be a JSON object'.format(path))
 
-    def normalize_member_names(json_object):
-        """
-        Normalize member names by converting hyphens to underscores.
-        """
-        normalized = {}
-        for k, v in json_object.items():
-            k = k.replace('-', '_')
-            if isinstance(v, dict):
-                v = normalize_member_names(v)
-            normalized[k] = v
-        return normalized
-
     # Recursively normalize the JSON member names.
-    json_object = normalize_member_names(json_object)
+    json_object = _normalize_member_names(json_object)
 
     # Special case:
     #
