@@ -53,6 +53,7 @@ class Test_ConfigFile(TestCase):
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
+            data['authentication_plugins'] = {}
             self.assertEquals(data, conf)
 
     def test_read_config_file_with_invalid_data(self):
@@ -79,6 +80,7 @@ class Test_ConfigFile(TestCase):
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
             data['storage_handlers'] = [data['storage_handlers']]
+            data['authentication_plugins'] = {}
             self.assertEquals(data, conf)
 
     def test_read_config_file_with_valid_authentication_plugin(self):
@@ -86,22 +88,22 @@ class Test_ConfigFile(TestCase):
         Verify the read_config_file function parses valid
         authentication_plugin directives.
         """
+        plugin_name = 'commissaire_htp.authentication.httpbasicauth'
         data = {
-            'authentication_plugin': {
-                'name': 'commissaire_htp.authentication.httpbasicauth',
+            'authentication_plugins': [{
+                'name': plugin_name,
                 'users': {},
-            }
+            }]
         }
         with mock.patch('builtins.open',
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             conf = config.read_config_file()
             self.assertIsInstance(conf, dict)
+            self.assertTrue(
+                plugin_name in conf['authentication_plugins'].keys())
             self.assertEquals(
-                data['authentication_plugin']['name'],
-                conf['authentication_plugin'])
-            self.assertEquals(
-                data['authentication_plugin']['users'],
-                conf['authentication_plugin_kwargs']['users'])
+                data['authentication_plugins'][0]['users'],
+                conf['authentication_plugins'][plugin_name]['users'])
 
     def test_read_config_file_with_invalid_authentication_plugin(self):
         """
@@ -109,8 +111,7 @@ class Test_ConfigFile(TestCase):
         authentication_plugin directives.
         """
         data = {
-            'authentication_plugin': {
-            }
+            'authentication_plugins': [{}]
         }
         with mock.patch('builtins.open',
                 mock.mock_open(read_data=json.dumps(data))) as _open:

@@ -84,21 +84,29 @@ def read_config_file(path=None):
 
     # Special case:
     #
-    # In the configuration file, the "authentication_plugin" member
-    # can also be specified as a JSON object.  The object must have
-    # at least a 'name' member specifying the plugin module name.
-    auth_key = 'authentication_plugin'
-    auth_plugin = json_object.get(auth_key)
-    if type(auth_plugin) is dict:
-        if 'name' not in auth_plugin:
-            raise ValueError(
-                '{0}: "{1}" is missing a "name" member'.format(
-                    path, auth_key))
-        # Since it's valid we can parse it down into the expected
-        # format for loading.
-        auth_plugin_name = json_object[auth_key].pop('name')
-        json_object[auth_key + '_kwargs'] = json_object[auth_key]
-        json_object[auth_key] = auth_plugin_name
+    # In the configuration file, the "authentication_plugins" member
+    # can also be specified as a list of JSON objects.  Each object must
+    # have at least a 'name' member specifying the plugin module name.
+    auth_plugins = json_object.get('authentication_plugins', [])
+    configured_plugins = {}
+
+    if auth_plugins and not isinstance(auth_plugins, list):
+        raise ValueError(
+            '{}: "{}" must be a list. Not at {}.'.format(
+                path, auth_plugins, type(auth_plugins)))
+
+    for plugin in auth_plugins:
+        if type(plugin) is dict:
+            if 'name' not in plugin.keys():
+                raise ValueError(
+                    '{}: "{}" is missing a "name" member'.format(
+                        path, plugin))
+            # Since it's valid we can parse it down into the
+            # expected format for loading.
+            configured_plugins[plugin.pop('name')] = plugin
+
+    # Overwrite authentication_plugins with the configured_plugins
+    json_object['authentication_plugins'] = configured_plugins
 
     # Special case:
     #
