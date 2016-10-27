@@ -96,6 +96,22 @@ commissaire-server -c config.conf &
 popd
 ```
 
+#### Run testcases for Commissaire Server
+Note that you can use `tox` to run testcases for this project.
+
+Install using
+
+```
+pip install tox
+```
+
+and then, from the `commissaire-http` folder, run the following
+command:
+
+```
+tox -v -e py35
+```
+
 
 ## Verification
 After this the API will be available at `http://127.0.0.1:8000/`. To
