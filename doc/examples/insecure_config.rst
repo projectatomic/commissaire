@@ -13,12 +13,12 @@
          "models": []
        }
      ],
-     "authentication-plugin": {
+     "authentication-plugins": [{
        "name": "commissaire.authentication.httpbasicauth",
        "users": {
          "a": {
            "hash": "$2a$12$GlBCEIwz85QZUCkWYj11he6HaRHufzIvwQjlKeu7Rwmqi/mWOpRXK"
          }
        }
-     }
+     }]
    }

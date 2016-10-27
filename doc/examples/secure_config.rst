@@ -15,9 +15,8 @@
          "models": []
        }
      ],
-     "authentication-plugin": {
+     "authentication-plugins": [{
        "name": "commissaire.authentication.httpbasicauth",
        "filepath": "conf/users.json"
-     }
+     }]
    }
-
