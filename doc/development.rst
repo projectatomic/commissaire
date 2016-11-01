@@ -156,7 +156,18 @@ End-to-End/BDD Testing
     Currently not ported to new architecture.
 
 commissaire uses `Behave <http://pythonhosted.org/behave/>`_ to execute
-end to end/BDD tests.
+end to end/BDD tests. You will need to have the following in your parent
+directory to properly be able to execute tests locally.
+
+.. code-block:: shell
+
+   $ ls ../ | grep 'comm'
+   commctl
+   commissaire
+   commissaire-http
+   commissaire-service
+   $
+
 
 To run e2e/bdd tests locally and see where your code stands:
 

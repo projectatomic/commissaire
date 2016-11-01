@@ -1,3 +1,6 @@
-git+https://github.com/projectatomic/commissaire-http.git #license=GPLv3
-git+https://github.com/projectatomic/commissaire-service.git #license=GPLv3
-git+https://github.com/projectatomic/commctl.git #license=LGPLv2
+#git+https://github.com/projectatomic/commissaire-http.git #license=GPLv3
+../commissaire-http #license=GPLv3+
+#git+https://github.com/projectatomic/commissaire-service.git #license=GPLv3
+../commissaire-service #license=GPLv3
+#git+https://github.com/projectatomic/commctl.git #license=LGPLv2
+../commctl #license=LGPLv2
