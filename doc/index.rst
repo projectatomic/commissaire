@@ -1,5 +1,5 @@
 Commissaire
-============
+===========
 
 .. warning::
 
@@ -19,8 +19,10 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
    overview
+   configuration/*
    operations
    commctl
    components
