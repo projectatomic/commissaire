@@ -11,8 +11,8 @@ Related projects are:
 
 **Official**:
 
-  * [commissaire-service](https://github.com/projcetatomic/commissaire-service) which provides the microservices and base code for the services.
-  * [commissaire-http](https://github.com/projcetatomic/commissaire-http) provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
+  * [commissaire-service](https://github.com/projectatomic/commissaire-service) which provides the microservices and base code for the services.
+  * [commissaire-http](https://github.com/projectatomic/commissaire-http) provides the HTTP REST front-end. It is responsible for routing of requests, the business logic, passing work to the services, and responding results back to the client.
 
 **Community Projects**:
 
