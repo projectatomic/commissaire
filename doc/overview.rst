@@ -23,17 +23,8 @@ Feature Overview
 - :ref:`Built in support for Atomic, RHEL, Fedora, and CentOS <tested_host_node_oss>`
 
 
-Flow
-----
-
-.. todo::
-
-    Remove this flow diagram. It's out of date.
-
-.. todo::
-
-    Add a new flow diagram.
-
+Logical Flow
+------------
 
 .. image:: commissaire-flow-diagram.png
 
