@@ -1,6 +1,6 @@
 Commissaire
 ===========
-The lightweight REST API for Clusters.
+The lightweight REST API for Node Management.
 
 [![Documentation](https://readthedocs.org/projects/commissaire/badge/?version=latest)](http://commissaire.readthedocs.org/) [![Build Status](https://travis-ci.org/projectatomic/commissaire.svg)](https://travis-ci.org/projectatomic/commissaire)
 
@@ -17,6 +17,11 @@ Related projects are:
 **Community Projects**:
 
   * [commissaire-openstack](https://github.com/portdirect/commissaire-openstack)
+
+
+Community Meeting
+=================
+See the [Community Meetings page](http://commissaire.readthedocs.io/en/latest/community_meetings.html).
 
 
 Python Version

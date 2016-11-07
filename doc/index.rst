@@ -30,6 +30,7 @@ Contents:
    http
    enums
    endpoints
+   community_meetings
    license
 
 Development
