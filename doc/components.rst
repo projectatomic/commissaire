@@ -53,5 +53,5 @@ Kubernetes.
 Container Manager
 ~~~~~~~~~~~~~~~~~
 OpenShift or Kubernetes can be used as the container manager. commissaire utilizes
-Kubernetes api to ensure that new host nodes register properly. From this point
+Kubernetes API to ensure that new host nodes register properly. From this point
 forward Kubernetes is able to use the host node to schedule pods, etc...

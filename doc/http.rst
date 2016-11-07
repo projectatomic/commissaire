@@ -3,12 +3,13 @@ Commissaire HTTP
 
 Commissaire HTTP provides a multithreaded REST interface into Commissaire
 functionality. The server is broken up into 5 main parts: ``Router``,
-``Dispatcher``, ``handlers``, and the ``CommissaireHttpServer`` itself.
+``Dispatcher``, ``Function Handler``, ``Class Handler``, and the
+``CommissaireHttpServer`` itself.
 
 Router
 ------
 The ``Router`` maps URI paths to controllers. The following example would route
-the path /hello/ to the controller at ``commissaire_http.handlers.hello_world``
+the path ``/hello/`` to the controller at ``commissaire_http.handlers.hello_world``
 if the HTTP method is ``GET``.
 
 .. todo::
@@ -54,12 +55,12 @@ convention so the ``Dispatcher`` knows it's valid during loading.
 
 Function Handler
 ````````````````
-Function handlers must take two parameters: ``message`` and ``bus``. The first
+Function Handlers must take two parameters: ``message`` and ``bus``. The first
 input, ``message``, is the jsonrpc message. The second input, ``bus`` will
 either be a valid connection to the bus or, if the bus is not enabled,
 ``None``.
 
-When referencing a function handler as a controller use the full package path
+When referencing a Function Handler as a controller use the full package path
 to the function. If the function is ``hello_world`` and it lives under
 ``commissaire_http.handlers`` then the controller would be
 ``commissaire_http.handlers.hello_world``.
@@ -97,22 +98,23 @@ the handler must be a valid jsonrpc message as well!
 
 Class Handler
 `````````````
-A class handler is not much different than function handlers. Instead of
+A Class Handler is not much different than a Function Handler. Instead of
 defining a single function, a class is declared with methods that take three
 parameters: ``self``, ``message``, and ``bus``. If the method should not be
 considered a handler it must start with an underscore.
 
-One major difference between a class handler and function handler is that class
-handlers are instantiated when they are loaded!
+One major difference between a Class Handler and Function Handler is that Class
+Handlers are instantiated when they are loaded!
 
-When referencing a class handler as a controller, use the full package path
+
+When referencing a Class Handler as a controller, use the full package path
 to the class and the method. If the class is ``ClassHandlerExample``,
 the method is ``hello``, and it lives under ``commissaire_http.handlers``
 then the controller would be
 ``commissaire_http.handlers.ClassHandlerExample.hello``.
 
-The following example exposes ``hello`` in the same way as the above function
-handler. It then uses ``hello_world`` to do the heavy lifting.
+The following example exposes ``hello`` in the same way as the Function
+Handler example above. It then uses ``hello_world`` to do the heavy lifting.
 
 .. code-block:: python
 
@@ -144,8 +146,8 @@ handler. It then uses ``hello_world`` to do the heavy lifting.
 CommissaireHttpServer
 ---------------------
 
-In the following example a ``CommissaireHttpServer`` is created which binds to
-address 127.0.0.1 and port 8000 and uses a previously created dispatcher. It
+In the following example, a ``CommissaireHttpServer`` is created which binds to
+address 127.0.0.1 and port 8000 and uses a previously created ``Dispatcher``. It
 then is set to run (block) until killed.
 
 .. code-block:: python

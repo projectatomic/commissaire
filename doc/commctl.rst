@@ -1,3 +1,4 @@
+.. _commctl_cli:
 
 commctl
 =======
@@ -73,7 +74,7 @@ The password may be stored in the configuration file as well.
 
 .. todo::
 
-    The kubernetes authentication plugin has not been ported yet.
+    The Kubernetes authentication plugin has not been ported yet.
 
 If you are using the :ref:`Kubernetes authentication plugin <kubeauth>` you can opt to reuse the credentials from your kubeconfig like so:
 
@@ -162,7 +163,7 @@ deploy start
 
     Currently not ported to new architecture.
 
-``deploy start`` will create a new deployment on an Atomic host. This is an
+``deploy start`` will create a new deployment on an Atomic Host. This is an
 asynchronous action. See :ref:`deploy_status` on checking the results.
 
 ``deploy start`` requires two positional arguments:

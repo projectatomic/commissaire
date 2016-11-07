@@ -19,7 +19,7 @@ With curl this looks like:
 
 
 The proper headers must also be passed. Since all of the REST communication
-is done via JSON the content-type must be set to application/json.
+is done via JSON the ``Content-Type`` must be set to ``application/json``.
 
 .. code-block:: shell
 
@@ -69,49 +69,49 @@ Cluster Operations with curl
 
 .. todo::
 
-    Reference commctl docs since most users will likely rather than than direct curl
+    Reference commctl docs since most users will likely use that rather than direct curl
 
 These operations are done across all hosts associated with a cluster.
 
 Restart
 ~~~~~~~
-Restarting a cluster is done by creating a new restart record for a specific
+Restarting a cluster is done by creating a new ``restart`` record for a specific
 cluster.
 
 .. include:: examples/create_restart.rst
 
-To check up on a restart a REST *GET* call on the same endpoint will show the
+To check on a ``restart`` record, a REST *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_restart.rst
 
-For specifics on the endpoint see :ref:`cluster_op_restart`
+For specifics on the ``restart`` endpoint see :ref:`cluster_op_restart`
 
 
 Upgrade
 ~~~~~~~
-Upgrading a cluster is done by creating a new upgrade record for a specific
+Upgrading a cluster is done by creating a new ``upgrade`` record for a specific
 cluster.
 
 .. include:: examples/create_upgrade.rst
 
-To check up on an upgrade a REST *GET* call on the same endpoint will show the
+To check on an ``upgrade`` record, a REST *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_upgrade.rst
 
-For specifics on the endpoint see :ref:`cluster_op_upgrade`
+For specifics on the ``upgrade`` endpoint see :ref:`cluster_op_upgrade`
 
 Deploy
 ~~~~~~
-Deploying to a cluster is done by creating a new upgrade record for a specific
+Deploying to a cluster is done by creating a new ``deploy`` record for a specific
 cluster.
 
 .. include:: examples/create_deploy.rst
 
-To check up on a deploy a REST *GET* call on the same endpoint will show the
+To check on a ``deploy`` record, a REST *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_deploy.rst
 
-For specifics on the endpoint see :ref:`cluster_op_deploy`
+For specifics on the ``deploy`` endpoint see :ref:`cluster_op_deploy`

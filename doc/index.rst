@@ -23,7 +23,6 @@ Contents:
    overview
    operations
    commctl
-   logging
    components
    services
    http
