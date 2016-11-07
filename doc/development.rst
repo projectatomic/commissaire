@@ -27,32 +27,46 @@ your system with application only dependencies while you code.
 Vagrant
 -------
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 A ``Vagrantfile`` is provided which will give you a full local development setup.
+
+To run the vagrant development environment make sure you have a supported
+virtualization system, vagrant installed, and have all commissaire projects checked
+out in the parent folder as the commissaire vagrant box will attempt to mount them
+over NFS.
+
+.. code-block:: shell
+
+   $ ls ../ | grep 'commissaire'
+   commissaire
+   commissaire-http
+   commissaire-service
+   $
+
 
 To run the vagrant development environment make sure you have a support
 virtualization system as well as vagrant installed and execute ``vagrant up``.
 
 .. warning::
 
-   The initial run updates the systems and can take some time. To provision faster try ``vagrant up --parallel etcd fedora-cloud fedora-atomic && vagrant up commissaire``.
+   The initial run updates the systems and can take some time. To provision faster try ``vagrant up --parallel servers fedora-cloud fedora-atomic && vagrant up commissaire``.
+
+.. note::
+
+   On some Linux versions you may have to follow extra steps for vagrant. Here is an example for using vagrant with NFS on `Fedora <https://developer.fedoraproject.org/tools/vagrant/vagrant-nfs.html>`_.
 
 .. note::
 
     You will need to add an ssh pub key to ``/root/.ssh/authorized_keys`` on nodes if you will not be using ``cloud-init`` for bootstrapping.
 
-================== =============== ================ =========
-Server             IP              OS               AutoStart
-================== =============== ================ =========
-Etcd               192.168.152.101 Fedora Cloud 24  Yes
-Fedora Node        192.168.152.110 Fedora Cloud 24  Yes
-Fedora Atomic Node 192.168.152.111 Fedora Atomic 23 Yes
-Commissaire        192.168.152.100 Fedora Cloud 24  Yes
-Kubernetes         192.168.152.102 Fedora Cloud 24  No
-================== =============== ================ =========
+==================== =============== ================ =========
+Server               IP              OS               AutoStart
+==================== =============== ================ =========
+Servers (etcd/redis) 192.168.152.101 Fedora Cloud 24  Yes
+Fedora Node          192.168.152.110 Fedora Cloud 24  Yes
+Fedora Atomic Node   192.168.152.111 Fedora Atomic 24 Yes
+Commissaire          192.168.152.100 Fedora Cloud 24  Yes
+Kubernetes           192.168.152.102 Fedora Cloud 24  No
+==================== =============== ================ =========
 
 For more information see the `Vagrant site <https://www.vagrantup.com>`_.
 
