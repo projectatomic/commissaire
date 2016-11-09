@@ -360,6 +360,17 @@ class ClusterDeploy(Model):
         'deployed': [], 'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
 
+    def _validate(self):
+        """
+        Extra validation for ClusterDeploy.
+        """
+        errors = []
+        if self.version in ('', None):
+            errors.append('version must be a non empty string')
+        if self.name in ('', None):
+            errors.append('name must be a non empty string')
+        super()._validate(errors)
+
 
 class ClusterRestart(Model):
     """
