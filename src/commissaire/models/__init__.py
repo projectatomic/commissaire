@@ -391,6 +391,15 @@ class ClusterRestart(Model):
         'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
 
+    def _validate(self):
+        """
+        Extra validation for ClusterRestart.
+        """
+        errors = []
+        if self.name in ('', None):
+            errors.append('name must be a non empty string')
+        super()._validate(errors)
+
 
 class ClusterUpgrade(Model):
     """
@@ -410,6 +419,15 @@ class ClusterUpgrade(Model):
         'name': '', 'status': '', 'upgraded': [],
         'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
+
+    def _validate(self):
+        """
+        Extra validation for ClusterRestart.
+        """
+        errors = []
+        if self.name in ('', None):
+            errors.append('name must be a non empty string')
+        super()._validate(errors)
 
 
 class Clusters(Model):
