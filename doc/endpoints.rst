@@ -58,11 +58,9 @@ PUT
 ```
 Creates a new cluster.
 
-.. note::
+.. deprecated:: 0.0.1
 
-    To retain backwards compatibilty this endpoint will also continue accepting
-    no payload until version ``0.1.0``. Until then the type of ``kubernetes``
-    will be used.
+   Provide a ``network`` when creating a new Cluster.
 
 .. code-block:: javascript
 
