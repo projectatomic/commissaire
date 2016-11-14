@@ -9,7 +9,12 @@ Vagrant.configure(2) do |config|
     # Development servers server.
     config.vm.define "servers" do |servers|
       servers.vm.box = "fedora/24-cloud-base"
+      servers.vm.provider :libvirt do |domain|
+       domain.memory = 1024
+       domain.cpus = 1
+      end
       servers.vm.network "private_network", ip: "192.168.152.101"
+      config.vm.synced_folder ".", "/vagrant", disabled: true
       servers.vm.provision "shell", inline: <<-SHELL
         echo "==> Setting hostname"
         sudo hostnamectl set-hostname servers
@@ -36,7 +41,12 @@ Vagrant.configure(2) do |config|
     # NOTE: This must start after etcd.
     config.vm.define "kubernetes", autostart: false do |kubernetes|
       kubernetes.vm.box = "fedora/24-cloud-base"
+      kubernetes.vm.provider :libvirt do |domain|
+       domain.memory = 1024
+       domain.cpus = 1
+      end
       kubernetes.vm.network "private_network", ip: "192.168.152.102"
+      config.vm.synced_folder ".", "/vagrant", disabled: true
       kubernetes.vm.provision "shell", inline: <<-SHELL
         echo "==> Setting hostname"
         sudo hostnamectl set-hostname kubernetes
@@ -58,6 +68,10 @@ Vagrant.configure(2) do |config|
     # Development Node 1
     config.vm.define "fedora-cloud" do |node|
       node.vm.box = "fedora/24-cloud-base"
+      node.vm.provider :libvirt do |domain|
+       domain.memory = 1024
+       domain.cpus = 1
+      end
       node.vm.network "private_network", ip: "192.168.152.110"
       node.vm.provision "shell", inline: <<-SHELL
         echo "==> Setting hostname"
@@ -77,6 +91,10 @@ Vagrant.configure(2) do |config|
     # Development Node 1
     config.vm.define "fedora-atomic" do |node|
       node.vm.box = "fedora/24-atomic-host"
+      node.vm.provider :libvirt do |domain|
+       domain.memory = 1024
+       domain.cpus = 1
+      end
       node.vm.network "private_network", ip: "192.168.152.111"
       config.vm.synced_folder ".", "/vagrant", disabled: true
       node.vm.provision "shell", inline: <<-SHELL
@@ -97,6 +115,10 @@ Vagrant.configure(2) do |config|
   # NOTE: This must start after etcd.
   config.vm.define "commissaire", primary: true do |commissaire|
     commissaire.vm.box = "fedora/24-cloud-base"
+    commissaire.vm.provider :libvirt do |domain|
+     domain.memory = 1024
+     domain.cpus = 1
+    end
     commissaire.vm.network "private_network", ip: "192.168.152.100"
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder ".", "/vagrant/commissaire",  mount_options: ['vers=3']
@@ -108,7 +130,7 @@ Vagrant.configure(2) do |config|
       echo "===> Updating the system"
       sudo dnf update -y
       echo "===> Installing OS dependencies"
-      sudo dnf install -y --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-virtualenv gcc libffi-devel openssl-devel git nfs-utils
+      sudo dnf install -y --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-virtualenv gcc libffi-devel openssl-devel git nfs-utils etcd
       echo "===> Setting up virtualenv"
       virtualenv-3 commissaire_env
       echo "===> Installing commissaire"
@@ -131,19 +153,22 @@ Vagrant.configure(2) do |config|
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-server -c /etc/commissaire/commissaire.conf"|' /etc/systemd/system/commissaire-server.service
       sudo sed -i 's|Type=simple|\&\\nWorkingDirectory=/vagrant|' /etc/systemd/system/commissaire-server.service
 
+      echo "===> Populating ETCD storage"
+      . commissaire_env/bin/activate && export ETCDCTL_ENDPOINTS="http://192.168.152.101:2379" && bash /vagrant/commissaire-service/tools/etcd_init.sh
+
       echo "===> Setting up commissaire-storage service to autostart"
       sudo cp /vagrant/commissaire-service/conf/storage.conf /etc/commissaire/storage.conf
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-storage.service /etc/systemd/system/commissaire-storage.service
       sudo sed -i 's|"server_url": "http://127.0.0.1:2379"|"server_url": "http://192.168.152.101:2379"|g' /etc/commissaire/storage.conf
-      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-storage-service -c /etc/commissaire/storage.conf"|' /etc/systemd/system/commissaire-storage.service
+      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-storage-service -c /etc/commissaire/storage.conf --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-storage.service
 
-      echo "===> Setting up commissaire-investogater-service to autostart"
+      echo "===> Setting up commissaire-investigator-service to autostart"
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-investigator.service /etc/systemd/system/commissaire-investigator.service
-      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-investigator-service -c /etc/commissaire/investigator.conf"|' /etc/systemd/system/commissaire-investigator.service
+      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-investigator-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-investigator.service
 
       echo "===> Setting up commissaire-watcher service to autostart"
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-watcher.service /etc/systemd/system/commissaire-watcher.service
-      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-watcher-service -c /etc/commissaire/watcher.conf"|' /etc/systemd/system/commissaire-watcher.service
+      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-watcher-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-watcher.service
 
       echo "===> Starting commissaire-server"
       sudo systemctl daemon-reload
