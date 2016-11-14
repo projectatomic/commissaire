@@ -19,6 +19,13 @@ import logging
 
 
 def setup_logging(config, components):
+    """
+    Configures then applies said configuration to all provided components.
+    :param config: Configuration data to aid in creating loggers.
+    :type config: argparse.Namespace
+    :param components: Name of componenets which need loggers.
+    :type components: list or tuple
+    """
     if config.debug:
         logging_debug = True
     else:
@@ -43,7 +50,17 @@ def setup_logging(config, components):
     apply_logging(logging_components, logging_format, logging_debug)
 
 
-def apply_logging(components, log_format, logging_debug):
+def apply_logging(components, log_format, logging_debug=False):
+    """
+    Applies logging configuration to all provided components.
+
+    :param components: Configuration for all loggers.
+    :type components: dict
+    :param log_format: The default log format to use.
+    :type log_format: str
+    :param logging_debug: If debug is enabled (default: False)
+    :type logging_debug: bool
+    """
     for name, opts in components.items():
         if 'format' in opts:
             log_format = opts['format']
