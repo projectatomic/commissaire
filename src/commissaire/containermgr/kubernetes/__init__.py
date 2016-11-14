@@ -122,5 +122,6 @@ class ContainerManager(ContainerManagerBase):
             data = data['status']
         return (resp.status_code, data)
 
+
 #: Friendly name for the class
 KubeContainerManager = ContainerManager
