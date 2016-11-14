@@ -185,29 +185,30 @@ class Model(object):
 
         :raises: ValidationError
         """
+        all_errors = [] + errors
         for attr, spec in self._attribute_map.items():
             value = getattr(self, attr)
             if not isinstance(value, spec['type']):
-                errors.append(
-                    '{0}.{1}: Expected type {2}. Got {3}'.format(
+                all_errors.append(
+                    '{}.{}: Expected type {}. Got {}'.format(
                         self.__class__.__name__, attr,
                         spec['type'], type(value)))
 
             try:
                 if spec.get('regex') and not re.match(spec['regex'], value):
-                    errors.append(
-                        '{0}.{1}: Value did validate against the '
-                        'provided regular expression "{2}"'.format(
+                    all_errors.append(
+                        '{}.{}: Value did validate against the '
+                        'provided regular expression "{}"'.format(
                             self.__class__.__name__, attr, spec['regex']))
             except TypeError:
-                errors.append(
-                    '{0}.{1}: Value can not be validated by a '
+                all_errors.append(
+                    '{}.{}: Value can not be validated by a '
                     'regular expression'.format(self.__class__.__name__, attr))
 
-        if errors:
+        if all_errors:
             raise ValidationError(
-                '{0} instance is invalid due to {1} errors.'.format(
-                    self.__class__.__name__, len(errors)), errors)
+                '{} instance is invalid due to {} errors.'.format(
+                    self.__class__.__name__, len(all_errors)), all_errors)
 
     def _coerce(self):
         """
@@ -227,13 +228,13 @@ class Model(object):
                     setattr(self, attr, caster(value))
                 except Exception as ex:
                     errors.append(
-                        '{0}.{1} can not be coerced from {2} to {3} '
-                        'due to {4}: {5}'.format(
+                        '{}.{} can not be coerced from {} to {} '
+                        'due to {}: {}'.format(
                             self.__class__.__name__, attr,
                             type(value), spec['type'], type(ex), ex))
         if errors:
             raise CoercionError(
-                '{0} instance failed coercion due to {1} errors.'.format(
+                '{} instance failed coercion due to {} errors.'.format(
                     len(errors), errors))
 
 
