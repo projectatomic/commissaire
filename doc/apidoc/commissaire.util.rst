@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    commissaire.util.config
+   commissaire.util.logging
    commissaire.util.ssh
 
 Module contents
