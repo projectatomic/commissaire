@@ -65,6 +65,25 @@ class TestModel(TestCase):
             'ssh_priv_key',
             instance.to_dict(secure=True))
 
+    def test__coerce(self):
+        """
+        Verify _coerce casts fields when the data is castable.
+        """
+        address = 123
+        instance = models.Host.new(address=address)
+        instance._coerce()
+        self.assertEquals(str(address), instance.address)
+
+    def test__coerce_failure(self):
+        """
+        Verify _coerce raises when a field can not be cast.
+        """
+        hosts = 123
+        instance = models.Hosts.new(hosts=hosts)
+        self.assertRaises(
+            models.CoercionError,
+            instance._coerce)
+
 
 class _TypeValidationTest(TestCase):
     """
@@ -101,13 +120,6 @@ class _TypeValidationTest(TestCase):
             instance._validate,
         )
 
-class TestClusterModel(_TypeValidationTest):
-    """
-    Extra tests for the Cluster model.
-    """
-    model = models.Cluster
-    valid_types = C.CLUSTER_TYPES
-
 
 class TestNetworkModel(_TypeValidationTest):
     """
@@ -115,3 +127,11 @@ class TestNetworkModel(_TypeValidationTest):
     """
     model = models.Network
     valid_types = C.NETWORK_TYPES
+
+
+class TestContainerManagerModel(_TypeValidationTest):
+    """
+    Extra tests for the ContainerManagerConfig model.
+    """
+    model = models.ContainerManagerConfig
+    valid_types = C.CONTAINER_MANAGER_TYPES

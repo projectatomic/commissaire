@@ -51,10 +51,10 @@ Status Statuses
 * **OK**: The status check is currently working.
 * **FAILED**: The status check is currently failing.
 
-.. _cluster_types:
 
-Cluster Types
-~~~~~~~~~~~~~
+.. _container_manager_types:
 
-* **kubernetes**: A cluster with a Kubernetes compatible API.
-* **host_only**: A cluster for only managing hosts.
+ContainerManager Types
+~~~~~~~~~~~~~~~~~~~~~~
+
+* **openshift**: A cluster with an OpenShift compatible API.

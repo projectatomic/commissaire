@@ -241,6 +241,10 @@ class Model(object):
 class Network(Model):
     """
     Representation of a network.
+
+    .. note::
+
+       This model is similar to ContainerManagerConfig.
     """
     _json_type = dict
     _attribute_map = {
@@ -288,15 +292,17 @@ class Cluster(Model):
     _attribute_map = {
         'name': {'type': str},
         'status': {'type': str},
-        'type': {'type': str},
         'network': {'type': str},
         'hostset': {'type': list},
+        'container_manager': {'type': str},
     }
     _hidden_attributes = ('hostset',)
     _attribute_defaults = {
-        'name': '', 'type': C.CLUSTER_TYPE_DEFAULT,
-        'status': '', 'hostset': [],
+        'name': '',
+        'status': '',
+        'hostset': [],
         'network': C.DEFAULT_CLUSTER_NETWORK_JSON['name'],
+        'container_manager': '',
     }
     _primary_key = 'name'
 
@@ -332,14 +338,6 @@ class Cluster(Model):
         # Instead of reimplementing the logic take the performance hit of
         # of going between native and json
         return json.loads(self.to_json_with_hosts(secure))
-
-    def _validate(self):
-        errors = []
-        if self.type not in C.CLUSTER_TYPES:
-            errors.append(
-                'Cluster type must be one of the following: {}'.format(
-                    ', '.join(C.CLUSTER_TYPES)))
-        super()._validate(errors)
 
 
 class ClusterDeploy(Model):
@@ -536,3 +534,50 @@ class WatcherRecord(Model):
             errors.append(
                 'last_check must be in isoformat: "{}"'.format(C.DATE_FORMAT))
         super()._validate(errors)
+
+
+class ContainerManagerConfig(Model):
+    """
+    Representation of a ContainerManager configuration record.
+
+    .. note::
+
+       This model is similar to Network. The options attribute holds
+       configuration items used to create a ContainerManager instance.
+    """
+    _json_type = dict
+    _attribute_map = {
+        'name': {'type': str},
+        'type': {'type': str},
+        'options': {'type': dict},
+    }
+    _attribute_defaults = {
+        'name': '',
+        'type': C.CONTAINER_MANAGER_DEFAULT,
+        'options': {},
+    }
+    _primary_key = 'name'
+
+    def _validate(self):
+        """
+        Extra validation for ContainerManager.
+        """
+        errors = []
+        if self.type not in C.CONTAINER_MANAGER_TYPES:
+            errors.append(
+                'ContainerManager type must be one of the '
+                'following: {}'.format(', '.join(C.CONTAINER_MANAGER_TYPES)))
+        super()._validate(errors)
+
+
+class ContainerManagerConfigs(Model):
+    """
+    Representation of a group of one or more ContainerManagers.
+    """
+    _json_type = list
+    _attribute_map = {
+        'container_managers': {'type': list},
+    }
+    _attribute_defaults = {'container_managers': []}
+    _list_attr = 'container_managers'
+    _list_class = ContainerManagerConfig
