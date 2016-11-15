@@ -75,7 +75,7 @@ class Model(object):
         :rtype: commissaire.model.Model
         """
         # self._attributes = self._attribute_map.keys()
-        for key in self._attribute_map.keys():
+        for key in list(self._attribute_map.keys()):
             if key not in kwargs:
                 raise TypeError(
                     '{0}.__init__() missing 1 or more required '
@@ -129,7 +129,7 @@ class Model(object):
         :rtype: list
         """
         if len(self._attribute_map.keys()) == 1:
-            data = getattr(self, self._attribute_map.keys()[0])
+            data = getattr(self, list(self._attribute_map.keys())[0])
         return data
 
     def _dict_for_json(self, secure):
@@ -142,7 +142,7 @@ class Model(object):
         :rtype: dict
         """
         data = {}
-        for key in self._attribute_map.keys():
+        for key in list(self._attribute_map.keys()):
             if secure:
                 data[key] = getattr(self, key)
             elif key not in self._hidden_attributes:
@@ -316,7 +316,7 @@ class Cluster(Model):
     # FIXME Generalize and move to Model?
     def to_json_with_hosts(self, secure=False):
         data = {}
-        for key in self._attribute_map.keys():
+        for key in list(self._attribute_map.keys()):
             if secure:
                 data[key] = getattr(self, key)
             elif key not in self._hidden_attributes:
