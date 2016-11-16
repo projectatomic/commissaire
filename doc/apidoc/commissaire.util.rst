@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    commissaire.util.config
+   commissaire.util.date
    commissaire.util.logging
    commissaire.util.ssh
 
