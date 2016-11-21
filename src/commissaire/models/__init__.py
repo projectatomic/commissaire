@@ -162,6 +162,18 @@ class Model(object):
             self._struct_for_json(secure=secure),
             default=lambda o: o._struct_for_json(secure=secure))
 
+    def to_json_safe(self):
+        """
+        Returns a JSON representation of this model, omitting all hidden
+        attributes.  Use this when preparing data for display to users.
+
+        :returns: The JSON representation.
+        :rtype: str
+        """
+        return json.dumps(
+            self._struct_for_json(secure=False),
+            default=lambda o: o._struct_for_json(secure=False))
+
     def to_dict(self, secure=False):
         """
         Returns a dict representation of this model. This is different than

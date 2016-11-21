@@ -52,6 +52,15 @@ class TestModel(TestCase):
             'ssh_priv_key',
             json.loads(instance.to_json(secure=True)))
 
+    def test_to_json_safe(self):
+        """
+        Verify to_json_safe returns a sanitized json string.
+        """
+        instance = models.Host.new(ssh_priv_key='secret')
+        self.assertNotIn(
+            'ssh_priv_key',
+            json.loads(instance.to_json_safe()))
+
     def test_to_dict(self):
         """
         Verify to_dict returns a sanitized json string.
