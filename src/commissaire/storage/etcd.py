@@ -113,7 +113,7 @@ class EtcdStoreHandler(StoreHandlerBase):
         :rtype: commissaire.model.Model
         """
         key = self._format_key(model_instance)
-        self._store.write(key, model_instance.to_json(secure=True))
+        self._store.write(key, model_instance.to_json())
         # TODO: Check if we need to update the data in the instance
         return model_instance
 

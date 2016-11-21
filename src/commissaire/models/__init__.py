@@ -149,18 +149,16 @@ class Model(object):
                 data[key] = getattr(self, key)
         return data
 
-    def to_json(self, secure=False):
+    def to_json(self):
         """
         Returns a JSON representation of this model.
 
-        :param secure: Include _hidden attributes in the return value.
-        :type secure: bool
         :returns: The JSON representation.
         :rtype: str
         """
         return json.dumps(
-            self._struct_for_json(secure=secure),
-            default=lambda o: o._struct_for_json(secure=secure))
+            self._struct_for_json(secure=True),
+            default=lambda o: o._struct_for_json(secure=True))
 
     def to_json_safe(self):
         """
@@ -174,7 +172,7 @@ class Model(object):
             self._struct_for_json(secure=False),
             default=lambda o: o._struct_for_json(secure=False))
 
-    def to_dict(self, secure=False):
+    def to_dict(self):
         """
         Returns a dict representation of this model. This is different than
         using __dict__ as the returned data will be model specific only.
@@ -186,7 +184,7 @@ class Model(object):
         """
         # Instead of reimplementing the logic take the performance hit of
         # going between native and json
-        return json.loads(self.to_json(secure))
+        return json.loads(self.to_json())
 
     def to_dict_safe(self):
         """
