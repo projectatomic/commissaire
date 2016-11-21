@@ -12,6 +12,7 @@ Subpackages
     commissaire_http.handlers
     commissaire_http.router
     commissaire_http.server
+    commissaire_http.util
 
 Submodules
 ----------

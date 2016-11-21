@@ -8,6 +8,8 @@ Submodules
 
    commissaire_http.authentication.httpauthclientcert
    commissaire_http.authentication.httpbasicauth
+   commissaire_http.authentication.keystonepasswordauth
+   commissaire_http.authentication.keystonetokenauth
 
 Module contents
 ---------------
