@@ -185,8 +185,22 @@ class Model(object):
         :rtype: dict
         """
         # Instead of reimplementing the logic take the performance hit of
-        # of going between native and json
+        # going between native and json
         return json.loads(self.to_json(secure))
+
+    def to_dict_safe(self):
+        """
+        Returns a dict representation of this model, omitting all hidden
+        attributes.  This is different than using __dict__ as the returned
+        data will be model specific only.  Use this when preparing data for
+        display to users.
+
+        :returns: the dict representation.
+        :rtype: dict
+        """
+        # Instead of reimplementing the logic take the performance hit of
+        # going between native and json
+        return json.loads(self.to_json_safe())
 
     def _validate(self, errors=[]):
         """

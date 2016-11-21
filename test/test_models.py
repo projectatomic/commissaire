@@ -74,6 +74,15 @@ class TestModel(TestCase):
             'ssh_priv_key',
             instance.to_dict(secure=True))
 
+    def test_to_dict_safe(self):
+        """
+        Verify to_dict_safe returns a sanitized dict.
+        """
+        instance = models.Host.new(ssh_priv_key='secret')
+        self.assertNotIn(
+            'ssh_priv_key',
+            instance.to_dict_safe())
+
     def test__coerce(self):
         """
         Verify _coerce casts fields when the data is castable.
