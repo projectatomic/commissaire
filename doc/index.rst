@@ -42,7 +42,7 @@ Development
    authentication_devel
    packaging
    cloud_init
-
+   cpd
 
 Indices and tables
 ==================

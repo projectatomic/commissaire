@@ -1,0 +1,96 @@
+CPD-1: CPD Process
+==================
+
+Metadata
+--------
+
+* CPD Version: 1
+* Status: Accepted
+
+Description
+-----------
+Commissaire Proposal Documents (CPD) provide a consistent way to propose large
+changes to the project for review.
+
+Rationale
+---------
+Most changes to Commissaire are small, iterative enhancements and bug fixes.
+When a larger change to the project may make sense a CPD provides a formalized
+way to propose the change, request review, and refine the idea until it is
+either accepted or rejected.
+
+Design
+------
+
+CPD Process
+~~~~~~~~~~~
+
+The following process should be followed when a CPD is needed:
+
+1. Open up an Issue with a brief description
+2. Note in the Issue that a CPD will be created
+3. Create an initial CPD
+4. Update the Issue with a link to the CPD and request feedback
+5. Update the CPD as needed and ask for feedback
+6. Accepted/Closed Phase
+  * If 75% or more of the active development team give the CPD a ``:+1:`` it is Approved
+  * If 50% or more of the active development team disagrees with the CPD it is Closed
+  * If the person proposing the CPD no longer wishes to continue they can request it to be Closed
+  * If none of the above is met the cycle can continue to 5.
+7. The current development lead(s) pull in the CPD to the docs folder and update the status
+8. The current development lead(s) update the issue with the result
+
+Naming
+~~~~~~
+Each CPD will have a unique number associated with it. As an example, this
+CPD will have the number ``1`` and should be referenced as ``CPD-1``. The CPD number
+shall be the same as any issue number opened. As an example, if there is an
+issue #10 that needs a larger design then the CPD would be ``CPD-10``.
+
+Outline of a CPD
+~~~~~~~~~~~~~~~~
+====================== ============= =============
+Label                  Parent Label  Description
+====================== ============= =============
+Name                   None          CPD name. Ex: ``CPD-1``.
+Metadata               Name          CPD CPD Version, Status (``Open``, ``Closed``, ``Accepted``)
+Description            Name          Short description of the CPD.
+Rational               Name          Why there is a need to make the change.
+Design                 Name          Deep dive into changes. May have subsections.
+Checklist              Name          Important items to note.
+User Story             Name          User story that would be used to implement the change.
+Acceptance Criteria    Name          Criteria that must be met for the change to be considered complete.
+References             Name          Any helpful external links.
+====================== ============= =============
+
+CPD Status
+~~~~~~~~~~
+The status of a CPD will be changed to Accepted if and when 75% or more of the
+active core development team gives the CPD a ``:+1:``. It is the job of at least
+one of the development leads to update the CPD to Accepted status and note it is
+accepted in the related issue(s).
+
+Checklist
+---------
+* breaks API backward compatibility
+* breaks user interaction backward compatibility
+* requires new or replaces current libraries
+
+User Story
+----------
+As a developer on Commissaire
+I want a formalized way to propose large changes
+so that the larger group can help refine the ultimate solution.
+
+Acceptance Criteria
+-------------------
+* Verify that a template for proposals is created
+* Verify that a proposal that describes the process is created
+* Verify that documentation is updated
+
+References
+----------
+* `Kubernetes Proposals <https://github.com/kubernetes/kubernetes/tree/master/docs/proposals>`_
+* `Golang Proposals <https://github.com/golang/proposal>`_
+* `PEP Proposal <https://www.python.org/dev/peps/pep-0001/>`_
+* `JSR <https://www.jcp.org/en/jsr/all>`_
