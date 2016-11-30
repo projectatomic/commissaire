@@ -5,7 +5,7 @@ Metadata
 --------
 
 * CPD Version: `61 <https://github.com/projectatomic/commissaire/issues/61>`_
-* Status: Open
+* Status: Accepted
 
 Description
 -----------
