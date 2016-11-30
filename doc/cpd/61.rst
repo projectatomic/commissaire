@@ -1,0 +1,190 @@
+CPD-61: Host Abstraction
+========================
+
+Metadata
+--------
+
+* CPD Version: `61 <https://github.com/projectatomic/commissaire/issues/61>`_
+* Status: Open
+
+Description
+-----------
+Today the ``Host`` abstraction is a simple model. It is saved and retrieved via
+persistent storage with the ``StorageService``. This CPD makes the ``Host`` abstraction
+into a model which may have its data pulled from another system
+(EX: `CloudForms <https://www.redhat.com/en/technologies/management/cloudforms>`_).
+
+Rationale
+---------
+Most environments Commissaire will be used in will not be `greenfield <https://en.wikipedia.org/wiki/Greenfield_project>`_.
+They will likely have at least one other system which is storing host information. Even if
+the environment is greenfield there is a good chance that other systems which require
+storing host data themselves will be brought in.
+
+Design
+------
+
+Model Changes
+~~~~~~~~~~~~~
+The current ``Host`` model has the following fields:
+
+============ ===========
+Name         Description
+============ ===========
+address      IP address or hostname of the ``Host``
+status       Status of the host. Decided within Commissaire itself.
+os           The Operating System the ``Host`` utlizes.
+cpus         Number of CPU's in the ``Host``
+memory       Amount of memory the ``Host`` has at it's disposal.
+space        Amount of storage the ``Host`` has at it's disposal.
+last_check   The last time the host was checked by ``Watcher``. Set by Commissaire itself.
+ssh_priv_key The ssh private key to use for accessing the ``Host``.
+remote_user  The username to use with the ``ssh_priv_key`` when accessing the ``Host``.
+============ ===========
+
+To accommodate the possibility of external ``Host`` instances the following field would be added.
+
+====== ===========
+Name   Description
+====== ===========
+source Name of the external system of record that can authoritatively provide ``Host`` information.
+====== ===========
+
+The use of ``source`` will determine if the ``Host`` instance should be populated from
+the general store defined by commissaire, or a specific store.
+
+* When ``source`` is not defined, the ``Host`` record is considered native to Commissaire.
+* If the ``source`` is defined it should be the name of the StoreHandler which can provide
+the ``Host`` information. For instance, if ``commissaire.storage.cloudforms`` should be used, then the
+``source`` would be ``cloudforms``.
+
+
+Example Host Model Owned by Commissaire
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+       "space": 51475068,
+       "status": "active",
+       "address": "192.168.155.150",
+       "os": "fedora",
+       "memory": 2048,
+       "cpus": 4,
+       "last_check": "2016-11-28T22:10:11.851787",
+       "source": ""
+   }
+
+
+Example Host Model Owned by An External Provider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    All data but ``status``, ``last_check``, and ``source`` would come from the source.
+
+.. code-block:: javascript
+
+  {
+      "space": 51475068,
+      "status": "active",
+      "address": "192.168.155.150",
+      "os": "fedora",
+      "memory": 2048,
+      "cpus": 4,
+      "last_check": "2016-11-28T22:10:11.851787",
+      "source": "cloudforms"
+  }
+
+
+Accessing Hosts
+~~~~~~~~~~~~~~~
+``StorageService`` will still be the authoritative service for retrieving ``Host`` data.  For
+``StorageService`` to be able to make these external calls a ``StoreHandler`` would need to be
+available and configured for any ``source`` in use. As an example of a ``StoreHandler``
+see the `etcd StoreHandler <https://github.com/projectatomic/commissaire/blob/master/src/commissaire/storage/etcd.py>`_.
+
+
+Changes to StorageService
+~~~~~~~~~~~~~~~~~~~~~~~~~
+``StorageService`` currently only allows one ``StoreHandler`` to be configured per model
+(See `this code chunk <https://github.com/projectatomic/commissaire-service/blob/339b4f6aabcbdee78ae9d24160e9974166492503/src/commissaire_service/storage/storehandlermanager.py#L73-L86>`_).
+This restriction would need to be changed so that multiple ``StoreHandlers`` can be configured
+with a model. The first ``StoreHandler`` linked to a model should be consider that models default.
+
+The ``StoreHandler`` precedence would work as follows:
+
+- If the model has an ``source`` then the provided ``source`` is used
+- If the model has no ``source`` then the default ``StoreHandler`` for said model is used.
+
+The ``StoreHandler`` would also need to be extended in a way to denote a difference between a
+traditional ``StoreHandler`` and an ``source`` ``StoreHandler``. This exercise is
+left up to the implementer.
+
+Example StorageService Configuration
+````````````````````````````````````
+
+.. note::
+
+    In this example ``etcd`` is the default for all models.
+
+.. code-block:: javascript
+
+   {
+     "storage_handlers": [{
+         "name": "commissaire.storage.etcd",
+         "server_url": "http://127.0.0.1:2379",
+         "models": ["*"],
+     }, {
+         "name": "commissaire.storage.cloudforms",
+         "server_url": "https://example.org/api/",
+         "models": ["Host"],
+         "username": "commissaire_service_account",
+         "password": "abetteronethanthis",
+         "version": "2.0.0"
+     }]
+   }
+
+
+Future Considerations
+---------------------
+When a ``Host`` uses an external provider we may be able to remove the load from the ``Watcher``
+and have the provider let us know upon major status change.
+
+The ``cloud-init`` script and bootstrapping will probably benefit by adding a new optional field which
+defines ``source``.
+
+The ``Host`` creation endpoints will probably benefit by adding a new optional field which defines
+``source``.
+
+The ``Watcher``, or another long running service, could be extended to periodically pull ``Host`` information
+from all configured ``source`` ``StoreHandler`` instances.
+
+An ``ExternalProviderService`` may make sense in the future if remote control ends up being a need.
+
+The same patterns could be used with ``Cluster``.
+
+Checklist
+---------
+* **breaks API backward compatibility**
+* breaks user interaction backward compatibility
+* requires new or replaces current libraries
+
+User Story
+----------
+In support of allowing other systems to provide host data in a `brownfield <https://en.wikipedia.org/wiki/Brownfield_(software_development)>`_ environment
+I would like ``Host`` to be abstracted in such a way that it may be from N number of horizontal systems
+so that I do not have to have multiple copies of host inventories.
+
+Acceptance Criteria
+-------------------
+* Verify that a design document is created
+* Verify the document is reviewed by at least one other developer
+* Verify implementation card(s) are created
+
+References
+----------
+* `etcd StoreHandler <https://github.com/projectatomic/commissaire/blob/master/src/commissaire/storage/etcd.py>`_
+* `CloudForms <https://www.redhat.com/en/technologies/management/cloudforms>`_
+* `Greenfield <https://en.wikipedia.org/wiki/Greenfield_project>`_
+* `Brownfield <https://en.wikipedia.org/wiki/Brownfield_(software_development)>`_
