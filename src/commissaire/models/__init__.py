@@ -98,10 +98,25 @@ class Model(object):
         instance.__init__(**init_args)
         return instance
 
+    def __str__(self):  # pragma: no cover
+        """
+        Returns a string representation of the instance.
+
+        :returns: String representation of this instance.
+        :rtype: str
+        """
+        readable = '<{}'.format(self.__class__.__name__)
+        for k, v in self.to_dict_safe().items():
+            readable += ' {}={},'.format(k, v or '<Empty>')
+        return readable + '...>'
+
     @property
     def primary_key(self):  # pragma: no cover
         """
         Shortcut property to get the value of the primary key.
+
+        :returns: The primary key value.
+        :rtype: mixed
         """
         return getattr(self, self._primary_key)
 
@@ -481,11 +496,12 @@ class Host(Model):
         'last_check': {'type': str},
         'ssh_priv_key': {'type': str},
         'remote_user': {'type': str},
+        'source': {'type': str},
     }
     _attribute_defaults = {
         'address': '', 'status': '', 'os': '', 'cpus': 0,
         'memory': 0, 'space': 0, 'last_check': '', 'ssh_priv_key': '',
-        'remote_user': 'root'}
+        'remote_user': 'root', 'source': ''}
     _hidden_attributes = ('ssh_priv_key', 'remote_user')
     _primary_key = 'address'
 
