@@ -6,6 +6,7 @@ Submodules
 
 .. toctree::
 
+   commissaire.storage.client
    commissaire.storage.etcd
 
 Module contents
