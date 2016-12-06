@@ -8,7 +8,7 @@ Vagrant.configure(2) do |config|
 
     # Development servers server.
     config.vm.define "servers" do |servers|
-      servers.vm.box = "fedora/24-cloud-base"
+      servers.vm.box = "fedora/25-cloud-base"
       servers.vm.provider :libvirt do |domain|
        domain.memory = 1024
        domain.cpus = 1
@@ -40,7 +40,7 @@ Vagrant.configure(2) do |config|
     # Development Kubernetes server.
     # NOTE: This must start after etcd.
     config.vm.define "kubernetes", autostart: false do |kubernetes|
-      kubernetes.vm.box = "fedora/24-cloud-base"
+      kubernetes.vm.box = "fedora/25-cloud-base"
       kubernetes.vm.provider :libvirt do |domain|
        domain.memory = 1024
        domain.cpus = 1
@@ -67,7 +67,7 @@ Vagrant.configure(2) do |config|
 
     # Development Node 1
     config.vm.define "fedora-cloud" do |node|
-      node.vm.box = "fedora/24-cloud-base"
+      node.vm.box = "fedora/25-cloud-base"
       node.vm.provider :libvirt do |domain|
        domain.memory = 1024
        domain.cpus = 1
@@ -90,13 +90,14 @@ Vagrant.configure(2) do |config|
 
     # Development Node 1
     config.vm.define "fedora-atomic" do |node|
-      node.vm.box = "fedora/24-atomic-host"
+      node.vm.box = "fedora/25-atomic-host"
       node.vm.provider :libvirt do |domain|
        domain.memory = 1024
        domain.cpus = 1
       end
       node.vm.network "private_network", ip: "192.168.152.111"
       config.vm.synced_folder ".", "/vagrant", disabled: true
+      config.vm.synced_folder ".", "/home/vagrant/sync", type: "sshfs"
       node.vm.provision "shell", inline: <<-SHELL
         echo "==> Setting hostname"
         sudo hostnamectl set-hostname fedora-atomic
@@ -114,16 +115,16 @@ Vagrant.configure(2) do |config|
   # Development commissaire server and services
   # NOTE: This must start after etcd.
   config.vm.define "commissaire", primary: true do |commissaire|
-    commissaire.vm.box = "fedora/24-cloud-base"
+    commissaire.vm.box = "fedora/25-cloud-base"
     commissaire.vm.provider :libvirt do |domain|
      domain.memory = 1024
      domain.cpus = 1
     end
     commissaire.vm.network "private_network", ip: "192.168.152.100"
     config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.synced_folder ".", "/vagrant/commissaire",  mount_options: ['vers=3']
-    config.vm.synced_folder "../commissaire-http", "/vagrant/commissaire-http",  mount_options: ['vers=3']
-    config.vm.synced_folder "../commissaire-service", "/vagrant/commissaire-service",  mount_options: ['vers=3']
+    config.vm.synced_folder ".", "/vagrant/commissaire", type: "sshfs"
+    config.vm.synced_folder "../commissaire-http", "/vagrant/commissaire-http",  type: "sshfs"
+    config.vm.synced_folder "../commissaire-service", "/vagrant/commissaire-service", type: "sshfs"
     commissaire.vm.provision "shell", inline: <<-SHELL
       echo "==> Setting hostname"
       sudo hostnamectl set-hostname commissaire
@@ -162,7 +163,11 @@ Vagrant.configure(2) do |config|
       sudo sed -i 's|"server_url": "http://127.0.0.1:2379"|"server_url": "http://192.168.152.101:2379"|g' /etc/commissaire/storage.conf
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-storage-service -c /etc/commissaire/storage.conf --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-storage.service
 
-      echo "===> Setting up commissaire-investigator-service to autostart"
+      echo "===> Setting up commissaire-clusterexec service to autostart"
+      sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-clusterexec.service /etc/systemd/system/commissaire-clusterexec.service
+      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-clusterexec-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-clusterexec.service
+
+      echo "===> Setting up commissaire-investigator service to autostart"
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-investigator.service /etc/systemd/system/commissaire-investigator.service
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-investigator-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-investigator.service
 
@@ -179,7 +184,11 @@ Vagrant.configure(2) do |config|
       sudo systemctl enable commissaire-storage
       sudo systemctl start commissaire-storage
 
-      echo "===> Starting commissaire-investigator"
+      echo "===> Starting commissaire-clusterexec service"
+      sudo systemctl enable commissaire-clusterexec
+      sudo systemctl start commissaire-clusterexec
+
+      echo "===> Starting commissaire-investigator service"
       sudo systemctl enable commissaire-investigator
       sudo systemctl start commissaire-investigator
 

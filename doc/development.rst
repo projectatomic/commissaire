@@ -30,9 +30,9 @@ Vagrant
 A ``Vagrantfile`` is provided which will give you a full local development setup.
 
 To run the vagrant development environment make sure you have a supported
-virtualization system, vagrant installed, and have all commissaire projects checked
-out in the parent folder as the commissaire vagrant box will attempt to mount them
-over NFS.
+virtualization system, vagrant and vagrant-sshfs installed, and have all
+commissaire projects checked out in the parent folder as the commissaire
+vagrant box will attempt to mount them over SSH.
 
 .. code-block:: shell
 
@@ -52,7 +52,12 @@ virtualization system as well as vagrant installed and execute ``vagrant up``.
 
 .. note::
 
-   On some Linux versions you may have to follow extra steps for vagrant. Here is an example for using vagrant with NFS on `Fedora <https://developer.fedoraproject.org/tools/vagrant/vagrant-nfs.html>`_.
+   The ``fedora-atomic`` host currently requires a manual work-around to
+   mount the shared folder at ``/home/vagrant/sync``.  After the box is up
+   the first time, run ``vagrant ssh fedora-atomic`` to log into the virtual
+   machine, then run ``sudo rpm-ostree install fuse-sshfs``.  Exit back out
+   to the host machine and restart the virtual machine with ``vagrant reload
+   fedora-atomic``.
 
 .. note::
 
