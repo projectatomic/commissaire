@@ -16,6 +16,8 @@
 import os
 import unittest
 
+from unittest import mock
+
 from commissaire.models import Model
 
 # Keep this list synchronized with oscmd modules.

@@ -31,9 +31,6 @@ class StoreHandlerBase(object):
     Base class for all StoreHandler classes.
     """
 
-    #: Subclasses override this, if applicable.
-    container_manager_class = None
-
     @classmethod
     def check_config(cls, config):
         """

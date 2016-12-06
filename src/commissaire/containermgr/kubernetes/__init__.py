@@ -18,18 +18,16 @@ The kubernetes container manager package.
 
 import requests
 
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
-from commissaire import constants as C
 from commissaire.containermgr import ContainerManagerBase
+from commissaire.util.config import ConfigurationError
 
 
-class ContainerManager(ContainerManagerBase):
+class KubeContainerManager(ContainerManagerBase):
     """
     Kubernetes container manager implementation.
     """
-
-    cluster_type = C.CLUSTER_TYPE_KUBERNETES
 
     def __init__(self, config):
         """
@@ -39,29 +37,61 @@ class ContainerManager(ContainerManagerBase):
         :type config: dict
         """
         ContainerManagerBase.__init__(self, config)
+        self.__class__.check_config(config)
         self.con = requests.Session()
         token = config.get('token', None)
         if token:
-            self.con.headers["Authorization"] = "Bearer {0}".format(token)
+            self.con.headers['Authorization'] = 'Bearer {}'.format(token)
             self.logger.info('Using bearer token')
-            self.logger.debug('Bearer token: {0}'.format(token))
+            self.logger.debug('Bearer token: {}'.format(token))
 
         certificate_path = config.get('certificate_path')
         certificate_key_path = config.get('certificate_key_path')
         if certificate_path and certificate_key_path:
             self.con.cert = (certificate_path, certificate_key_path)
             self.logger.info(
-                'Using client side certificate. Certificate path: {0} '
-                'Certificate Key Path: {1}'.format(
+                'Using client side certificate. Certificate path: {} '
+                'Certificate Key Path: {}'.format(
                     certificate_path, certificate_key_path))
 
         # TODO: Verify TLS!!!
         self.con.verify = False
         self.base_uri = urljoin(config['server_url'], '/api/v1')
-        self.logger.info('Kubernetes Container Manager created: {0}'.format(
+        self.logger.info('Kubernetes Container Manager created: {}'.format(
             self.base_uri))
         self.logger.debug(
-            'Kubernetes Container Manager: {0}'.format(self.__dict__))
+            'Kubernetes Container Manager: {}'.format(self.__dict__))
+
+    @classmethod
+    def check_config(cls, config):
+        """
+        Examines the configuration parameters for an ContainerManager
+        and throws a ConfigurationError if any parameters are invalid.
+
+        :param cls: ContainerManager class.
+        :type cls: class
+        :param config: Configuration dictionary to check.
+        :type config: dict
+        :returns: True if configuration is valid
+        :rtype: bool
+        :raises: commissaire.util.config.ConfigurationError
+        """
+        try:
+            url = urlparse(config['server_url'])
+        except KeyError:
+            raise ConfigurationError(
+                'server_url is a required configuration item')
+
+        if (bool(config.get('certificate_path')) ^
+                bool(config.get('certificate_key_path'))):
+            raise ConfigurationError(
+                'Both "certificate_path" and "certificate_key_path" '
+                'must be provided to use a client side certificate')
+        if config.get('certificate_path'):
+            if url.scheme != 'https':
+                raise ConfigurationError(
+                    'Server URL scheme must be "https" when using client '
+                    'side certificates (got "{}")'.format(url.scheme))
 
     def _get(self, part, *args, **kwargs):
         """
@@ -79,12 +109,12 @@ class ContainerManager(ContainerManagerBase):
         if not part.startswith('/'):
             self.logger.debug(
                 'Part given without starting slash. Adding...')
-            part = '/{0}'.format(part)
+            part = '/{}'.format(part)
 
-        self.logger.debug('Executing GET for {0}'.format(part))
+        self.logger.debug('Executing GET for {}'.format(part))
         resp = self.con.get(
-            '{0}{1}'.format(self.base_uri, part), *args, **kwargs)
-        self.logger.debug('Response for {0}. Status: {1}'.format(
+            '{}{}'.format(self.base_uri, part), *args, **kwargs)
+        self.logger.debug('Response for {}. Status: {}'.format(
             part, resp.status_code))
         return resp
 
@@ -115,7 +145,7 @@ class ContainerManager(ContainerManagerBase):
         :returns: The response back from kubernetes.
         :rtype: requests.Response
         """
-        part = '/nodes/{0}'.format(address)
+        part = '/nodes/{}'.format(address)
         resp = self._get(part)
         data = resp.json()
         if raw:
@@ -123,5 +153,5 @@ class ContainerManager(ContainerManagerBase):
         return (resp.status_code, data)
 
 
-#: Friendly name for the class
-KubeContainerManager = ContainerManager
+#: Common name for the class
+ContainerHandler = KubeContainerManager

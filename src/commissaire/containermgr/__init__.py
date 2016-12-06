@@ -18,15 +18,11 @@ The container manager package.
 
 import logging
 
-from commissaire import constants as C
-
 
 class ContainerManagerBase(object):  # pragma: no cover
     """
     Base class for all container managers.
     """
-
-    cluster_type = C.CLUSTER_TYPE_HOST
 
     def __init__(self, config):
         """
