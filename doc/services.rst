@@ -35,23 +35,22 @@ Commissaire Investigator
 Commissaire's ``Investigator`` is a set of long running processes which
 connect to and bootstrap new hosts wanting to be managed by Commissaire.
 
-
 Commissaire Watcher
 ```````````````````
-
-.. todo::
-
-    Currently not ported to new architecture.
-
 Commissaire's ``Watcher`` is a set of long running processes which periodically
 connects to hosts that have already been bootstrapped and checks their status.
-
 
 Commissaire Storage
 ```````````````````
 Commissaire's ``Storage`` is a set of long running processes which broker storage
 and retrieval requests of persistent data.
 
+Example Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+By default ``commissaire-storage-service`` looks at ``/etc/commissaire/storage.conf``
+for it's configuration. This can be overriden with the ``-c/--config`` flag.
+
+.. literalinclude:: ../../commissaire-service/conf/storage.conf
 
 Writing a Service
 -----------------
