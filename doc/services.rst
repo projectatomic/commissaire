@@ -8,6 +8,19 @@ Commissaire's message bus and provide/consume services.
 Example Use Cases
 -----------------
 
+Commissaire Container Manager
+``````````````````````````````
+Commissaire's ``Container Manager`` service is a set of long running processes which provide
+a consistant API to work with container managers.
+
+
+Example Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+By default ``commissaire-clustermgr-service`` looks at ``/etc/commissaire/containermgr.conf``
+for it's configuration. This can be overriden with the ``-c/--config`` flag.
+
+.. literalinclude:: ../../commissaire-service/conf/containermgr.conf
+
 Commissaire Investigator
 ````````````````````````
 Commissaire's ``Investigator`` is a set of long running processes which
