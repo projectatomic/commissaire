@@ -16,11 +16,13 @@
 The kubernetes container manager package.
 """
 
+import json
 import requests
 
 from urllib.parse import urljoin, urlparse
 
-from commissaire.containermgr import ContainerManagerBase
+from commissaire.containermgr import (
+    ContainerManagerBase, ContainerManagerError)
 from commissaire.util.config import ConfigurationError
 
 
@@ -93,6 +95,22 @@ class KubeContainerManager(ContainerManagerBase):
                     'Server URL scheme must be "https" when using client '
                     'side certificates (got "{}")'.format(url.scheme))
 
+    def _fix_part(self, part):
+        """
+        Ensures the URI part starts with a slash.
+
+        :param part: The URI part. EG: /nodes
+        :type part: str
+        :returns: The part in the proper format.
+        :rtype: str
+        """
+        if not part.startswith('/'):
+            self.logger.debug(
+                'Part given without starting slash. Adding...')
+            part = '/{}'.format(part)
+
+        return part
+
     def _get(self, part, *args, **kwargs):
         """
         Get information from the Kubernetes apiserver.
@@ -105,12 +123,7 @@ class KubeContainerManager(ContainerManagerBase):
         :type kwargs: dict
         :returns: requests.Response
         """
-        # Fix part if it doesn't start with a slash
-        if not part.startswith('/'):
-            self.logger.debug(
-                'Part given without starting slash. Adding...')
-            part = '/{}'.format(part)
-
+        part = self._fix_part(part)
         self.logger.debug('Executing GET for {}'.format(part))
         resp = self.con.get(
             '{}{}'.format(self.base_uri, part), *args, **kwargs)
@@ -118,39 +131,165 @@ class KubeContainerManager(ContainerManagerBase):
             part, resp.status_code))
         return resp
 
+    def _delete(self, part, *args, **kwargs):
+        """
+        Delete data from the Kubernetes apiserver.
+
+        :param part: The URI part. EG: /nodes
+        :type part: str
+        ::param payload: Data to send with the DELETE.
+        :type payload: dict
+        :param args: All other non-keyword arguments.
+        :type args: tuple
+        :param kwargs: All other keyword arguments.
+        :type kwargs: dict
+        :returns: requests.Response
+        """
+        part = self._fix_part(part)
+        self.logger.debug('Executing DELETE for {}.'.format(part))
+        resp = self.con.delete(
+            '{}{}'.format(self.base_uri, part), *args, **kwargs)
+        self.logger.debug('Response for {}. Status: {}'.format(
+            part, resp.status_code))
+        return resp
+
+    def _put(self, part, payload, *args, **kwargs):
+        """
+        Put data to the Kubernetes apiserver.
+
+        :param part: The URI part. EG: /nodes
+        :type part: str
+        ::param payload: Data to send with the PUT.
+        :type payload: dict
+        :param args: All other non-keyword arguments.
+        :type args: tuple
+        :param kwargs: All other keyword arguments.
+        :type kwargs: dict
+        :returns: requests.Response
+        """
+        part = self._fix_part(part)
+        payload_str = json.dumps(payload)
+        self.logger.debug('Executing PUT for {}. Payload={}'.format(
+            part, payload_str))
+        resp = self.con.put(
+            '{}{}'.format(self.base_uri, part),
+            data=payload_str, *args, **kwargs)
+        self.logger.debug('Response for {}. Status: {}'.format(
+            part, resp.status_code))
+        return resp
+
+    def _post(self, part, payload, *args, **kwargs):
+        """
+        Post data to the Kubernetes apiserver.
+
+        :param part: The URI part. EG: /nodes
+        :type part: str
+        ::param payload: Data to send with the POST.
+        :type payload: dict
+        :param args: All other non-keyword arguments.
+        :type args: tuple
+        :param kwargs: All other keyword arguments.
+        :type kwargs: dict
+        :returns: requests.Response
+        """
+        part = self._fix_part(part)
+        payload_str = json.dumps(payload)
+        self.logger.debug('Executing POST for {}. Payload={}'.format(
+            part, payload_str))
+        resp = self.con.post(
+            '{}{}'.format(self.base_uri, part),
+            data=payload_str, *args, **kwargs)
+        self.logger.debug('Response for {}. Status: {}'.format(
+            part, resp.status_code))
+        return resp
+
+    def register_node(self, name):
+        """
+        Registers a node to the Kubernetes Container Manager.
+
+        :param name: The name of the node.
+        :type name: str
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        part = '/nodes'
+
+        payload = {
+            "kind": "Node",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": name,
+            }
+        }
+
+        resp = self._post(part, payload)
+        if resp.status_code != 201:
+            error_msg = (
+                'Non-created response when trying to register the node {}. '
+                'Status: "{}", Data: "{}"'.format(
+                    name, resp.status_code, resp.text))
+            self.logger.error(error_msg)
+            raise ContainerManagerError(error_msg, resp.status_code)
+
+    def remove_node(self, name):
+        """
+        Removes a node from the Kubernetes Container Manager.
+
+        :param name: The name of the node.
+        :type name: str
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        part = '/nodes/{}'.format(name)
+
+        resp = self._delete(part)
+        if resp.status_code != 200:
+            error_msg = (
+                'Unexpected response when trying to remove the node {}.'
+                'Status: {}, Data: {}'.format(
+                    name, resp.status_code, resp.text))
+            self.logger.error(error_msg)
+            raise ContainerManagerError(error_msg, resp.status_code)
+
     def node_registered(self, name):
         """
         Checks is a node was registered.
 
         :param name: The name of the node.
         :type name: str
-        :returns: True if registered, otherwise False
-        :rtype: bool
+        :raises: commissaire.containermgr.ContainerManagerError
         """
         part = '/nodes/{0}'.format(name)
         resp = self._get(part)
-        # TODO: Stronger checking would be better
-        if resp.status_code == 200:
-            return True
-        return False
+        if resp.status_code != 200:
+            error_msg = 'Node {} is not registered. Status: {}'.format(
+                name, resp.status_code)
+            self.logger.error(error_msg)
+            raise ContainerManagerError(error_msg, resp.status_code)
 
-    def get_host_status(self, address, raw=False):
+    def get_node_status(self, name, raw=False):
         """
         Returns the node status.
 
-        :param address: The address of the host to check.
-        :type address: str
+        :param name: The name of the node.
+        :type name: str
         :param raw: If the result should be limited to its own status.
         :type raw: bool
         :returns: The response back from kubernetes.
-        :rtype: requests.Response
+        :rtype: dict
+        :raises: commissaire.containermgr.ContainerManagerError
         """
-        part = '/nodes/{}'.format(address)
+        part = '/nodes/{}'.format(name)
         resp = self._get(part)
+        if resp.status_code != 200:
+            error_msg = (
+                'No status for {} returned. Status: {}'.format(
+                    name, resp.status_code))
+            self.logger.error(error_msg)
+            raise ContainerManagerError(error_msg, resp.status_code)
+
         data = resp.json()
         if raw:
             data = data['status']
-        return (resp.status_code, data)
+        return data
 
 
 #: Common name for the class

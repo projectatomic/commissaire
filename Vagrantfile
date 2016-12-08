@@ -175,6 +175,11 @@ Vagrant.configure(2) do |config|
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-watcher.service /etc/systemd/system/commissaire-watcher.service
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-watcher-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-watcher.service
 
+      echo "===> Setting up commissaire-containermgr service to autostart"
+      sudo cp /vagrant/commissaire-service/conf/containermgr.conf /etc/commissaire/containermgr.conf
+      sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-containermgr.service /etc/systemd/system/commissaire-containermgr.service
+      sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-containermgr-service --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-containermgr.service
+
       echo "===> Starting commissaire-server"
       sudo systemctl daemon-reload
       sudo systemctl enable commissaire-server
@@ -195,6 +200,12 @@ Vagrant.configure(2) do |config|
       echo "===> Starting commissaire-watcher service"
       sudo systemctl enable commissaire-watcher
       sudo systemctl start commissaire-watcher
+
+      echo "===> Starting commissaire-containermgr"
+      sudo systemctl daemon-reload
+      sudo systemctl enable commissaire-containermgr
+      sudo systemctl start commissaire-containermgr
+
     SHELL
   # End commissaire
   end

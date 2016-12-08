@@ -19,6 +19,13 @@ The container manager package.
 import logging
 
 
+class ContainerManagerError(Exception):
+    """
+    Base Exception class for ContainerManager related errors.
+    """
+    pass
+
+
 class ContainerManagerBase(object):  # pragma: no cover
     """
     Base class for all container managers.

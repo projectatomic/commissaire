@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     commissaire_service.clusterexec
+    commissaire_service.containermgr
     commissaire_service.investigator
     commissaire_service.oscmd
     commissaire_service.service
