@@ -1,3 +1,5 @@
+.. _commissaire_services:
+
 Commissaire Services
 ====================
 
@@ -7,6 +9,13 @@ Commissaire's message bus and provide/consume services.
 
 Example Use Cases
 -----------------
+
+Commissaire Clusterexec
+```````````````````````
+
+.. todo::
+
+    Add commissaire-clusterexec-service
 
 Commissaire Container Manager
 ``````````````````````````````
