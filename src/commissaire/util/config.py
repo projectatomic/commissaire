@@ -44,7 +44,7 @@ def _normalize_member_names(json_object):
     return normalized
 
 
-def read_config_file(path=None):
+def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
     """
     Attempts to parse a configuration file, formatted as a JSON object.
 
@@ -55,6 +55,8 @@ def read_config_file(path=None):
 
     :param path: Full path to the config file, or None
     :type path: str or None
+    :param default: The default file path to user
+    :type default: str
     :returns: configuration content as a dictionary
     :rtype: dict
     :raises: IOError, TypeError, ValueError
@@ -63,7 +65,7 @@ def read_config_file(path=None):
     using_default = False
 
     if path is None:
-        path = '/etc/commissaire/commissaire.conf'
+        path = default
         using_default = True
 
     try:
