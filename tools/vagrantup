@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# NOTE: We use the exit code as a workaround for fedora-atomic + sshfs.
+#
+
+vagrant up servers
+vagrant up kubernetes
+vagrant up --parallel commissaire fedora-cloud
+vagrant up fedora-atomic
+if [ $? != 0 ]; then
+    echo "Installing fuse-sshfs in fedora-atomc"
+    vagrant ssh fedora-atomic -c 'sudo rpm-ostree install fuse-sshfs'
+    vagrant reload fedora-atomic
+fi
