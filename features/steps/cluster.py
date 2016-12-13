@@ -15,6 +15,7 @@
 
 import json
 import requests
+import sys
 
 from behave import *
 
@@ -28,18 +29,16 @@ from steps import (
 @given('we have a cluster named {cluster}')
 def impl(context, cluster):
     request = requests.put(
-        context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}'.format(cluster),
         auth=(VALID_USERNAME, VALID_PASSWORD),
-        data=json.dumps({
-            'type': C.CLUSTER_TYPE_HOST,
-            'network': 'default'}))
+        data={})
     assert_status_code(request.status_code, 201)
 
 
 @given('we have added host {host} to cluster {cluster}')
 def impl(context, host, cluster):
     request = requests.put(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
 
@@ -47,7 +46,7 @@ def impl(context, host, cluster):
 @given('we have removed host {host} from cluster {cluster}')
 def impl(context, host, cluster):
     request = requests.delete(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
 
@@ -56,7 +55,7 @@ def impl(context, host, cluster):
 def impl(context, host, cluster):
     context.cluster = cluster
     context.request = requests.get(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=context.auth)
 
 
@@ -65,7 +64,7 @@ def impl(context, host, cluster):
 def impl(context, host, cluster):
     context.cluster = cluster
     context.request = requests.put(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=context.auth)
 
 
@@ -73,7 +72,7 @@ def impl(context, host, cluster):
 def impl(context, host, cluster):
     context.cluster = cluster
     context.request = requests.delete(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=context.auth)
 
 
@@ -81,7 +80,7 @@ def impl(context, host, cluster):
 def impl(context, cluster, json):
     context.cluster = cluster
     context.request = requests.put(
-        context.SERVER + '/api/v0/cluster/{0}/hosts'.format(cluster),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts'.format(cluster),
         json=eval(json),
         auth=context.auth)
 
@@ -89,7 +88,7 @@ def impl(context, cluster, json):
 @when('we create a cluster without type named {cluster}')
 def impl(context, cluster):
     context.request = requests.put(
-        context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}'.format(cluster),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(context.request.status_code, 201)
 
@@ -99,20 +98,20 @@ def impl(context, operation, cluster):
     context.cluster = cluster
     if operation == 'get':
         context.request = requests.get(
-            context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}'.format(cluster),
             auth=context.auth)
     elif operation == 'create':
         context.request = requests.put(
-            context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}'.format(cluster),
             auth=context.auth,
-            data=json.dumps({'type': C.CLUSTER_TYPE_HOST}))
+            data={})
     elif operation == 'delete':
         context.request = requests.delete(
-            context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}'.format(cluster),
             auth=context.auth)
     elif operation == 'get hosts in':
         context.request = requests.get(
-            context.SERVER + '/api/v0/cluster/{0}/hosts'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts'.format(cluster),
             auth=context.auth)
     else:
         raise NotImplementedError
@@ -123,15 +122,15 @@ def impl(context, async_operation, cluster):
     context.cluster = cluster
     if async_operation == 'an upgrade':
         context.request = requests.put(
-            context.SERVER + '/api/v0/cluster/{0}/upgrade'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}/upgrade'.format(cluster),
             auth=context.auth)
     elif async_operation == 'a restart':
         context.request = requests.put(
-            context.SERVER + '/api/v0/cluster/{0}/restart'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}/restart'.format(cluster),
             auth=context.auth)
     elif async_operation == 'a tree deployment':
         context.request = requests.put(
-            context.SERVER + '/api/v0/cluster/{0}/deploy'.format(cluster),
+            context.SERVER_HTTP + '/api/v0/cluster/{0}/deploy'.format(cluster),
             auth=context.auth,
             data=json.dumps({'version': '1.2.3'}))
     else:
@@ -141,7 +140,7 @@ def impl(context, async_operation, cluster):
 @when('we list all clusters')
 def impl(context):
     context.request = requests.get(
-        context.SERVER + '/api/v0/clusters', auth=context.auth)
+        context.SERVER_HTTP + '/api/v0/clusters', auth=context.auth)
 
 
 @then('the provided cluster status is {status}')
@@ -162,7 +161,7 @@ def impl(context, what, expected):
 @then('the host {host} will be in the cluster {cluster}')
 def impl(context, host, cluster):
     request = requests.get(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
 
@@ -170,19 +169,9 @@ def impl(context, host, cluster):
 @then('the host {host} will not be in the cluster {cluster}')
 def impl(context, host, cluster):
     request = requests.get(
-        context.SERVER + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
+        context.SERVER_HTTP + '/api/v0/cluster/{0}/hosts/{1}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 404)
-
-
-@then('the cluster {cluster} will have the default type')
-def impl(context, cluster):
-    context.request = requests.get(
-        context.SERVER + '/api/v0/cluster/{0}'.format(cluster),
-        auth=(VALID_USERNAME, VALID_PASSWORD))
-    cluster_type = context.request.json()['type']
-    assert cluster_type == C.CLUSTER_TYPE_DEFAULT, \
-        'Expected {0}, got {1}'.format(C.CLUSTER_TYPE_DEFAULT, cluster_type)
 
 
 @then('commissaire will provide {async_operation} status')

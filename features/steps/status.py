@@ -23,16 +23,16 @@ from behave import *
 @when('we get status')
 def impl(context):
     verify=False
-    if context.SERVER.startswith("https"):
+    if context.SERVER_HTTP.startswith("https"):
         verify=os.path.join(context.CERT_DIR, "ca.pem")
 
     try:
         context.request = requests.get(
-            context.SERVER + '/api/v0/status',
+            context.SERVER_HTTP + '/api/v0/status',
             auth=context.auth,
             verify=verify,
             cert=getattr(context, "cert", None))
-    except SSLError, e:
+    except SSLError as e:
         context.request_ssl_error = e
 
 @then('commissaire will return status')

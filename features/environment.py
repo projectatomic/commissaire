@@ -47,9 +47,8 @@ from urllib.parse import urlparse
 
 DEFAULT_COMMISSAIRE_SERVER_ARGS = [
     '--authentication-plugin',
-    'commissaire_http.authentication.httpbasicauth',
-    '--authentication-plugin-kwargs',
-    'filepath=conf/users.json'
+    'commissaire_http.authentication.httpbasicauth:'
+    'filepath=../commissaire-http/conf/users.json',
 ]
 
 

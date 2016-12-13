@@ -41,7 +41,6 @@ Feature: Creating A Cluster
        when we create a cluster without type named multigrain
        then commissaire will allow access
         and commissaire will note creation
-        and the cluster multigrain will have the default type
 
    @recreate
    Scenario: Recreating a compatible cluster with authentication and no type
@@ -49,4 +48,3 @@ Feature: Creating A Cluster
       when we create a cluster without type named multigrain
        then commissaire will allow access
         and commissaire will note creation
-        and the cluster multigrain will have the default type
