@@ -30,7 +30,7 @@ Vagrant.configure(2) do |config|
         echo "===> Set flannel network"
         sudo etcdctl --endpoint=http://192.168.152.101:2379 set '/atomic01/network/config' '{"Network": "172.16.0.0/12", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
         echo "===> Configure redis"
-        sudo sed -i "s/127.0.0.1/192.168.152.101/g" /etc/redis.conf
+        sudo sed -i "s/127.0.0.1/0.0.0.0/g" /etc/redis.conf
         sudo systemctl enable redis
         sudo systemctl start redis
       SHELL
@@ -55,7 +55,7 @@ Vagrant.configure(2) do |config|
         echo "===> Installing kubernetes"
         sudo dnf install -y kubernetes-master.x86_64
         echo "===> Configuring kubernetes"
-        sudo sed -i "s|insecure-bind-address=127.0.0.1|insecure-bind-address=192.168.152.102|g" /etc/kubernetes/apiserver
+        sudo sed -i "s|insecure-bind-address=127.0.0.1|insecure-bind-address=0.0.0.0|g" /etc/kubernetes/apiserver
         sudo sed -i "s|etcd-servers=http://127.0.0.1:2379|etcd-servers=http://192.168.152.101:2379|g" /etc/kubernetes/apiserver
         echo "===> Starting kubernetes"
         sudo systemctl enable kube-apiserver kube-scheduler kube-controller-manager
@@ -114,7 +114,7 @@ Vagrant.configure(2) do |config|
 
   # Development commissaire server and services
   # NOTE: This must start after etcd.
-  config.vm.define "commissaire", primary: true do |commissaire|
+  config.vm.define "commissaire", primary: true, autostart: false do |commissaire|
     commissaire.vm.box = "fedora/25-cloud-base"
     commissaire.vm.provider :libvirt do |domain|
      domain.memory = 1024
@@ -149,7 +149,7 @@ Vagrant.configure(2) do |config|
       sudo chmod 644 /etc/systemd/system/commissaire-server.service
       sudo mkdir --parents /etc/commissaire
       sudo cp /vagrant/commissaire-http/conf/commissaire.conf /etc/commissaire/commissaire.conf
-      sudo sed -i 's|"listen-interface": "127.0.0.1"|"listen-interface": "192.168.152.100"|g' /etc/commissaire/commissaire.conf
+      sudo sed -i 's|"listen-interface": "127.0.0.1"|"listen-interface": "0.0.0.0"|g' /etc/commissaire/commissaire.conf
       sudo sed -i 's|"bus-uri": "redis://127.0.0.1:6379/"|"bus-uri": "redis://192.168.152.101:6379/"|g' /etc/commissaire/commissaire.conf
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-server -c /etc/commissaire/commissaire.conf"|' /etc/systemd/system/commissaire-server.service
       sudo sed -i 's|Type=simple|\&\\nWorkingDirectory=/vagrant|' /etc/systemd/system/commissaire-server.service
