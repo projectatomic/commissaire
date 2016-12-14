@@ -105,9 +105,6 @@ Vagrant.configure(2) do |config|
         mkdir --parents /home/vagrant/.ssh
         cp /home/vagrant/sync/features/id_rsa{,.pub} /home/vagrant/.ssh
         cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
-        echo "===> Updating the system"
-        sudo atomic host upgrade
-        sudo systemctl reboot
       SHELL
     # End fedora-atomic
     end
