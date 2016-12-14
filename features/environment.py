@@ -294,7 +294,7 @@ def before_all(context):
     if context.config.userdata.get('use-vagrant'):
         context.SERVER_HTTP = 'http://192.168.152.100:8000'
         context.ETCD = 'http://192.168.152.101:2379'
-        context.BUS_URI = 'http://192.168.152.101:6379'
+        context.BUS_URI = 'redis://192.168.152.101:6379'
         context.USE_VAGRANT = True
 
     # Read and encode SSH key
