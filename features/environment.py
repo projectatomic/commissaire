@@ -44,6 +44,8 @@ import time
 
 from urllib.parse import urlparse
 
+from commissaire.constants import DEFAULT_CLUSTER_NETWORK_JSON
+
 
 DEFAULT_COMMISSAIRE_SERVER_ARGS = [
     '--authentication-plugin',
@@ -314,6 +316,21 @@ def before_all(context):
     print('Connecting to ETCD...')
     url = urlparse(context.ETCD)
     context.etcd = etcd.Client(host=url.hostname, port=url.port)
+
+    # Set up initial etcd directories (similar to etcd_init.sh)
+    make_dirs = ['/commissaire/hosts',
+                 '/commissaire/cluster',
+                 '/commissaire/clusters',
+                 '/commissaire/networks',
+                 '/commissaire/status']
+    for key in make_dirs:
+        try:
+            context.etcd.write(key, None, dir=True)
+        except etcd.EtcdNotFile:
+            pass
+    context.etcd.write(
+        '/commissaire/networks/default', DEFAULT_CLUSTER_NETWORK_JSON)
+
     context.etcd.write('/commissaire/config/kubetoken', 'test')
 
     if context.USE_VAGRANT:
@@ -374,10 +391,11 @@ def before_scenario(context, scenario):
     delete_dirs = ['/commissaire/hosts',
                    '/commissaire/cluster',
                    '/commissaire/clusters',
-                   '/commissaire/networks']
-    for dir in delete_dirs:
+                   '/commissaire/networks',
+                   '/commissaire/status']
+    for key in delete_dirs:
         try:
-            context.etcd.delete(dir, recursive=True)
+            context.etcd.delete(key, recursive=True)
         except etcd.EtcdKeyNotFound:
             pass
 
