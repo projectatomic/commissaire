@@ -95,6 +95,13 @@ def generate_certificates(context):
         '-CA', 'ca.pem', '-CAkey', 'ca.key', '-set_serial', '03',
         '-out', 'other.pem'], cwd=context.CERT_DIR)
 
+    # Turn the server.pem file into a real pem
+    with open(os.path.sep.join([
+            context.CERT_DIR, 'server.pem']), 'a') as server_fobj:
+        with open(os.path.sep.join([
+                context.CERT_DIR, 'server.key']), 'r') as key_fobj:
+            server_fobj.write(key_fobj.read())
+
 
 def try_start(func, name, context, args=[], times=3):
     """
@@ -227,17 +234,13 @@ def before_tag(context, tag):
 
     if tag == 'clientcert':
         verifyfile = os.path.join(context.CERT_DIR, 'ca.pem')
-        certfile = os.path.join(context.CERT_DIR, 'server.pem')
-        keyfile = os.path.join(context.CERT_DIR, 'server.key')
+        pemfile = os.path.join(context.CERT_DIR, 'server.pem')
 
         server_http = try_start(
             start_commissaire_server, 'commissaire-server', context, [
                 '--authentication-plugin',
-                'commissaire.authentication.httpauthclientcert',
-                '--authentication-plugin-kwargs',
-                'cn=test-client',
-                '--tls-keyfile={}'.format(keyfile),
-                '--tls-certfile={}'.format(certfile),
+                'commissaire_http.authentication.httpauthclientcert:cn=test-client',
+                '--tls-pemfile={}'.format(pemfile),
                 '--tls-clientverifyfile={}'.format(verifyfile)],
         )
         context.SERVER_HTTP = 'https://localhost:{}'.format(
