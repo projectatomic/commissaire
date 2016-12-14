@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
         echo "===> Installing etcd and redis"
         sudo dnf install -y etcd redis
         echo "===> Configuring etcd"
-        sudo sed -i "s/localhost/192.168.152.101/g" /etc/etcd/etcd.conf
+        sudo sed -i "s/localhost/0.0.0.0/g" /etc/etcd/etcd.conf
         echo "===> Starting etcd"
         sudo systemctl enable etcd
         sudo systemctl start etcd
