@@ -37,7 +37,7 @@ Feature: Creating Hosts
        and a host already exists at 192.168.152.110
       when we create the host 192.168.152.110
       then commissaire will allow access
-      and commissaire will note success
+      and commissaire will note creation
 
   @recreate
   Scenario: Recreating an incompatible host with authentication
