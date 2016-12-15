@@ -38,9 +38,9 @@ def impl(context, cluster):
 def impl(context, host):
     data = dict(context.HOST_DATA)
     data['address'] = host
-    context.etcd.set(
-        '/commissaire/hosts/{0}'.format(host),
-        json.dumps(data))
+    print(context.etcd.set(
+        '/commissaire/hosts/{}'.format(host),
+        json.dumps(data)))
 
 
 @given('we have a host at {host}')
@@ -48,7 +48,7 @@ def impl(context, host):
     data = dict(context.HOST_DATA)
     data['address'] = host
     request = requests.put(
-        context.SERVER_HTTP + '/api/v0/host/{0}'.format(host),
+        context.SERVER_HTTP + '/api/v0/host/{}'.format(host),
         auth=(VALID_USERNAME, VALID_PASSWORD),
         data=json.dumps(data))
     assert_status_code(request.status_code, 201)
@@ -61,7 +61,7 @@ def impl(context, host):
     while status_is_busy:
         time.sleep(1)
         request = requests.get(
-            context.SERVER_HTTP + '/api/v0/host/{0}'.format(host),
+            context.SERVER_HTTP + '/api/v0/host/{}'.format(host),
             auth=(VALID_USERNAME, VALID_PASSWORD))
         assert_status_code(request.status_code, 200)
         data = request.json()
@@ -71,7 +71,7 @@ def impl(context, host):
 @given('we have deleted host {host}')
 def impl(context, host):
     request = requests.delete(
-        context.SERVER_HTTP + '/api/v0/host/{0}'.format(host),
+        context.SERVER_HTTP + '/api/v0/host/{}'.format(host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
 
@@ -87,7 +87,7 @@ def impl(context):
 def impl(context, host):
     context.host = host
     context.request = requests.get(
-        context.SERVER_HTTP + '/api/v0/host/{0}/status'.format(context.host),
+        context.SERVER_HTTP + '/api/v0/host/{}/status'.format(context.host),
         auth=context.auth)
 
 
@@ -96,17 +96,17 @@ def impl(context, operation, host):
     context.host = host
     if operation == 'get':
         context.request = requests.get(
-            context.SERVER_HTTP + '/api/v0/host/{0}'.format(context.host),
+            context.SERVER_HTTP + '/api/v0/host/{}'.format(context.host),
             auth=context.auth)
     elif operation == 'create':
         context.HOST_DATA['address'] = context.host
         context.request = requests.put(
-            context.SERVER_HTTP + '/api/v0/host/{0}'.format(context.host),
+            context.SERVER_HTTP + '/api/v0/host/{}'.format(context.host),
             data=json.dumps(context.HOST_DATA),
             auth=context.auth)
     elif operation == 'delete':
         context.request = requests.delete(
-            context.SERVER_HTTP + '/api/v0/host/{0}'.format(context.host),
+            context.SERVER_HTTP + '/api/v0/host/{}'.format(context.host),
             auth=context.auth)
 
 
@@ -114,7 +114,7 @@ def impl(context, operation, host):
 def impl(context, host):
     context.host = host
     context.request = requests.get(
-        context.SERVER_HTTP + '/api/v0/host/{0}/creds'.format(context.host),
+        context.SERVER_HTTP + '/api/v0/host/{}/creds'.format(context.host),
         auth=context.auth)
 
 

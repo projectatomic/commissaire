@@ -26,7 +26,7 @@ VALID_PASSWORD = 'a'
 
 def assert_status_code(actual, expected):
     assert actual == expected, \
-        'Expected status code {0}, got {1}'.format(expected, actual)
+        'Expected status code {}, got {}'.format(expected, actual)
 
 
 @given('we are anonymous')
@@ -85,11 +85,11 @@ def impl(context, atype):
         the_type = dict
     json = context.request.json()
     assert isinstance(json, the_type), \
-        'Expected {0} to be a {1}'.format(json, str(the_type))
+        'Expected {} to be a {}'.format(json, str(the_type))
 
 
 @then('the provided data is {expected}')
 def impl(context, expected):
     json = context.request.json()
     assert json == eval(expected), \
-        'Expected {0}, got {1}'.format(expected, json)
+        'Expected {}, got {}'.format(expected, json)

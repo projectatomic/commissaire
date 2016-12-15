@@ -168,9 +168,9 @@ def start_etcd(context, args):
     """Starts an etcd instance."""
     listen_client_port = random.randint(50000, 60000)
     listen_peer_port = listen_client_port + 1
-    listen_client_url = 'http://127.0.0.1:{0}'.format(
+    listen_client_url = 'http://127.0.0.1:{}'.format(
         listen_client_port)
-    listen_peer_url = 'http://127.0.0.1:{0}'.format(
+    listen_peer_url = 'http://127.0.0.1:{}'.format(
         listen_peer_port)
     context.ETCD_DATA_DIR = tempfile.mkdtemp()
     context.ETCD = listen_client_url
@@ -179,7 +179,7 @@ def start_etcd(context, args):
     context.PROCESSES['etcd'] = subprocess.Popen(
         ['etcd', '--name', 'commissaireE2E',
          '--initial-cluster',
-         'commissaireE2E={0}'.format(listen_peer_url),
+         'commissaireE2E={}'.format(listen_peer_url),
          '--listen-client-urls', listen_client_url,
          '--advertise-client-urls', listen_client_url,
          '--listen-peer-urls', listen_peer_url,
