@@ -106,8 +106,11 @@ class Model(object):
         :rtype: str
         """
         readable = '<{}'.format(self.__class__.__name__)
-        for k, v in self.to_dict_safe().items():
-            readable += ' {}={},'.format(k, v or '<Empty>')
+        if self._json_type == 'dict':
+            for k, v in self.to_dict_safe().items():
+                readable += ' {}={},'.format(k, v or '<Empty>')
+        elif self._json_type == 'list':
+            readable += ','.join(self.to_list_safe())
         return readable + '...>'
 
     @property
