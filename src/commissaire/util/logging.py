@@ -15,62 +15,40 @@
 """
 Logging utils.
 """
-import logging
+import logging.config
+
+DEFAULT_FORMAT = '%(name)s(%(levelname)s): %(message)s'
 
 
-def setup_logging(config, components):
+def setup_logging(config):
     """
-    Configures then applies said configuration to all provided components.
-    :param config: Configuration data to aid in creating loggers.
-    :type config: argparse.Namespace
-    :param components: Name of componenets which need loggers.
-    :type components: list or tuple
+    Takes a logging configuration and ensures the root logger has a
+    handler named "default", which can be referenced in the logging
+    configuration.  Most loggers will defer to this default handler
+    implicitly, by way of propagation.  The augmented configuration
+    is then handed off to logging.config.dictConfig().
+
+    This function should only be called once at program startup.
+
+    :param config: Logging configuration dictionary
+    :type config: dict
     """
-    if config.debug:
-        logging_debug = True
-    else:
-        logging_debug = False
+    formatters = config.setdefault('formatters', {})
+    if 'default' not in formatters:
+        formatters['default'] = {
+            'format': DEFAULT_FORMAT
+        }
 
-    if 'logging_levels' in config:
-        logging_components = config.logging_levels
-    else:
-        logging_components = {}
+    handlers = config.setdefault('handlers', {})
+    if 'default' not in handlers:
+        handlers['default'] = {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        }
 
-    for name in components:
-        if name not in logging_components:
-            component_log_opts = {}
-            component_log_opts['level'] = 'INFO'
-            logging_components[name] = component_log_opts
+    root_logger = config.setdefault('root', {})
+    root_handlers = root_logger.setdefault('handlers', [])
+    if 'default' not in root_handlers:
+        root_handlers.append('default')
 
-    if 'logging_format' in config:
-        logging_format = config.logging_format
-    else:
-        logging_format = '%(name)s(%(levelname)s): %(message)s'
-
-    apply_logging(logging_components, logging_format, logging_debug)
-
-
-def apply_logging(components, log_format, logging_debug=False):
-    """
-    Applies logging configuration to all provided components.
-
-    :param components: Configuration for all loggers.
-    :type components: dict
-    :param log_format: The default log format to use.
-    :type log_format: str
-    :param logging_debug: If debug is enabled (default: False)
-    :type logging_debug: bool
-    """
-    for name, opts in components.items():
-        if 'format' in opts:
-            log_format = opts['format']
-        logger = logging.getLogger(name)
-        if not logging_debug:
-            log_level = logging.getLevelName(opts['level'])
-        else:
-            log_level = logging.getLevelName('DEBUG')
-        logger.setLevel(log_level)
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(log_format))
-        logger.handlers.append(handler)
+    logging.config.dictConfig(config)

@@ -17,6 +17,9 @@ Configuration related classes.
 """
 
 import json
+import logging
+
+from commissaire.util.logging import setup_logging
 
 
 class ConfigurationError(Exception):
@@ -83,6 +86,16 @@ def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
 
     # Recursively normalize the JSON member names.
     json_object = _normalize_member_names(json_object)
+
+    # Process any logging configuration straight away.
+    # This is NOT included in the returned dictionary.
+    if 'logging' in json_object:
+        setup_logging(json_object.pop('logging'))
+
+    # Handle the debug log-level option straight away.
+    # This is NOT included in the returned dictionary.
+    if json_object.pop('debug', False):
+        logging.getLogger().setLevel(logging.DEBUG)
 
     # Special case:
     #
