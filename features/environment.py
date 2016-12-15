@@ -255,7 +255,7 @@ def after_tag(context, tag):
     Special steps after a tagged test runs.
     """
     if tag == 'clientcert':
-        stop_process(context, context.PROCESSES['ssl-server'])
+        stop_process(context, context.PROCESSES['ssl_server'])
 
 
 def before_all(context):
