@@ -539,19 +539,6 @@ class Hosts(Model):
     _list_class = Host
 
 
-class Status(Model):
-    """
-    Representation of a Host.
-    """
-    _json_type = dict
-    _attribute_map = {
-        'etcd': {'type': dict},
-        'investigator': {'type': dict},
-        'watcher': {'type': dict},
-    }
-    _attribute_defaults = {'etcd': {}, 'investigator': {}, 'watcher': {}}
-
-
 class WatcherRecord(Model):
     """
     Representation of a single record in a watcher queue.
