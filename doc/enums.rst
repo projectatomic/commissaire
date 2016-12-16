@@ -21,6 +21,16 @@ OS's
 Statuses
 --------
 
+.. _cluster-statuses:
+
+Cluster Statuses
+~~~~~~~~~~~~~~~~~
+
+* **ok**: The cluster is active as expected.
+* **degraded**: The cluster has one more more nodes that are not active.
+* **failed**: No nodes are currently active.
+
+
 .. _host-statuses:
 
 Host Statuses
@@ -42,14 +52,6 @@ Upgrade Statuses
 * **in_process**: The cluster is currently upgrading hosts.
 * **finished**: The cluster successfully upgraded.
 * **failed**: The cluster could not upgrade.
-
-.. _status-statuses:
-
-Status Statuses
-~~~~~~~~~~~~~~~
-
-* **OK**: The status check is currently working.
-* **FAILED**: The status check is currently failing.
 
 
 .. _container_manager_types:

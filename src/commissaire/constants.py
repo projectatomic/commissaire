@@ -52,6 +52,11 @@ DEFAULT_KUBERNETES_STORE_HANDLER = {
     'models': ['*']
 }
 
+# Cluster Status Codes
+CLUSTER_STATUS_OK = 'ok'
+CLUSTER_STATUS_DEGRADED = 'degraded'
+CLUSTER_STATUS_FAILED = 'failed'
+
 # JSONRPC error codes
 JSONRPC_ERRORS = {
     'INVALID_JSON': -32700,
