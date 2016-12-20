@@ -19,6 +19,8 @@ Common bus class for Commissaire.
 import json
 import uuid
 
+from commissaire import constants as C
+
 
 class RemoteProcedureCallError(Exception):
     """
@@ -45,6 +47,24 @@ class RemoteProcedureCallError(Exception):
         Returns a string representation of the error.
         """
         return '({0}) {1}'.format(self.code, self.message)
+
+
+class StorageLookupError(RemoteProcedureCallError):
+    """
+    Exception class for when storage lookups fail.
+    """
+    def __init__(self, message, model):
+        """
+        Creates a StorageLookupError instance.
+
+        :param message: Error message.
+        :type message: str
+        :param model: Model used in the failed storage lookup
+        :type model: commissaire.models.Model
+        """
+        code = C.JSONRPC_ERRORS['STORAGE_LOOKUP_ERROR']
+        data = {'model': model.to_dict_safe()}
+        super(StorageLookupError, self).__init__(message, code, data)
 
 
 class BusMixin:
@@ -141,9 +161,14 @@ class BusMixin:
             error_data = payload['error']
             self.logger.warn(
                 'Message "{}" contains error: {}'.format(id, error_data))
-            raise RemoteProcedureCallError(
+            code = error_data.get('code', C.JSONRPC_ERRORS['INTERNAL_ERROR'])
+            if code == C.JSONRPC_ERRORS['STORAGE_LOOKUP_ERROR']:
+                exception_class = StorageLookupError
+            else:
+                exception_class = RemoteProcedureCallError
+            raise exception_class(
                 error_data.get('message', 'Internal error'),
-                error_data.get('code', -32603),
+                code,
                 error_data.get('data', {}))
 
         return payload

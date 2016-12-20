@@ -22,6 +22,7 @@ import etcd
 
 from urllib.parse import urlparse
 
+from commissaire.bus import StorageLookupError
 from commissaire.storage import StoreHandlerBase, ConfigurationError
 
 #: Maps ModelClassName to a key pattern
@@ -125,10 +126,14 @@ class EtcdStoreHandler(StoreHandlerBase):
         :type model_instance: commissaire.model.Model
         :returns: The model instance
         :rtype: commissaire.model.Model
+        :raises StorageLookupError: if data lookup fails
         """
-        key = self._format_key(model_instance)
-        etcd_resp = self._store.get(key)
-        return model_instance.new(**json.loads(etcd_resp.value))
+        try:
+            key = self._format_key(model_instance)
+            etcd_resp = self._store.get(key)
+            return model_instance.new(**json.loads(etcd_resp.value))
+        except etcd.EtcdKeyNotFound as error:
+            raise StorageLookupError(str(error), model_instance)
 
     def _delete(self, model_instance):
         """
@@ -136,9 +141,13 @@ class EtcdStoreHandler(StoreHandlerBase):
 
         :param model_instance: Model instance to delete
         :type model_instance: commissaire.model.Model
+        :raises StorageLookupError: if data lookup fails
         """
-        key = self._format_key(model_instance)
-        self._store.delete(key)
+        try:
+            key = self._format_key(model_instance)
+            self._store.delete(key)
+        except etcd.EtcdKeyNotFound as error:
+            raise StorageLookupError(str(error), model_instance)
 
     def _list(self, model_instance):
         """

@@ -85,6 +85,7 @@ class StoreHandlerBase(object):
         :type model_instance: commissaire.model.Model
         :returns: The saved model instance.
         :rtype: commissaire.model.Model
+        :raises StorageLookupError: if data lookup fails
         """
         raise NotImplementedError('_get must be overriden.')
 
@@ -94,6 +95,7 @@ class StoreHandlerBase(object):
 
         :param model_instance: Model instance to delete.
         :type model_instance: commissaire.model.Model
+        :raises StorageLookupError: if data lookup fails
         """
         raise NotImplementedError('_delete must be overriden.')
 
