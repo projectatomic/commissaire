@@ -26,7 +26,7 @@ class RemoteProcedureCallError(Exception):
     """
     Exception class for remote procedure call errors.
     """
-    def __init__(self, message, code=0, data=None):
+    def __init__(self, message, code=0, data={}):
         """
         Creates a RemoteProcedureCallError instance.
 
@@ -53,7 +53,7 @@ class StorageLookupError(RemoteProcedureCallError):
     """
     Exception class for when storage lookups fail.
     """
-    def __init__(self, message, model):
+    def __init__(self, message, model=None, data={}):
         """
         Creates a StorageLookupError instance.
 
@@ -61,9 +61,13 @@ class StorageLookupError(RemoteProcedureCallError):
         :type message: str
         :param model: Model used in the failed storage lookup
         :type model: commissaire.models.Model
+        :param data: Additional error data
+        :type data: dict
         """
         code = C.JSONRPC_ERRORS['STORAGE_LOOKUP_ERROR']
-        data = {'model': model.to_dict_safe()}
+        if model is not None:
+            data['model_json_data'] = model.to_dict_safe(),
+            data['model_type_name'] = model.__class__.__name__
         super(StorageLookupError, self).__init__(message, code, data)
 
 
@@ -161,15 +165,13 @@ class BusMixin:
             error_data = payload['error']
             self.logger.warn(
                 'Message "{}" contains error: {}'.format(id, error_data))
+            message = error_data.get('message', 'Internal error')
             code = error_data.get('code', C.JSONRPC_ERRORS['INTERNAL_ERROR'])
+            data = error_data.get('data', {})
             if code == C.JSONRPC_ERRORS['STORAGE_LOOKUP_ERROR']:
-                exception_class = StorageLookupError
+                raise StorageLookupError(message, data=data)
             else:
-                exception_class = RemoteProcedureCallError
-            raise exception_class(
-                error_data.get('message', 'Internal error'),
-                code,
-                error_data.get('data', {}))
+                raise RemoteProcedureCallError(message, code, data)
 
         return payload
 
