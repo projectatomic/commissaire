@@ -152,7 +152,7 @@ Vagrant.configure(2) do |config|
       sudo sed -i 's|Type=simple|\&\\nWorkingDirectory=/vagrant|' /etc/systemd/system/commissaire-server.service
 
       echo "===> Populating ETCD storage"
-      . commissaire_env/bin/activate && export ETCDCTL_ENDPOINTS="http://192.168.152.101:2379" && bash /vagrant/commissaire-service/tools/etcd_init.sh
+      . commissaire_env/bin/activate && export ETCDCTL_ENDPOINTS="http://192.168.152.101:2379" && bash /vagrant/commissaire/tools/etcd_init.sh
 
       echo "===> Setting up commissaire-storage service to autostart"
       sudo cp /vagrant/commissaire-service/conf/storage.conf /etc/commissaire/storage.conf
