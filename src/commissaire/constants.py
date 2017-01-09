@@ -69,6 +69,7 @@ JSONRPC_ERRORS = {
     'STORAGE_LOOKUP_ERROR': -20000,
 
     # Custom codes
+    'NOT_FOUND': 404,
     'CONFLICT': 409,
 }
 
