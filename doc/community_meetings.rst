@@ -6,7 +6,7 @@ are interested in, currently working on, or using Commissaire together
 to discuss the project as a group.
 
 The meeting starts at 12:30 PM UTC and is held the second and
-fourth Monday of each month in the
+fourth Tuesday of each month in the
 ``#atomic`` `Freenode <https://freenode.net/>`_ IRC channel.
 
 ============ ========
