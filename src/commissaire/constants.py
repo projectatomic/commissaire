@@ -28,7 +28,8 @@ NETWORK_TYPES = [NETWORK_TYPE_FLANNEL_ETCD, NETWORK_TYPE_FLANNEL_SERVER]
 #: Default network if non is provided
 DEFAULT_CLUSTER_NETWORK_JSON = {
     'name': 'default',
-    'type': NETWORK_TYPE_DEFAULT
+    'type': NETWORK_TYPE_DEFAULT,
+    'options': {},
 }
 
 #: Container Manager type for OpenShift
