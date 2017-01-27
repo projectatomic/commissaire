@@ -4,8 +4,8 @@
 set -eo pipefail
 
 # Start up required services
-redis-server &
-etcd &
+redis-server /etc/redis.conf &
+etcd --data-dir=/data/etcd/ &
 
 # Enter the virtual environment
 . /environment/bin/activate
