@@ -21,15 +21,15 @@ cd .. && \
 pip freeze > /installed-python-deps.txt && \
 dnf remove -y gcc git redhat-rpm-config libffi-devel && \
 dnf clean all && \
-mkdir -p /etc/commissaire && \
-cp -r /commissaire-service/conf/*.conf /etc/commissaire/ && \
-cp -r /commissaire-http/conf/*.conf /etc/commissaire/ && \
-sed -i 's|"listen-interface": "127.0.0.1"|"listen-interface": "0.0.0.0"|' /etc/commissaire/commissaire.conf
+mkdir -p /etc/commissaire
 
 # Add the all-in-one start script
 ADD tools/startup-all-in-one.sh /commissaire/
 # Add the etcd init script
 ADD tools/etcd_init.sh /commissaire/
+
+# Configuration directory. Use --volume=/path/to/your/configs:/etc/commissaire
+VOLUME /etc/commissaire/
 
 # commissaire-server address
 EXPOSE 8000
