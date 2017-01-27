@@ -1,9 +1,6 @@
 FROM fedora:25
 MAINTAINER Red Hat, Inc. <container-tools@redhat.com>
 
-ENV MHM_RELEASE v0.1.0
-ENV PYTHONPATH  /commissaire/src/
-
 # Install required dependencies and commissaire
 RUN dnf -y update && dnf -y install --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-pip python3-virtualenv git gcc libffi-devel openssl-devel etcd redis; dnf clean all && \
 git clone https://github.com/projectatomic/commissaire-service.git && \
@@ -33,5 +30,7 @@ VOLUME /etc/commissaire/
 
 # commissaire-server address
 EXPOSE 8000
+# Run everything from /commissaire
 WORKDIR /commissaire
+# Execute the all-in-one-script
 CMD /commissaire/startup-all-in-one.sh
