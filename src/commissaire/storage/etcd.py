@@ -32,6 +32,8 @@ _etcd_mapper = {
     'ClusterRestart': '/cluster/{0}/restart',
     'ClusterUpgrade': '/cluster/{0}/upgrade',
     'Clusters': '/clusters/',
+    'ContainerManagerConfig': '/container_managers/{0}',
+    'ContainerManagerConfigs': '/container_managers/',
     'Host': '/hosts/{0}',
     'Hosts': '/hosts',
     'Network': '/networks/{0}',
