@@ -223,7 +223,7 @@ Feature: Manipulating Hosts In A Cluster
    Scenario: Creating a new host with an invalid cluster name
       Given we have a valid username and password
         and we set the cluster name to headache
-       when we create the host at 192.168.152.110
+       when we create the host 192.168.152.110
        then commissaire will allow access
         and commissaire will note a conflict
 
