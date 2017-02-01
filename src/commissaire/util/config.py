@@ -96,6 +96,7 @@ def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
     # This is NOT included in the returned dictionary.
     if json_object.pop('debug', False):
         logging.getLogger().setLevel(logging.DEBUG)
+        logging.info('Debugging messages enabled')
 
     # Special case:
     #
