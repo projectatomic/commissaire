@@ -47,13 +47,6 @@ from urllib.parse import urlparse
 from commissaire.constants import DEFAULT_CLUSTER_NETWORK_JSON
 
 
-DEFAULT_COMMISSAIRE_SERVER_ARGS = [
-    '--authentication-plugin',
-    'commissaire_http.authentication.httpbasicauth:'
-    'filepath=../commissaire-http/conf/users.json',
-]
-
-
 def generate_certificates(context):
     """
     Generates new certificates for testing.
@@ -195,7 +188,7 @@ def start_etcd(context, args):
 def start_commissaire_service(context, args):
     """Starts a commissaire service."""
     process = subprocess.Popen(
-        [args[0], '--bus-uri', context.BUS_URI])
+        args + ['--bus-uri', context.BUS_URI])
     time.sleep(1)
     process.poll()
 
@@ -342,22 +335,34 @@ def before_all(context):
         if context.config.userdata.get('start-storage-service'):
             context.PROCESSES['commissaire-storage-service'] = try_start(
                 start_commissaire_service, 'commissaire-storage-service',
-                context, ['commissaire-storage-service'])
+                context, [
+                    'commissaire-storage-service',
+                    '--config-file',
+                    '../commissaire-service/conf/storage.conf'])
 
         if context.config.userdata.get('start-investigator-service'):
             context.PROCESSES['commissaire-investigator-service'] = try_start(
                 start_commissaire_service, 'commissaire-investigator-service',
-                context, ['commissaire-investigator-service'])
+                context, [
+                    'commissaire-investigator-service',
+                    '--config-file',
+                    '../commissaire-service/conf/investigator.conf'])
 
         if context.config.userdata.get('start-watcher-service'):
             context.PROCESSES['commissaire-watcher-service'] = try_start(
                 start_commissaire_service, 'commissaire-watcher-service',
-                context, ['commissaire-watcher-service'])
+                context, [
+                    'commissaire-watcher-service',
+                    '--config-file',
+                    '../commissaire-service/conf/watcher.conf'])
 
         if context.config.userdata.get('start-commissaire-server'):
             context.PROCESSES['commissaire-server'] = try_start(
                 start_commissaire_server, 'commissaire-server',
-                context, DEFAULT_COMMISSAIRE_SERVER_ARGS)
+                context, [
+                    '--authentication-plugin',
+                    'commissaire_http.authentication.httpbasicauth:'
+                    'filepath=../commissaire-http/conf/users.json'])
 
 
 def before_scenario(context, scenario):
