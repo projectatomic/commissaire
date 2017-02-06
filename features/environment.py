@@ -98,9 +98,9 @@ def generate_certificates(context):
             server_fobj.write(key_fobj.read())
 
 
-def try_start(func, name, context, args=[], times=3):
+def try_start(func, name, context, args=[]):
     """
-    Tries up to X times to get a success response from func. If the proceess
+    Tries up to 3 times to get a success response from func. If the proceess
     can not be started SystemExit is raised.
 
     :param func: The function to try to start.
@@ -111,8 +111,6 @@ def try_start(func, name, context, args=[], times=3):
     :type context: behave.runner.Context
     :param args: Any other CLI args that should be passed to the function.
     :type args: list
-    :param times: The number of times to attempt to start (Default: 3).
-    :type times: int
     :returns: The running processes
     :rtype: subprocess.Popen
     :raises: SystemExit
