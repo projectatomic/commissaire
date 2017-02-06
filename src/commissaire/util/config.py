@@ -18,6 +18,7 @@ Configuration related classes.
 
 import json
 import logging
+import sys
 
 from commissaire.util.logging import setup_logging
 
@@ -67,18 +68,23 @@ def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
     json_object = {}
     using_default = False
 
-    if path is None:
-        path = default
-        using_default = True
+    # As with the fileinput module, replace '-' with sys.stdin.
+    if path == '-':
+        json_object = json.load(sys.stdin)
 
-    try:
-        with open(path, 'r') as fp:
-            json_object = json.load(fp)
-        if using_default:
-            print('Using configuration in {}'.format(path))
-    except IOError:
-        if not using_default:
-            raise
+    else:
+        if path is None:
+            path = default
+            using_default = True
+
+        try:
+            with open(path, 'r') as fp:
+                json_object = json.load(fp)
+            if using_default:
+                print('Using configuration in {}'.format(path))
+        except IOError:
+            if not using_default:
+                raise
 
     if type(json_object) is not dict:
         raise TypeError(
