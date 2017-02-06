@@ -25,6 +25,7 @@ Feature: Upgrading Clusters
       when we initiate an upgrade of cluster honeynut
       then commissaire will deny access
 
+  @slow
   Scenario: Initiate cluster upgrade with authentication
      Given we have a valid username and password
        and we have a cluster named honeynut

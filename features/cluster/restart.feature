@@ -25,6 +25,7 @@ Feature: Restarting Clusters
       when we initiate a restart of cluster honeynut
       then commissaire will deny access
 
+  @slow
   Scenario: Initiate cluster restart with authentication
      Given we have a valid username and password
        and we have a cluster named honeynut
