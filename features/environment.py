@@ -46,6 +46,19 @@ from urllib.parse import urlparse
 
 from commissaire.constants import DEFAULT_CLUSTER_NETWORK_JSON
 
+# Fill in with context.ETCD after start_etcd().
+STORAGE_CONF_TEMPLATE = """
+{{
+  "storage_handlers": [
+    {{
+      "name": "commissaire.storage.etcd",
+      "server_url": "{}",
+      "models": ["*"]
+    }}
+  ]
+}}
+"""
+
 
 def generate_certificates(context):
     """
@@ -98,7 +111,7 @@ def generate_certificates(context):
             server_fobj.write(key_fobj.read())
 
 
-def try_start(func, name, context, args=[]):
+def try_start(func, name, context, args=[], **kwargs):
     """
     Tries up to 3 times to get a success response from func. If the proceess
     can not be started SystemExit is raised.
@@ -111,12 +124,14 @@ def try_start(func, name, context, args=[]):
     :type context: behave.runner.Context
     :param args: Any other CLI args that should be passed to the function.
     :type args: list
+    :param kwargs: Keyword arguments to pass to func.
+    :type kwargs: dict
     :returns: The running processes
     :rtype: subprocess.Popen
     :raises: SystemExit
     """
     for retry in range(1, 4):
-        process = func(context, args)
+        process = func(context, args, **kwargs)
         if process:
             return process
         elif retry == 3:
@@ -183,10 +198,10 @@ def start_etcd(context, args):
         return context.PROCESSES['etcd']
 
 
-def start_commissaire_service(context, args):
+def start_commissaire_service(context, args, **kwargs):
     """Starts a commissaire service."""
     process = subprocess.Popen(
-        args + ['--bus-uri', context.BUS_URI])
+        args + ['--bus-uri', context.BUS_URI], **kwargs)
     time.sleep(1)
     process.poll()
 
@@ -331,12 +346,17 @@ def before_all(context):
             try_start(start_redis, 'redis', context)
 
         if context.config.userdata.get('start-storage-service'):
-            context.PROCESSES['commissaire-storage-service'] = try_start(
+            # Feed the service with a configuration through stdin.
+            process = try_start(
                 start_commissaire_service, 'commissaire-storage-service',
                 context, [
                     'commissaire-storage-service',
-                    '--config-file',
-                    '../commissaire-service/conf/storage.conf'])
+                    '--config-file', '-'],
+                stdin=subprocess.PIPE,
+                universal_newlines=True)
+            context.PROCESSES['commissaire-storage-service'] = process
+            process.stdin.write(STORAGE_CONF_TEMPLATE.format(context.ETCD))
+            process.stdin.close()
 
         if context.config.userdata.get('start-investigator-service'):
             context.PROCESSES['commissaire-investigator-service'] = try_start(
