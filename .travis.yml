@@ -1,12 +1,20 @@
 language: python
+dist: trusty
+sudo: required
+services:
+  - redis-server
 python:
   - "3.5"
 install:
   - "pip install tox"
 script:
-  - "tox -v -e py35"
+  - "git clone https://github.com/projectatomic/commissaire-service.git ../commissaire-service"
+  - "git clone https://github.com/projectatomic/commissaire-http.git ../commissaire-http"
+  - "wget https://github.com/coreos/etcd/releases/download/v3.1.0/etcd-v3.1.0-linux-amd64.tar.gz"
+  - "tar xvzf etcd-v3.1.0-linux-amd64.tar.gz"
+  - "pushd etcd-v3.1.0-linux-amd64"
+  - "./etcd &"
+  - "popd"
+  - "tox -v -e travis"
 notifications:
   email: false
-  # This is Colin's instance of Homu, in the future
-  # we'll move this to a production cluster.
-  webhooks: http://escher.verbum.org:54856/travis
