@@ -22,6 +22,8 @@ from unittest import mock
 
 from . import TestCase
 
+import commissaire.storage.etcd
+
 from commissaire.util import config
 
 
@@ -116,3 +118,43 @@ class Test_ConfigFile(TestCase):
         with mock.patch('builtins.open',
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             self.assertRaises(ValueError, config.read_config_file)
+
+    def test_import_plugin_with_invalid_module_name(self):
+        """
+        Verify import_plugin raises on invalid module name
+        """
+        self.assertRaises(
+            config.ConfigurationError,
+            config.import_plugin,
+            'bogus_module',
+            'commissaire.storage',
+            commissaire.storage.etcd.PluginClass)
+
+    def test_import_plugin_with_invalid_class(self):
+        """
+        Verify import_plugin raises on invalid class
+        """
+        self.assertRaises(
+            config.ConfigurationError,
+            config.import_plugin,
+            'etcd',
+            'commissaire.storage',
+            int)
+
+    def test_import_plugin_with_builtin_module_name(self):
+        """
+        Verify import_plugin with built-in module name
+        """
+        config.import_plugin(
+            'etcd',
+            'commissaire.storage',
+            commissaire.storage.etcd.PluginClass)
+
+    def test_import_plugin_with_external_module_name(self):
+        """
+        Verify import_plugin with external module name
+        """
+        config.import_plugin(
+            'commissaire.storage.etcd',
+            'deliberately.bogus.package',
+            commissaire.storage.etcd.PluginClass)

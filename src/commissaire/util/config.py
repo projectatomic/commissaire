@@ -16,6 +16,7 @@
 Configuration related classes.
 """
 
+import importlib
 import json
 import logging
 import sys
@@ -140,3 +141,38 @@ def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
         json_object[handler_key] = [handler_list]
 
     return json_object
+
+
+def import_plugin(module_name, default_package, base_class):
+    """
+    Imports a user-specified module and returns its "PluginClass"
+    attribute, which should be a subclass of the given base class.
+
+    If module_name lacks a module delimiter character ('.'), then use
+    default_package as the prefix to obtain the absolute module name.
+
+    :param module_name: Module name to import
+    :type module_name: str
+    :param default_package: Default if module_name lacks a package
+    :type package_name: str
+    :param base_class: Required base class of the imported plugin
+    :type base_class: class
+    :returns: A plugin class
+    :rtype: class
+    :raises ConfigurationError: if the module_name is invalid, the
+                                "PluginClass" attribute is not defined,
+                                or the imported object is not a subclass
+                                of base_class
+    """
+    if '.' not in module_name:
+        module_name = default_package + '.' + module_name
+    try:
+        module = importlib.import_module(module_name)
+        plugin_class = getattr(module, 'PluginClass')
+        if not issubclass(plugin_class, base_class):
+            raise ConfigurationError(
+                '{}.PluginClass is not a subclass of {}'.format(
+                    module_name, base_class.__name__))
+        return plugin_class
+    except (AttributeError, ImportError, TypeError) as error:
+        raise ConfigurationError(error.args[0])

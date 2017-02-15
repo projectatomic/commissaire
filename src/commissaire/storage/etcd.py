@@ -190,4 +190,4 @@ class EtcdStoreHandler(StoreHandlerBase):
         return model_instance
 
 
-StoreHandler = EtcdStoreHandler
+PluginClass = EtcdStoreHandler

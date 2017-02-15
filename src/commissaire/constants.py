@@ -42,7 +42,7 @@ CONTAINER_MANAGER_TYPES = [CONTAINER_MANAGER_OPENSHIFT]
 # Default etcd configuration
 # (server URL provided by store handler)
 DEFAULT_ETCD_STORE_HANDLER = {
-    'name': 'commissaire.storage.etcd',
+    'name': 'etcd',
     'models': []
 }
 

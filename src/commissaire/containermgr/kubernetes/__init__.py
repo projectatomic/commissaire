@@ -292,5 +292,4 @@ class KubeContainerManager(ContainerManagerBase):
         return data
 
 
-#: Common name for the class
-ContainerHandler = KubeContainerManager
+PluginClass = KubeContainerManager
