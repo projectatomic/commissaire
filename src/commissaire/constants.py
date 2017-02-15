@@ -43,13 +43,6 @@ CONTAINER_MANAGER_TYPES = [CONTAINER_MANAGER_OPENSHIFT]
 # (server URL provided by store handler)
 DEFAULT_ETCD_STORE_HANDLER = {
     'name': 'etcd',
-    'models': []
-}
-
-# Default Kubernetes configuration
-# (server URL provided by store handler)
-DEFAULT_KUBERNETES_STORE_HANDLER = {
-    'name': 'commissaire.store.kubestorehandler',
     'models': ['*']
 }
 
