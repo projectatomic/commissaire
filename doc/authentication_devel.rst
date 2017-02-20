@@ -7,7 +7,7 @@ commissaire's authentication is handled by a simple WSGI based
 plugin based system. To create a new authentication plugin you must:
 
 - subclass ``commissaire_http.authentication.Authenticator``
-- name the class ``AuthenticationPlugin``
+- name the class ``PluginClass``
 - override the ``authenticate`` method
 
 If you need to have configuration items passed when used you will also need to
@@ -50,7 +50,7 @@ Basic
             return False
 
     #: Alias AlwaysAllowOnSSL
-    AuthenticationPlugin = AlwaysAllowOnSSL
+    PluginClass = AlwaysAllowOnSSL
 
 
 As a WSGI Application
@@ -83,7 +83,7 @@ As a WSGI Application
             return [bytes('Whiiiiieee', 'utf8')]
 
     #: Alias AlwaysAllowOnSSL
-    AuthenticationPlugin = AlwaysAllowOnSSL
+    PluginClass = AlwaysAllowOnSSL
 
 
 Real Code
