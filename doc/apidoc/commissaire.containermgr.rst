@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     commissaire.containermgr.kubernetes
+    commissaire.containermgr.openshift
 
 Module contents
 ---------------
