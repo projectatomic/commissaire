@@ -243,9 +243,24 @@ class KubeContainerManager(ContainerManagerBase):
         resp = self._delete(part)
         if resp.status_code != 200:
             error_msg = (
-                'Unexpected response when trying to remove the node {}.'
+                'Unexpected response when trying to remove the node {}. '
                 'Status: {}, Data: {}'.format(
                     name, resp.status_code, resp.text))
+            self.logger.error(error_msg)
+            raise ContainerManagerError(error_msg, resp.status_code)
+
+    def remove_all_nodes(self):
+        """
+        Removes all nodes from the Kubernetes Container Manager.
+
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        resp = self._delete('/nodes')
+        if resp.status_code != 200:
+            error_msg = (
+                'Unexpected response when trying to remove all nodes. '
+                'Status: {}, Data: {}'.format(
+                    resp.status_code, resp.text))
             self.logger.error(error_msg)
             raise ContainerManagerError(error_msg, resp.status_code)
 
