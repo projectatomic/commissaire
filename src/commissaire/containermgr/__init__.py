@@ -40,14 +40,59 @@ class ContainerManagerBase(object):  # pragma: no cover
         """
         self.logger = logging.getLogger('containermgr')
 
-    def node_registered(self, name):
+    def node_registered(self, address):
         """
-        Checks is a node was registered.
+        Checks if a node is registered to the container manager.
 
-        :param name: The name of the node.
-        :type name: str
-        :returns: True if registered, otherwise False
-        :rtype: bool
+        Raises ContainerManagerError if the node is NOT registered.
+
+        :param address: Address of the node
+        :type address: str
+        :raises: commissaire.containermgr.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().node_registered() must be overridden.')
+
+    def register_node(self, address):
+        """
+        Registers a node to the container manager.
+
+        :param address: Address of the node
+        :type address: str
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        raise NotImplementedError(
+            'ContainerManagerBase().register_node() must be overridden.')
+
+    def remove_node(self, address):
+        """
+        Removes a node from the container manager.
+
+        :param address: Address of the node
+        :type address: str
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        raise NotImplementedError(
+            'ContainerManagerBase().remove_node() must be overridden.')
+
+    def remove_all_nodes(self):
+        """
+        Removes all nodes from the container manager.
+
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        raise NotImplementedError(
+            'ContainerManagerBase().remove_all_nodes() must be overridden.')
+
+    def get_node_status(self, address):
+        """
+        Gets a node's status from the container manager.
+
+        :param address: Address of the node
+        :type address: str
+        :returns: Status of the node according to the container manager
+        :rtype: dict
+        :raises: commissaire.containermgr.ContainerManagerError
+        """
+        raise NotImplementedError(
+            'ContainerManagerBase().get_node_status() must be overridden.')
