@@ -8,7 +8,7 @@
     <meta name="author" content="Commissaire Contributors">
     <!--<link rel="icon" href="favicon.ico">-->
 
-    <title>Carousel Template for Bootstrap</title>
+    <title>Commissaire: Control Your Cluster</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -22,7 +22,7 @@
     <div class="navbar-wrapper">
       <div class="container">
 
-        <nav class="navbar navbar-inverse navbar-static-top">
+        <nav class="navbar navbar-custom navbar-static-top">
           <div class="container">
             <div class="navbar-header">
               <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -41,12 +41,12 @@
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Source<span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     <li><a href="http://www.github.com/projectatomic/commissaire">Commissaire Common</a></li>
-                    <li><a href="http://www.github.com/projectatomic/commissaire-htto">Commissaire HTTP</a></li>
-                    <li><a href="http://www.github.com/projectatomic/commissaire-services">Commissaire Services</a></li>
+                    <li><a href="http://www.github.com/projectatomic/commissaire-http">Commissaire HTTP</a></li>
+                    <li><a href="http://www.github.com/projectatomic/commissaire-service">Commissaire Services</a></li>
                     <li><a href="http://www.github.com/projectatomic/commctl">Commissaire CLI</a></li>
-                  </ul>
-                  
+                  </ul>   
 		</li>
+                <li><a href="http://projectatomic.io">Project Atomic</a></li>
               </ul>
             </div>
           </div>
@@ -58,7 +58,7 @@
 
     <!-- Carousel
     ================================================== -->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="7000">
       <!-- Indicators -->
       <ol class="carousel-indicators">
         <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -66,11 +66,11 @@
       </ol>
       <div class="carousel-inner" role="listbox">
         <div class="item active">
-          <img class="first-slide" src="" alt="First slide">
+          <!-- <img class="first-slide" src="" alt="First slide">-->
           <div class="container">
             <div class="carousel-caption">
               <h1>Commissaire 0.0.2 Released</h1>
-              <p>Checkout the <a href="#">Changelog</a> and try it out today!</p>
+              <p>Checkout the Changelogs(<a href="https://github.com/projectatomic/commissaire/blob/master/CHANGELOG.md">common</a>,<a href="https://github.com/projectatomic/commissaire-http/blob/master/CHANGELOG.md">http</a>,<a href="https://github.com/projectatomic/commissaire-service/blob/master/CHANGELOG.md">service</a>) and try it out today!</p>
             </div>
           </div>
         </div>
@@ -100,52 +100,53 @@
     ================================================== -->
     <!-- Wrap the rest of the page in another container to center all the content. -->
 
-    <div class="container marketing">
-
-      <!-- START THE FEATURETTES -->
-
-      <div class="row featurette">
-        <div class="col-md-7">
-          <h2 class="featurette-heading">Node Control. <span class="text-muted">Manage what lives under your apps</span></h2>
-          <p class="lead">.......</p>
+    <div class="container">
+      <!-- Current Version Row -->
+      <div class="row">
+        <div class="alert alert-info text-center" role="alert">
+	    <h3>Current Version: 0.0.2</h3> 
         </div>
-        <div class="col-md-5">
-          <img class="featurette-image img-responsive center-block" src="">
+      </div>
+      <!-- End Current Version Row -->
+      <!-- Download Links -->
+      <div class="row text-center">
+        <a class="btn btn-lg btn-success" href="https://github.com/projectatomic/commissaire/archive/0.0.2.tar.gz" role="button">Download Commissaire Common</a>
+        <a class="btn btn-lg btn-warning" href="https://github.com/projectatomic/commissaire-http/archive/0.0.2.tar.gz" role="button">Download Commissaire HTTP</a>
+        <a class="btn btn-lg btn-info" href="https://github.com/projectatomic/commissaire-service/archive/0.0.2.tar.gz" role="button">Download Commissaire Service</a>
+      </div>
+      <!-- End Download Links -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>Create</h2>
+          <p>Create Resource Clusters providing the power to your services. Define clusters and add nodes to them. Keep the update management of these nodes in lock step.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Control</h2>
+          <p>Manage what lives under your apps. Update, upgrade, restart and more at the host or cluster level.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Onboard</h2>
+          <p>From Cloud to Container Manager. Use cloud-init to bootstrap new nodes into both Commissaire as well as OpenShift or Kubernetes.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Authenticate</h2>
+          <p>Use Commissaire's pluggable authentication system to integrate with any authorization system.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Centralize</h2>
+          <p><b>Comming Soon</b>: A single source of truth. Provide a singler spot for integrators to work with while taking advantage of Commissaire's pluggable authentication and logging.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Join Us</h2>
+          <p>Join the Commissaire community and help define the next set of features! We have <a href="http://commissaire.readthedocs.io/en/latest/community_meetings.html">biweekly meetings</a> and live in #atomic on <a href="https://freenode.net/">Freenode</a></p>
         </div>
       </div>
 
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-md-7 col-md-push-5">
-          <h2 class="featurette-heading">Simple Onboarding. <span class="text-muted">From Cloud to Container Manager</span></h2>
-          <p class="lead">..........</p>
-        </div>
-        <div class="col-md-5 col-md-pull-7">
-          <img class="featurette-image img-responsive center-block" src="">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-md-7">
-          <h2 class="featurette-heading">Centralize APIs. <span class="text-muted">A single source of truth</span></h2>
-          <p class="lead"><b>Coming Soon</b>: Provide a singler spot for integrators to work with while taking advantage of Commissaire's pluggable authentication and logging.</p>
-        </div>
-        <div class="col-md-5">
-          <img class="featurette-image img-responsive center-block" src="">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
 
       <!-- /END THE FEATURETTES -->
 
-
       <!-- FOOTER -->
       <footer>
-        <p class="pull-right"><a href="#">Back to top</a></p>
         <p>&copy; 2017 Commissaire Contributors</p>
       </footer>
 
@@ -155,7 +156,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
   </body>
 </html>
