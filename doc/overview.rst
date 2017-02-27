@@ -1,13 +1,13 @@
 Overview
 ========
 
-.. pull-quote::
+Commissaire is a lightweight REST interface for performing system management tasks on network hosts in a cluster through Ansible.
 
-   It actually configured Kubernetes when I could not remember how to.
+Current capabilities include rolling upgrades and restarts of traditional or "Atomic_" hosts, and bootstrapping new hosts into an existing "container management" system such as OpenShift_ or Kubernetes_.
 
-   -- Ryan Cook
+Moving forward, Commissaire will expand the scope of its REST interface to provide centralized host inventory management and consoldate various Linux subsystems into a centralized API.
 
-commissaire is a lightweight REST interface for upgrading, restarting, and bootstrapping new hosts into an existing Container Management cluster such as OpenShift_ or Kubernetes_.
+.. _Atomic: http://projectatomic.io
 
 .. _Kubernetes: http://kubernetes.io
 
