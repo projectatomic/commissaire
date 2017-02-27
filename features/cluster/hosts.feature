@@ -260,3 +260,35 @@ Feature: Manipulating Hosts In A Cluster
        when we check for host 192.168.152.110 in the cluster honeynut
        then commissaire will allow access
         and commissaire will note success
+
+   @hoststatus
+   Scenario: Examining host status without authentication
+     Given we are anonymous
+       and a host already exists at 192.168.152.110
+      when we get host status for 192.168.152.110
+      then commissaire will deny access
+
+   @hoststatus @slow
+   Scenario: Examining host status in an unmanaged cluster
+      Given we have a valid username and password
+        and we have an unmanaged cluster named honeynut
+        and we have a host at 192.168.152.110
+        and we have added host 192.168.152.110 to cluster honeynut
+       when we get host status for 192.168.152.110
+       then commissaire will allow access
+        and commissaire will note success
+        and commissaire will return the host status
+        and the host status will not include container manager details
+
+   @hoststatus @slow
+   Scenario: Examining host status in a managed cluster
+      Given we have a valid username and password
+        and we have a trivial container manager
+        and we have a managed cluster named honeynut
+        and we have a host at 192.168.152.110
+        and we have added host 192.168.152.110 to cluster honeynut
+       when we get host status for 192.168.152.110
+       then commissaire will allow access
+        and commissaire will note success
+        and commissaire will return the host status
+        and the host status will include container manager details

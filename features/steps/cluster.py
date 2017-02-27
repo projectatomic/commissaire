@@ -26,8 +26,17 @@ from steps import (
     VALID_USERNAME, VALID_PASSWORD)
 
 
+@given('we have a managed cluster named {cluster}')
+def impl(context, cluster):
+    request = requests.put(
+        context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),
+        auth=(VALID_USERNAME, VALID_PASSWORD),
+        data=json.dumps({'container_manager': 'trivial'}))
+    assert_status_code(request.status_code, 201)
+
 @given('we have an unmanaged cluster named {cluster}')
 def impl(context, cluster):
+    data = {}
     request = requests.put(
         context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),
         auth=(VALID_USERNAME, VALID_PASSWORD),
