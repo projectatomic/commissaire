@@ -1,6 +1,10 @@
 Commissaire
 ===========
-The lightweight REST API for Node Management.
+Commissaire is a lightweight REST interface for performing system management tasks on network hosts in a cluster through Ansible.
+
+Current capabilities include rolling upgrades and restarts of traditional or "[Atomic](http://projectatomic.io)" hosts, and bootstrapping new hosts into an existing "container management" system such as [OpenShift](https://www.openshift.com) or [Kubernetes](https://kubernetes.io).
+
+Moving forward, Commissaire will expand the scope of its REST interface to provide centralized host inventory management and consoldate various Linux subsystems into a centralized API.
 
 [![Documentation](https://readthedocs.org/projects/commissaire/badge/?version=latest)](http://commissaire.readthedocs.org/) [![Build Status](https://travis-ci.org/projectatomic/commissaire.svg)](https://travis-ci.org/projectatomic/commissaire)
 
