@@ -21,14 +21,14 @@ Feature: Upgrading Clusters
   @anonymous
   Scenario: Initiate cluster upgrade without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we initiate an upgrade of cluster honeynut
       then commissaire will deny access
 
   @slow
   Scenario: Initiate cluster upgrade with authentication
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we initiate an upgrade of cluster honeynut
       then commissaire will allow access
        and commissaire will note creation

@@ -21,14 +21,14 @@ Feature: Deploying Tree Image Across Clusters
   @anonymous
   Scenario: Initiate tree deployment without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we initiate a tree deployment of cluster honeynut
       then commissaire will deny access
 
   @slow
   Scenario: Initiate tree deployment with authentication
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we initiate a tree deployment of cluster honeynut
       then commissaire will allow access
        and commissaire will note creation

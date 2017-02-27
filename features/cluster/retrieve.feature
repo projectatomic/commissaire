@@ -20,13 +20,13 @@ Feature: Examining A Cluster
   @anonymous
   Scenario: Examining an empty cluster without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we get the cluster honeynut
       then commissaire will deny access
 
   Scenario: Examining an empty cluster with authentication
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we get the cluster honeynut
       then commissaire will allow access
        and commissaire will note success

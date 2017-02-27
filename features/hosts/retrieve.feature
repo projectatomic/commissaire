@@ -65,7 +65,7 @@ Feature: Retrieving Hosts
   Scenario: Retrieve existing host status with authentication
      Given we have a valid username and password
        and a host already exists at 192.168.152.110
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and we add host 192.168.152.110 to the cluster honeynut
       when we get host status for 192.168.152.110
       then commissaire will allow access

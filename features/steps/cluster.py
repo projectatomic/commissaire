@@ -26,7 +26,7 @@ from steps import (
     VALID_USERNAME, VALID_PASSWORD)
 
 
-@given('we have a cluster named {cluster}')
+@given('we have an unmanaged cluster named {cluster}')
 def impl(context, cluster):
     request = requests.put(
         context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),

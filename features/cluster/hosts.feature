@@ -19,20 +19,20 @@ Feature: Manipulating Hosts In A Cluster
   @anonymous
   Scenario: Examining hosts in a cluster without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we get hosts in the cluster honeynut
       then commissaire will deny access
 
   @anonymous
   Scenario: Checking for a host in a cluster without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
       when we check for host 192.168.152.110 in the cluster honeynut
       then commissaire will deny access
 
   Scenario: Verifying hosts are not implicitly added to clusters (1)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we get the cluster honeynut
       then commissaire will allow access
@@ -44,7 +44,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying hosts are not implicitly added to clusters (2)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we get hosts in the cluster honeynut
       then commissaire will allow access
@@ -54,7 +54,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying hosts are not implicitly added to clusters (3)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we check for host 192.168.152.110 in the cluster honeynut
       then commissaire will allow access
@@ -63,14 +63,14 @@ Feature: Manipulating Hosts In A Cluster
   @anonymous
   Scenario: Adding a host to a cluster without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we add host 192.168.152.110 to the cluster honeynut
       then commissaire will deny access
 
   Scenario: Adding a host to a cluster with authentication
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we add host 192.168.152.110 to the cluster honeynut
       then commissaire will allow access
@@ -78,7 +78,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding a host (1)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
       when we get the cluster honeynut
@@ -89,7 +89,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding a host (2)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
       when we get hosts in the cluster honeynut
@@ -100,7 +100,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding a host (3)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
       when we check for host 192.168.152.110 in the cluster honeynut
@@ -110,7 +110,7 @@ Feature: Manipulating Hosts In A Cluster
   @anonymous
   Scenario: Removing a host from a cluster without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
       when we remove host 192.168.152.110 from the cluster honeynut
@@ -118,7 +118,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Removing a host from a cluster with authentication
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
       when we remove host 192.168.152.110 from the cluster honeynut
@@ -127,7 +127,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding and removing a host (1)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have removed host 192.168.152.110 from cluster honeynut
@@ -139,7 +139,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding and removing a host (2)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have removed host 192.168.152.110 from cluster honeynut
@@ -151,7 +151,7 @@ Feature: Manipulating Hosts In A Cluster
 
   Scenario: Verifying a cluster after adding and removing a host (3)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have removed host 192.168.152.110 from cluster honeynut
@@ -162,14 +162,14 @@ Feature: Manipulating Hosts In A Cluster
   @anonymous
   Scenario: Directly setting a cluster host list without authentication
      Given we are anonymous
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we set the host list for cluster honeynut to ["192.168.152.110"],
       then commissaire will deny access
 
   Scenario Outline: Directly setting a cluster host list
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
       when we set the host list for cluster honeynut to <json>
       then commissaire will allow access
@@ -185,7 +185,7 @@ Feature: Manipulating Hosts In A Cluster
   @delete
   Scenario: Deleting a host also removes it from its cluster (1)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have deleted host 192.168.152.110
@@ -198,7 +198,7 @@ Feature: Manipulating Hosts In A Cluster
   @delete
   Scenario: Deleting a host also removes it from its cluster (2)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have deleted host 192.168.152.110
@@ -211,7 +211,7 @@ Feature: Manipulating Hosts In A Cluster
   @delete
   Scenario: Deleting a host also removes it from its cluster (3)
      Given we have a valid username and password
-       and we have a cluster named honeynut
+       and we have an unmanaged cluster named honeynut
        and a host already exists at 192.168.152.110
        and we have added host 192.168.152.110 to cluster honeynut
        and we have deleted host 192.168.152.110
@@ -230,7 +230,7 @@ Feature: Manipulating Hosts In A Cluster
    @slow @create
    Scenario: Creating a new host with a valid cluster name (1)
       Given we have a valid username and password
-        and we have a cluster named honeynut
+        and we have an unmanaged cluster named honeynut
         and we set the cluster name to honeynut
         and we have a host at 192.168.152.110
        when we get the cluster honeynut
@@ -242,7 +242,7 @@ Feature: Manipulating Hosts In A Cluster
    @slow @create
    Scenario: Creating a new host with a valid cluster name (2)
       Given we have a valid username and password
-        and we have a cluster named honeynut
+        and we have an unmanaged cluster named honeynut
         and we set the cluster name to honeynut
         and we have a host at 192.168.152.110
        when we get hosts in the cluster honeynut
@@ -254,7 +254,7 @@ Feature: Manipulating Hosts In A Cluster
    @slow @create
    Scenario: Creating a new host with a valid cluster name (3)
       Given we have a valid username and password
-        and we have a cluster named honeynut
+        and we have an unmanaged cluster named honeynut
         and we set the cluster name to honeynut
         and we have a host at 192.168.152.110
        when we check for host 192.168.152.110 in the cluster honeynut
