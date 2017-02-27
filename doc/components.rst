@@ -5,15 +5,11 @@ Internal
 --------
 The following are internal components of commissaire.
 
-.. todo::
-
-    REST Interface -> commissaire-server
-
-REST Interface
-~~~~~~~~~~~~~~
-The rest interface is the way an administrator works with commissaire. It
-attempts to follow REST as strictly as possible through the interpretation of
-commissaire developers.
+Commissaire Server
+~~~~~~~~~~~~~~~~~~
+The commissaire server is the ``REST`` interface and is how an administrator works
+with commissaire. It attempts to follow ``REST`` as strictly as possible through
+the interpretation of commissaire developers.
 
 
 Services

@@ -2,11 +2,12 @@
 
 REST Endpoints
 ==============
+``REST`` stands for representational state transfer and is one of many ways to expose API's as a web service.  ``REST`` allows
+"requesting systems to access and manipulate textual representations of Web resources using a uniform and predefined set of
+stateless operations. [...] Using HTTP, as is most common, the kind of operations available include those predefined by the
+HTTP verbs ``GET``, ``POST``, ``PUT``, ``DELETE`` and so on." (`Wikipedia <https://en.wikipedia.org/wiki/Representational_state_transfer>`_)
 
-.. todo::
-
-    Give a quick blurb about REST.
-
+For more information on ``REST`` see the `original dissertation <http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm>`_.
 
 .. _cluster_op:
 
@@ -20,7 +21,7 @@ Cluster
 
 .. versionchanged:: 0.1.0
 
-   ``type`` has been removed in favor of ``cluster_manager``.
+   ``type`` has been removed in favor of ``container_manager``.
 
 GET
 ```
@@ -32,7 +33,7 @@ Retrieve the status of the cluster.
        "name": string,
        "status" string,
        "network": string,
-       "cluster_manager": str,
+       "container_manager": str,
        "hosts": {
            "total": int,
            "available": int,
@@ -50,7 +51,7 @@ Example
        "name": "mycluster",
        "status": "ok",
        "network": "default",
-       "cluster_manager": "prod_openshift",
+       "container_manager": "prod_openshift",
        "hosts": {
            "total": 3,
            "available": 2,
@@ -69,7 +70,7 @@ Creates a new cluster.
 .. code-block:: javascript
 
     {
-        "cluster_manager": string // (Optional) Name of the cluster manager to use
+        "container_manager": string // (Optional) Name of the container manager to use
         "network": string     // The name of the network
     }
 
@@ -80,7 +81,7 @@ Example
 .. code-block:: javascript
 
    {
-       "cluster_manager": "prod_openshift",
+       "container_manager": "prod_openshift",
        "network": "default"
    }
 
@@ -195,10 +196,6 @@ Example Response
 Cluster Operations: Deploy
 --------------------------
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 **Endpoint**: /api/v0/cluster/{NAME}/deploy
 
 (Internal model name: ``ClusterDeploy``)
@@ -271,10 +268,6 @@ Example Response
 Cluster Operations: Upgrade
 ---------------------------
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 **Endpoint**: /api/v0/cluster/{NAME}/upgrade
 
 (Internal model name: ``ClusterUpgrade``)
@@ -330,10 +323,6 @@ Example Response
 
 Cluster Operations: Restart
 ---------------------------
-
-.. todo::
-
-    Currently not ported to new architecture.
 
 **Endpoint**: /api/v0/cluster/{NAME}/restart
 

@@ -8,21 +8,7 @@ https://github.com/projectatomic/commissaire.
 
 Development Setup
 -----------------
-
-.. todo::
-
-    Maybe reference INSTALL.md instead?
-
-You will want to set up a virtualenv to work with. This will keep from poluting
-your system with application only dependencies while you code.
-
-.. include:: examples/setup_virtualenv.rst
-
-.. note::
-
-   Any time you will be working on commissaire make sure to activate the virtualenv
-
-.. _vagrant:
+See `DEVEL.rst <https://github.com/projectatomic/commissaire-http/blob/master/DEVEL.rst>`_
 
 Vagrant
 -------
@@ -168,10 +154,6 @@ To run unit tests locally and see where your code stands:
 
 End-to-End/BDD Testing
 ``````````````````````
-
-.. todo::
-
-    Currently not ported to new architecture.
 
 commissaire uses `Behave <http://pythonhosted.org/behave/>`_ to execute
 end to end/BDD tests. You will need to have the following in your parent

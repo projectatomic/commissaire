@@ -90,7 +90,7 @@ cp conf/commissaire.conf config.conf
 ```
 Note: if locally installed you do not need to change anything
 
-Start the service 
+Start the service
 ```
 commissaire-server -c config.conf &
 popd

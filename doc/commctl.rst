@@ -8,13 +8,10 @@ Preface
 
 .. _commctl_preface:
 
-.. todo::
+``commctl`` is the official command line utility for Commissaire. ``commctl`` acts as
+a clean user interface between the operator and the commissaire-server allowing for a
+more traditional experience for operators.
 
-    Give a fuller description.
-
-``commctl`` is the official command line utility for Commissaire.
-
-.. include:: examples/commctl_note.rst
 
 Installation
 ------------
@@ -31,9 +28,8 @@ Via Source
 Via Docker
 ~~~~~~~~~~
 
-.. todo::
+.. include:: examples/commctl_install_docker.rst
 
-    TODO
 
 Via RPM
 ~~~~~~~
@@ -159,10 +155,6 @@ To list all clusters:
 deploy start
 ````````````
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 ``deploy start`` will create a new deployment on an Atomic Host. This is an
 asynchronous action. See :ref:`deploy_status` on checking the results.
 
@@ -182,10 +174,6 @@ asynchronous action. See :ref:`deploy_status` on checking the results.
 deploy status
 `````````````
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 ``deploy status`` will retrieve the status of an deploy
 
 ``deploy status`` requires one positional argument:
@@ -199,10 +187,6 @@ deploy status
 
 restart start
 `````````````
-
-.. todo::
-
-    Currently not ported to new architecture.
 
 ``restart start`` will create a new restart roll on a cluster of hosts. This is an
 asynchronous action. See :ref:`restart_status` on checking the results.
@@ -220,10 +204,6 @@ asynchronous action. See :ref:`restart_status` on checking the results.
 restart status
 ``````````````
 
-.. todo::
-
-    Currently not ported to new architecture.
-
 ``restart status`` will retrieve the status of an restart
 
 ``restart status`` requires one positional argument:
@@ -235,10 +215,6 @@ restart status
 
 upgrade start
 `````````````
-
-.. todo::
-
-    Currently not ported to new architecture.
 
 ``upgrade start`` will create a new upgrade on a cluster of hosts. This is an
 asynchronous action. See :ref:`upgrade_status` on checking the results.
@@ -255,10 +231,6 @@ asynchronous action. See :ref:`upgrade_status` on checking the results.
 
 upgrade status
 ``````````````
-
-.. todo::
-
-    Currently not ported to new architecture.
 
 ``upgrade status`` will retrieve the status of an upgrade
 

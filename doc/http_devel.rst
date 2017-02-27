@@ -1,5 +1,5 @@
-Commissaire HTTP
-================
+Developing on Commissaire HTTP
+==============================
 
 Commissaire HTTP provides a multithreaded REST interface into Commissaire
 functionality. The server is broken up into 5 main parts: ``Router``,

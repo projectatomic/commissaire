@@ -3,9 +3,10 @@ Operations
 
 Preface
 -------
-All operations via commissaire are done via REST. While any HTTP client can
-be used, many users will feel more comfortable using :ref:`commctl <commctl_preface>`.
-
+All operations via Commissaire are done via ``REST``. ``REST`` calls are the
+prefered way to integrate with Commissaire. While any HTTP client can be used
+to directly interface with the ``REST`` server, many operators will feel more
+comfortable using :ref:`commctl <commctl_preface>`.
 
 
 curl
@@ -18,7 +19,7 @@ With curl this looks like:
    curl ... -u "USERNAME:PASSWORD" ...
 
 
-The proper headers must also be passed. Since all of the REST communication
+The proper headers must also be passed. Since all of the ``REST`` communication
 is done via JSON the ``Content-Type`` must be set to ``application/json``.
 
 .. code-block:: shell
@@ -63,13 +64,9 @@ For specifics on the endpoint see :ref:`host_op`
 Cluster Operations with curl
 ----------------------------
 
-.. todo::
+.. note::
 
-    Currently not ported to new architecture.
-
-.. todo::
-
-    Reference commctl docs since most users will likely use that rather than direct curl
+    Operators will probably want to use :ref:`commctl_cli`
 
 These operations are done across all hosts associated with a cluster.
 
@@ -80,7 +77,7 @@ cluster.
 
 .. include:: examples/create_restart.rst
 
-To check on a ``restart`` record, a REST *GET* call on the same endpoint will show the
+To check on a ``restart`` record, a ``REST`` *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_restart.rst
@@ -95,7 +92,7 @@ cluster.
 
 .. include:: examples/create_upgrade.rst
 
-To check on an ``upgrade`` record, a REST *GET* call on the same endpoint will show the
+To check on an ``upgrade`` record, a ``REST`` *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_upgrade.rst
@@ -109,7 +106,7 @@ cluster.
 
 .. include:: examples/create_deploy.rst
 
-To check on a ``deploy`` record, a REST *GET* call on the same endpoint will show the
+To check on a ``deploy`` record, a ``REST`` *GET* call on the same endpoint will show the
 current status.
 
 .. include:: examples/get_deploy.rst
