@@ -1,13 +1,6 @@
 commissaire_service.containermgr package
 ========================================
 
-Submodules
-----------
-
-.. toctree::
-
-   commissaire_service.containermgr.containerhandlermanager
-
 Module contents
 ---------------
 
