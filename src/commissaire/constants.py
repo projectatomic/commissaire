@@ -34,10 +34,13 @@ DEFAULT_CLUSTER_NETWORK_JSON = {
 
 #: Container Manager type for OpenShift
 CONTAINER_MANAGER_OPENSHIFT = 'openshift'
+#: Container Manager type for testing only
+CONTAINER_MANAGER_TRIVIAL = 'trivial'
 #: Container Manager type to use when a default is required
 CONTAINER_MANAGER_DEFAULT = CONTAINER_MANAGER_OPENSHIFT
 #: All Container Manager types
-CONTAINER_MANAGER_TYPES = [CONTAINER_MANAGER_OPENSHIFT]
+CONTAINER_MANAGER_TYPES = [
+    CONTAINER_MANAGER_OPENSHIFT, CONTAINER_MANAGER_TRIVIAL]
 
 # Default etcd configuration
 # (server URL provided by store handler)
