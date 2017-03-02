@@ -21,8 +21,8 @@ import requests
 
 from urllib.parse import urljoin, urlparse
 
-from commissaire.containermgr import (
-    ContainerManagerBase, ContainerManagerError)
+from commissaire.bus import ContainerManagerError
+from commissaire.containermgr import ContainerManagerBase
 from commissaire.util.config import ConfigurationError
 
 
@@ -209,7 +209,7 @@ class KubeContainerManager(ContainerManagerBase):
 
         :param name: The name of the node.
         :type name: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         part = '/nodes'
 
@@ -236,7 +236,7 @@ class KubeContainerManager(ContainerManagerBase):
 
         :param name: The name of the node.
         :type name: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         part = '/nodes/{}'.format(name)
 
@@ -253,7 +253,7 @@ class KubeContainerManager(ContainerManagerBase):
         """
         Removes all nodes from the Kubernetes Container Manager.
 
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         resp = self._delete('/nodes')
         if resp.status_code != 200:
@@ -270,7 +270,7 @@ class KubeContainerManager(ContainerManagerBase):
 
         :param name: The name of the node.
         :type name: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         part = '/nodes/{0}'.format(name)
         resp = self._get(part)
@@ -290,7 +290,7 @@ class KubeContainerManager(ContainerManagerBase):
         :type raw: bool
         :returns: The response back from kubernetes.
         :rtype: dict
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         part = '/nodes/{}'.format(name)
         resp = self._get(part)

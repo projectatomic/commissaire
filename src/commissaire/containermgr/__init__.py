@@ -19,13 +19,6 @@ The container manager package.
 import logging
 
 
-class ContainerManagerError(Exception):
-    """
-    Base Exception class for ContainerManager related errors.
-    """
-    pass
-
-
 class ContainerManagerBase(object):  # pragma: no cover
     """
     Base class for all container managers.
@@ -48,7 +41,7 @@ class ContainerManagerBase(object):  # pragma: no cover
 
         :param address: Address of the node
         :type address: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().node_registered() must be overridden.')
@@ -59,7 +52,7 @@ class ContainerManagerBase(object):  # pragma: no cover
 
         :param address: Address of the node
         :type address: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().register_node() must be overridden.')
@@ -70,7 +63,7 @@ class ContainerManagerBase(object):  # pragma: no cover
 
         :param address: Address of the node
         :type address: str
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().remove_node() must be overridden.')
@@ -79,7 +72,7 @@ class ContainerManagerBase(object):  # pragma: no cover
         """
         Removes all nodes from the container manager.
 
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().remove_all_nodes() must be overridden.')
@@ -92,7 +85,7 @@ class ContainerManagerBase(object):  # pragma: no cover
         :type address: str
         :returns: Status of the node according to the container manager
         :rtype: dict
-        :raises: commissaire.containermgr.ContainerManagerError
+        :raises: commissaire.bus.ContainerManagerError
         """
         raise NotImplementedError(
             'ContainerManagerBase().get_node_status() must be overridden.')

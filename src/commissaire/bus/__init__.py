@@ -71,6 +71,23 @@ class StorageLookupError(RemoteProcedureCallError):
         super().__init__(message, code, data)
 
 
+class ContainerManagerError(RemoteProcedureCallError):
+    """
+    Exception class for container manager errors.
+    """
+    def __init__(self, message, data={}):
+        """
+        Creates a ContainerManagerError instance.
+
+        :param message: Error message
+        :type message: str
+        :param data: Additional error data
+        :type data: dict
+        """
+        code = C.JSONRPC_ERRORS['CONTAINER_MANAGER_ERROR']
+        super().__init__(message, code, data)
+
+
 class BusMixin:
     """
     Common methods for classes which utilize the Commissaire bus.
@@ -170,6 +187,8 @@ class BusMixin:
             data = error_data.get('data', {})
             if code == C.JSONRPC_ERRORS['STORAGE_LOOKUP_ERROR']:
                 raise StorageLookupError(message, data=data)
+            elif code == C.JSONRPC_ERRORS['CONTAINER_MANAGER_ERROR']:
+                raise ContainerManagerError(message, data=data)
             else:
                 raise RemoteProcedureCallError(message, code, data)
 

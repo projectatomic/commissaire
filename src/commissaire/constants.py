@@ -61,6 +61,7 @@ JSONRPC_ERRORS = {
 
     # These map to Exception classes
     'STORAGE_LOOKUP_ERROR': -20000,
+    'CONTAINER_MANAGER_ERROR': -20001,
 
     # Custom codes
     'NOT_FOUND': 404,
