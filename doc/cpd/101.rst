@@ -1,0 +1,370 @@
+CPD-101: Key Storage Encryption
+===============================
+
+Metadata
+--------
+
+* CPD Version: 1
+* Status: Open
+
+Description
+-----------
+Today we are holding keys the same way that secrets are used in some container managers.
+Instead of holding keys in base64 and assuming that the ``Storage`` instance is used
+only for Commissaire, we could encrypt keys, credentials and other secrets to add
+another layer of safety.
+
+Rationale
+---------
+The likelihood of having a ``Storage`` system that is used only for Commissaire seems
+low. More than likely the same instance will be used for other applications as well.
+By adding encryption to sensitive data we could mitigate access from those with direct
+access to data dumps and storage systems.
+
+
+Design
+------
+The ``StorageService`` would be updated to know what data would be backed through Custodia
+rather than the other storage handler(s).
+
+- Install and setup of a Custodia instance would be part of a Commissaire install and configuration.
+- Custodia would be configured to use an etcd backend.
+- Custodia would be configured to use unix socket communication.
+- Commissaire would proxy access to Custodia and enforce it's authentication
+- Commissaire would generate an api id and api key for StorageService access
+- StorageService would have an api id and api key in it's config to access Custodia
+- Commissaire's Storage Service would be updated to store credentials and ssh keys via Custodia.
+
+
+::
+
+                     +-----------------+
+     Data Request    |                 |
+   +---------------->+ Storage Service | +---------------+
+                     |                 | |               |
+                     +-------+---------+ |   Custodia    |
+                             |           |   (Proxied)   |
+                             |           | (API KEY/ID)  |
+                             |           +---------------+
+                             v                 ^
+                     +-------+-------+         |
+                     |               |      Yes|
+                     |    Secret?    +---------+
+                     |               |         |
+                     +---------------+       No|
+                                               |
+                                               |
+                                               v
+                                         +-----------------------+
+                                         |                       |
+                                         |   Storage Handler(s)  |
+                                         |                       |
+                                         +-----------------------+
+
+
+
+Additional Libraries
+~~~~~~~~~~~~~~~~~~~~
+`Custodia <https://custodia.readthedocs.io/en/latest/>`_ would be a required subsystem.
+Custodia would be installed as part of Commissaire.
+
+
+StorageService Updates
+~~~~~~~~~~~~~~~~~~~~~~
+The StorageService would need to to know when to use Custodia versus the configured
+``StorageHandler``(s). It would look at the ``_secrets`` attribute on the instance and,
+if set to ``True`` would use the secrets handler.
+
+The secrets handler would be automatically added to the ``StorageHandlerManager`` and
+would require no special configuration by the operator. However, additional configuration
+keys **would** be added so that the secrets handler could authenticate to the secrets
+store.
+
+Lastly, the ``StorageService`` would need to have a way to query for the secrets api endpoint.
+There are many possible designs for this. The decision is left up to the implementation.
+
+New HTTP Handler
+~~~~~~~~~~~~~~~~
+A new handler called ``secrets`` could be added. This would proxy requests back to the
+Custodia instance.
+
+AuthenticationManager Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A way to allow for proxied authentication will be required. This can be done by providing
+a list of self authenticated endpoints which bypasses the authentication stack and sends
+the request directly through to the handler.
+
+Model Updates
+~~~~~~~~~~~~~
+Sensitive items would be pulled out from the ``Host`` model into it's own model. For simplicity,
+the model should be named after the REST endpoint that has traditionally returned the data: ``HostCreds``.
+The models would match based on their primary keys: ``address``.
+
+The ``Model`` would add a subclass which would be used to house secrets. This new subclass would
+be called ``SecretModel`` and would always have it's contents stored in the secrets store.
+
+::
+
+          Model
+            |
+     +------+------+
+     |             |
+     |        SecretModel
+     |             |
+    Host       HostCreds
+
+
+
+
+Example Code
+~~~~~~~~~~~~
+These are examples and likely will not work without modification.
+
+**Model Updates**
+
+.. code-block:: python
+
+    class SecretModel(Model):
+        """
+        Parent class for all models which must be stored in the secrets store.
+        """
+        pass
+
+    class Host(Model):
+        """
+        Representation of a Host.
+        """
+        _json_type = dict
+        _attribute_map = {
+            'address': {'type': str},
+            'status': {'type': str},
+            'os': {'type': str},
+            'cpus': {'type': int},
+            'memory': {'type': int},
+            'space': {'type': int},
+            'last_check': {'type': str},
+            'source': {'type': str},
+        }
+        _attribute_defaults = {
+            'address': '', 'status': '', 'os': '', 'cpus': 0,
+            'memory': 0, 'space': 0, 'last_check': '', 'source': ''}
+        _primary_key = 'address'
+
+
+    class HostCreds(SecretModel):
+        """
+        Representation of Host credentials.
+        """
+        _json_type = dict
+        _attribute_map = {
+            'address': {'type': str},
+            'ssh_priv_key': {'type': str},
+            'remote_user': {'type': str},
+        }
+        _attribute_defaults = {
+            'ssh_priv_key': '',
+            'remote_user': 'root',
+        }
+        _primary_key = 'address'
+
+**StorageHandlerManager Updates**
+
+.. code-block:: python
+
+    def _get_handler(self, model):
+        """
+        Looks up, and if necessary instantiates, a StoreHandler instance
+        for the given model.  If the model stores secrets the secrets
+        handler is used. Raises KeyError if no handler is registered
+        for that type of model.
+        """
+        if issubclass(model.__class__, models.SecretModel):
+            handler = self._handlers.get('secret')  # Just an example
+        else:
+            handler = self._handlers.get(type(model))
+
+        if handler is None:
+            # Let this raise a KeyError if the registry lookup fails.
+            handler_type, config, model_types = self._registry[type(model)]
+            handler = handler_type(config)
+            self._handlers.update({mt: handler for mt in model_types})
+        return handler
+
+**Secrets Handler**
+
+.. code-block:: python
+
+    def _register(router):
+        """
+        Sets up routing for secrets.
+
+        :param router: Router instance to attach to.
+        :type router: commissaire_http.router.Router
+        :returns: The router.
+        :rtype: commissaire_http.router.Router
+        """
+        from commissaire_http.constants import ROUTING_RX_PARAMS
+
+        router.connect(
+            R'/api/v0/secrets/',
+            controller=proxy_secrets,
+            conditions={'method': ['GET', 'PUT', 'POST', 'DELETE']})
+
+    @BasicHandler
+    def proxy_secrets(message, bus):
+        """
+        Proxy secrets back to Custodia
+
+        :param message: jsonrpc message structure.
+        :type message: dict
+        :param bus: Bus instance.
+        :type bus: commissaire_http.bus.Bus
+        :returns: A jsonrpc structure.
+        :rtype: dict
+        """
+        try:
+            # Use unix socket to proxy
+        except:
+            # ...
+
+**AuthenticationManager Update**
+
+.. code-block:: python
+
+    def __init__(
+            self, app, authenticators=[], self_auths=['/api/v0/secrets']):
+        """
+        Initializes a new AuthenticationManager instance.
+
+        :param app: A WSGI app to wrap.
+        :type app: instance
+        :param authenticators: Configured Authenticator instances to utilize.
+        :type authenticators: list
+        :param self_auths: List of endpoints which have their own authentication
+        :type self_auths: list
+        """
+        self._app = app
+        self.authenticators = authenticators
+        self.self_auths = self_auths
+
+    def __call__(self, environ, start_response):
+        """
+        ...
+        """
+        # If the endpoint self authenticates then pass directly
+        # to the handler
+        if environ['PATH'] in self.self_auths:
+            return self._app(environ, start_response)
+        # ...
+
+
+Example Configuration
+~~~~~~~~~~~~~~~~~~~~~
+
+**StorageService**
+
+.. code-block:: javascript
+
+    {
+        "custodia_api_id": "storage_service",
+        "custodia_api_key": "$API_KEY",
+        "storage_handlers": [
+          {
+            "name": "etcd",
+            "server_url": "http://127.0.0.1:2379",
+            "models": ["*"]
+          }
+        ],
+        "debug": false
+    }
+
+
+**Custodia**
+
+.. code-block:: ini
+
+    [DEFAULT]
+    libdir = /var/lib/commissaire/custodia/
+    logdir = /var/log/commissaire/
+    rundir = /var/run
+
+    [global]
+    debug = false
+    server_socket = ${rundir}/custodia.sock
+    auditlog = ${logdir}/custodia-audit.log
+
+    [store:etcd]
+    etcd_server = {{ etcd_server }}
+    etcd_port = {{ etcd_port }}
+    handler = EtcdStore
+    namespace = custodia_commissaire_data
+
+    [store:encrypted_etcd]
+    handler = EncryptedOverlay
+    backing_store = etcd
+    master_key = ${libdir}/secrets.key
+    master_enctype = A256CBC-HS512
+    autogen_master_key = true
+
+    [auth:creds]
+    handler = SimpleAuthKeys
+    id_header = CUSTODIA_AUTH_ID
+    key_header = CUSTODIA_KEY_ID
+    store = etcd
+    store_namespace = custodia_commissaire_api
+
+    [authz:paths]
+    handler = SimplePathAuthz
+    paths = /. /secrets
+
+    [/]
+    handler = Root
+
+    [/secrets]
+    handler = Secrets
+    store = encrypted_etcd
+
+
+Documentation Updates
+~~~~~~~~~~~~~~~~~~~~~
+Documentation would need to be updated to clarify the following:
+
+* Sensitive data is stored encrypted
+* How to access the secrets store
+* The bus component will need to be considered secure
+* Some bus backends will need to use stunnel (and include an example)
+* Information pointing to Custodia
+
+Migration Tool
+~~~~~~~~~~~~~~
+A migration tool to push secrets into the secrets store.
+
+Future Considerations
+~~~~~~~~~~~~~~~~~~~~~
+* Commissaire could use Custodia for authentication/authorization
+* Commissaire could provide a backend for Custodia to use it as authentication
+
+Checklist
+---------
+* breaks API backward compatibility
+* breaks user interaction backward compatibility
+* **requires new or replaces current libraries**
+
+User Story
+----------
+In order to increase security
+I would like encryption to be added to secrets storage
+so that those with access to the data do not get direct access to sensitive data.
+
+Acceptance Criteria
+-------------------
+* Verify a card for installing Custodia is created
+* Verify a card is created for adding/updating models and updating model usage
+* Verify a card is created for updating commissaire-service
+* Verify a card is created for updating commissaire-http
+* Verify a card is created for allowing commissaire-storage-service to query for the http endpoint
+
+References
+----------
+* `Kubernetes Secrets <https://kubernetes.io/docs/user-guide/secrets/>`_
+* `Custodia <https://custodia.readthedocs.io/en/latest/>`_
