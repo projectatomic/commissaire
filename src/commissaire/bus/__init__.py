@@ -37,7 +37,7 @@ class RemoteProcedureCallError(Exception):
         :param data: Additional error data.
         :type data: dict
         """
-        super(RemoteProcedureCallError, self).__init__(message, code, data)
+        super().__init__(message, code, data)
         self.message = message
         self.code = code
         self.data = data
@@ -68,7 +68,7 @@ class StorageLookupError(RemoteProcedureCallError):
         if model is not None:
             data['model_json_data'] = model.to_dict_safe(),
             data['model_type_name'] = model.__class__.__name__
-        super(StorageLookupError, self).__init__(message, code, data)
+        super().__init__(message, code, data)
 
 
 class BusMixin:
