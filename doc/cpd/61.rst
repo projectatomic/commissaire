@@ -4,7 +4,7 @@ CPD-61: Host Abstraction
 Metadata
 --------
 
-* CPD Version: `61 <https://github.com/projectatomic/commissaire/issues/61>`_
+* CPD Version: 1
 * Status: Accepted
 
 Description
