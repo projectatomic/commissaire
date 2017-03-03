@@ -47,7 +47,7 @@ class RemoteProcedureCallError(CommissaireError):
         """
         Returns a string representation of the error.
         """
-        return '({0}) {1}'.format(self.code, self.message)
+        return '({}) {}'.format(self.code, self.message)
 
 
 class StorageLookupError(RemoteProcedureCallError):
