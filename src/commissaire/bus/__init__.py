@@ -20,9 +20,10 @@ import json
 import uuid
 
 from commissaire import constants as C
+from commissaire.errors import CommissaireError
 
 
-class RemoteProcedureCallError(Exception):
+class RemoteProcedureCallError(CommissaireError):
     """
     Exception class for remote procedure call errors.
     """

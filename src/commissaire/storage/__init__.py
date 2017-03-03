@@ -18,8 +18,10 @@ Storage related module for Commissaire.
 
 import logging
 
+from commissaire.errors import CommissaireError
 
-class ConfigurationError(Exception):
+
+class ConfigurationError(CommissaireError):
     """
     Exception class for user configuration errors.
     """

@@ -21,10 +21,11 @@ import json
 import logging
 import sys
 
+from commissaire.errors import CommissaireError
 from commissaire.util.logging import setup_logging
 
 
-class ConfigurationError(Exception):
+class ConfigurationError(CommissaireError):
     """
     Exception class for user configuration errors.
     """

@@ -23,9 +23,10 @@ import json
 from datetime import datetime
 
 from commissaire import constants as C
+from commissaire.errors import CommissaireError
 
 
-class ModelError(Exception):
+class ModelError(CommissaireError):
     """
     Base exception class for Model errors.
     """
