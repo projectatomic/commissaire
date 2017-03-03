@@ -9,3 +9,12 @@ slow:
        -D etcd=http://127.0.0.1:2379 \
        -D bus-uri=redis://127.0.0.1:6379
    ...
+
+
+The same thing using the ``./tools/behave`` script:
+
+.. code-block:: shell
+
+   # Set up ...
+   (virtualenv)$ ./tools/behave -t create,~slow
+   ...

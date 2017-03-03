@@ -4,10 +4,17 @@
    (virtualenv)$ behave -D start-all-servers
    ...
 
-
 .. note::
 
    you can pass ``-D commissaire-server-args=""`` to append server arguments when starting the server from behave.
+
+
+or via ``tox``
+
+.. code-block:: shell
+
+   (virtualenv)$ tox -e bdd
+   ...
 
 
 You can also run the tests against any commissaire/etcd instance directly.
@@ -32,7 +39,7 @@ If you are using our :ref:`vagrant` set up you can use the ``use-vagrant`` argum
 
    .. code-block:: shell
 
-      (virtualenv)$ vagrant up
+      (virtualenv)$ ./tools/vagrantup
       ...
       (virtualenv)$ behave -D use-vagrant
       ...
