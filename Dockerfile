@@ -21,10 +21,10 @@ dnf clean all && \
 sed -i 's|dir /var/lib/redis|dir /data/redis|g' /etc/redis.conf && \
 mkdir -p /etc/commissaire /data/{redis,etcd}
 
-# Add the all-in-one start script
-ADD tools/startup-all-in-one.sh /commissaire/
-# Add the etcd init script
-ADD tools/etcd_init.sh /commissaire/
+# Copy the all-in-one start script
+COPY tools/startup-all-in-one.sh /commissaire/
+# Copy the etcd init script
+COPY tools/etcd_init.sh /commissaire/
 
 # Configuration directory. Use --volume=/path/to/your/configs:/etc/commissaire
 VOLUME /etc/commissaire/
