@@ -35,7 +35,7 @@ class TestModel(TestCase):
         """
         Verify using new on a model creates a default instance.
         """
-        instance = models.Cluster.new()
+        instance = models.Cluster.new(name='honeynut')
         for key, value in models.Cluster._attribute_defaults.items():
             self.assertEquals(value, getattr(instance, key))
 
@@ -43,7 +43,9 @@ class TestModel(TestCase):
         """
         Verify to_json returns a complete json string.
         """
-        instance = models.Host.new(ssh_priv_key='secret')
+        instance = models.Host.new(
+            address='127.0.0.1',
+            ssh_priv_key='secret')
         self.assertIn(
             'ssh_priv_key',
             json.loads(instance.to_json()))
@@ -52,7 +54,9 @@ class TestModel(TestCase):
         """
         Verify to_json_safe returns a sanitized json string.
         """
-        instance = models.Host.new(ssh_priv_key='secret')
+        instance = models.Host.new(
+            address='127.0.0.1',
+            ssh_priv_key='secret')
         self.assertNotIn(
             'ssh_priv_key',
             json.loads(instance.to_json_safe()))
@@ -61,7 +65,9 @@ class TestModel(TestCase):
         """
         Verify to_dict returns a complete dict.
         """
-        instance = models.Host.new(ssh_priv_key='secret')
+        instance = models.Host.new(
+            address='127.0.0.1',
+            ssh_priv_key='secret')
         self.assertIn(
             'ssh_priv_key',
             instance.to_dict())
@@ -70,7 +76,9 @@ class TestModel(TestCase):
         """
         Verify to_dict_safe returns a sanitized dict.
         """
-        instance = models.Host.new(ssh_priv_key='secret')
+        instance = models.Host.new(
+            address='127.0.0.1',
+            ssh_priv_key='secret')
         self.assertNotIn(
             'ssh_priv_key',
             instance.to_dict_safe())

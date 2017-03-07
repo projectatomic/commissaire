@@ -296,7 +296,6 @@ class Network(Model):
         'options': {'type': dict},
     }
     _attribute_defaults = {
-        'name': '',
         'type': C.NETWORK_TYPE_FLANNEL_ETCD,
         'options': {},
     }
@@ -341,7 +340,6 @@ class Cluster(Model):
     }
     _hidden_attributes = ('hostset',)
     _attribute_defaults = {
-        'name': '',
         'status': '',
         'hostset': [],
         'network': C.DEFAULT_CLUSTER_NETWORK_JSON['name'],
@@ -398,7 +396,7 @@ class ClusterDeploy(Model):
         'finished_at': {'type': str},
     }
     _attribute_defaults = {
-        'name': '', 'status': '', 'version': '',
+        'status': '', 'version': '',
         'deployed': [], 'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
 
@@ -429,7 +427,7 @@ class ClusterRestart(Model):
     }
 
     _attribute_defaults = {
-        'name': '', 'status': '', 'restarted': [],
+        'status': '', 'restarted': [],
         'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
 
@@ -458,7 +456,7 @@ class ClusterUpgrade(Model):
     }
 
     _attribute_defaults = {
-        'name': '', 'status': '', 'upgraded': [],
+        'status': '', 'upgraded': [],
         'in_process': [], 'started_at': '', 'finished_at': ''}
     _primary_key = 'name'
 
@@ -503,7 +501,7 @@ class Host(Model):
         'source': {'type': str},
     }
     _attribute_defaults = {
-        'address': '', 'status': '', 'os': '', 'cpus': 0,
+        'status': '', 'os': '', 'cpus': 0,
         'memory': 0, 'space': 0, 'last_check': '', 'ssh_priv_key': '',
         'remote_user': 'root', 'source': ''}
     _hidden_attributes = ('ssh_priv_key', 'remote_user')
@@ -583,7 +581,6 @@ class ContainerManagerConfig(Model):
         'options': {'type': dict},
     }
     _attribute_defaults = {
-        'name': '',
         'type': C.CONTAINER_MANAGER_DEFAULT,
         'options': {},
     }
