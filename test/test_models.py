@@ -50,6 +50,15 @@ class TestModel(TestCase):
             'ssh_priv_key',
             json.loads(instance.to_json()))
 
+    def test_to_json_with_expose(self):
+        """
+        Verify to_json returns additional exposed items in the json string.
+        """
+        instance = models.Cluster.new(name='test')
+        self.assertIn(
+            'hosts',
+            json.loads(instance.to_json(expose=['hosts'])))
+
     def test_to_json_safe(self):
         """
         Verify to_json_safe returns a sanitized json string.
@@ -60,6 +69,15 @@ class TestModel(TestCase):
         self.assertNotIn(
             'ssh_priv_key',
             json.loads(instance.to_json_safe()))
+
+    def test_to_json_safe_with_expose(self):
+        """
+        Verify to_json_safe returns additional exposed items in the json string.
+        """
+        instance = models.Cluster.new(name='test')
+        self.assertIn(
+            'hosts',
+            json.loads(instance.to_json_safe(expose=['hosts'])))
 
     def test_to_dict(self):
         """

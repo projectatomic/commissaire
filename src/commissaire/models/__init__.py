@@ -168,28 +168,38 @@ class Model(object):
                 data[key] = getattr(self, key)
         return data
 
-    def to_json(self):
+    def to_json(self, expose=[]):
         """
         Returns a JSON representation of this model.
 
+        :param expose: List of non exposed attributes to include in result.
+        :type expose: list
         :returns: The JSON representation.
         :rtype: str
         """
-        return json.dumps(
-            self._struct_for_json(secure=True),
-            default=lambda o: o._struct_for_json(secure=True))
+        struct = self._struct_for_json(secure=True)
+        for key in expose:
+            value = getattr(self, key)
+            if value:
+                struct[key] = value
+        return json.dumps(struct)
 
-    def to_json_safe(self):
+    def to_json_safe(self, expose=[]):
         """
         Returns a JSON representation of this model, omitting all hidden
         attributes.  Use this when preparing data for display to users.
 
+        :param expose: List of non exposed attributes to include in result.
+        :type expose: list
         :returns: The JSON representation.
         :rtype: str
         """
-        return json.dumps(
-            self._struct_for_json(secure=False),
-            default=lambda o: o._struct_for_json(secure=False))
+        struct = self._struct_for_json(secure=False)
+        for key in expose:
+            value = getattr(self, key)
+            if value:
+                struct[key] = value
+        return json.dumps(struct)
 
     def to_dict(self):
         """
@@ -348,22 +358,34 @@ class Cluster(Model):
     _primary_key = 'name'
 
     def __init__(self, **kwargs):
+        """
+        Creates a new instance of Cluster.
+
+        :param kwargs: All keyword arguments to create the Cluster model.
+        :type kwargs: dict
+        :returns: The Cluster instance.
+        :rtype: commissaire.model.Cluster
+        """
         Model.__init__(self, **kwargs)
         # Hosts is always calculated, not stored in etcd.
         self.hosts = {'total': 0,
                       'available': 0,
                       'unavailable': 0}
 
-    # FIXME Generalize and move to Model?
+    # TODO: Remove in > 0.0.3
     def to_json_with_hosts(self, secure=False):
-        data = {}
-        for key in list(self._attribute_map.keys()):
-            if secure:
-                data[key] = getattr(self, key)
-            elif key not in self._hidden_attributes:
-                data[key] = getattr(self, key)
-        data['hosts'] = self.hosts
-        return json.dumps(data)
+        """
+        Returns a JSON representation of this model with host data.
+
+        .. deprecated:: 0.0.3
+           Use :func:`to_json` with the **expose** parameter instead.
+
+        :param secure: Include _hidden attributes in the return value.
+        :type secure: bool
+        :returns: The JSON representation.
+        :rtype: str
+        """
+        return self.to_json(expose=['hosts'])
 
     def to_dict_with_hosts(self, secure=False):  # pragma: no cover
         """
