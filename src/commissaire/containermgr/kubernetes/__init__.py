@@ -272,7 +272,7 @@ class KubeContainerManager(ContainerManagerBase):
         :type name: str
         :raises: commissaire.bus.ContainerManagerError
         """
-        part = '/nodes/{0}'.format(name)
+        part = '/nodes/{}'.format(name)
         resp = self._get(part)
         if resp.status_code != 200:
             error_msg = 'Node {} is not registered. Status: {}'.format(

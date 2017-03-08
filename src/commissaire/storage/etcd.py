@@ -27,16 +27,16 @@ from commissaire.storage import StoreHandlerBase, ConfigurationError
 
 #: Maps ModelClassName to a key pattern
 _etcd_mapper = {
-    'Cluster': '/clusters/{0}',
-    'ClusterDeploy': '/cluster/{0}/deploy',
-    'ClusterRestart': '/cluster/{0}/restart',
-    'ClusterUpgrade': '/cluster/{0}/upgrade',
+    'Cluster': '/clusters/{}',
+    'ClusterDeploy': '/cluster/{}/deploy',
+    'ClusterRestart': '/cluster/{}/restart',
+    'ClusterUpgrade': '/cluster/{}/upgrade',
     'Clusters': '/clusters/',
-    'ContainerManagerConfig': '/container_managers/{0}',
+    'ContainerManagerConfig': '/container_managers/{}',
     'ContainerManagerConfigs': '/container_managers/',
-    'Host': '/hosts/{0}',
+    'Host': '/hosts/{}',
     'Hosts': '/hosts',
-    'Network': '/networks/{0}',
+    'Network': '/networks/{}',
     'Networks': '/networks',
     'Status': '/status',
 }
@@ -65,7 +65,7 @@ class EtcdStoreHandler(StoreHandlerBase):
             if url.scheme != 'https':
                 raise ConfigurationError(
                     'Server URL scheme must be "https" when using client '
-                    'side certificates (got "{0}")'.format(url.scheme))
+                    'side certificates (got "{}")'.format(url.scheme))
 
     def __init__(self, config):
         """

@@ -47,12 +47,12 @@ class TemporarySSHKey:
         with tempfile.NamedTemporaryFile(prefix='key', delete=False) as f:
             self.path = f.name
             self.logger.debug(
-                'Using {0} as the temporary key location for {1}'.format(
+                'Using {} as the temporary key location for {}'.format(
                     self.path, self._host.address))
             input_bytes = bytes(self._host.ssh_priv_key, 'utf8')
             f.write(base64.decodestring(input_bytes))
             f.flush()
-            self.logger.info('Wrote key for {0}'.format(self._host.address))
+            self.logger.info('Wrote key for {}'.format(self._host.address))
 
     def remove(self):
         """
@@ -61,12 +61,12 @@ class TemporarySSHKey:
         try:
             os.unlink(self.path)
             self.logger.debug(
-                'Removed temporary key file {0}'.format(self.path))
+                'Removed temporary key file {}'.format(self.path))
         except:
             exc_type, exc_msg, tb = sys.exc_info()
             self.logger.warn(
                 'Unable to remove the temporary key file: '
-                '{0}. Exception:{1}'.format(self.path, exc_msg))
+                '{}. Exception:{}'.format(self.path, exc_msg))
 
     def __enter__(self):
         """

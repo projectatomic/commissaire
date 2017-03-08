@@ -45,7 +45,7 @@ class StoreHandlerBase(object):
         :raises ConfigurationError: if any parameters are invalid
         """
         raise NotImplementedError(
-            '{0}.check_config() must be overridden.'.format(cls.__name__))
+            '{}.check_config() must be overridden.'.format(cls.__name__))
 
     def __init__(self, config):
         """
