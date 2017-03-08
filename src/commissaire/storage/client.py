@@ -59,6 +59,43 @@ class StorageClient:
                     model_instance.primary_key, error))
             raise error
 
+    def get_many(self, list_of_model_instances):
+        """
+        Similar to StorageClient.get(), but takes a list of model instances and
+        returns a list of model instances.  The models must be of the same type
+        or else the function throws a TypeError.
+
+        :param list_of_model_instances: List of model instances with
+                                        identifying data
+        :type list_of_model_instances: [commissaire.models.Model, ...]
+        :returns: List of new model instances with stored data
+        :rtype: [commissaire.models.Model, ...]
+        :raises: TypeError, commissaire.bus.RemoteProcedureCallError
+        """
+        # Handle the trivial case immediately
+        if len(list_of_model_instances) == 0:
+            return []
+
+        set_of_types = set([type(x) for x in list_of_model_instances])
+        if len(set_of_types) > 1:
+            raise TypeError('Model instances must be of identical type')
+        model_class = set_of_types.pop()
+
+        try:
+            model_json_data = [x.to_dict() for x in list_of_model_instances]
+            params = {
+                'model_type_name': model_class.__name__,
+                'model_json_data': model_json_data
+            }
+            response = self.bus_mixin.request('storage.get', params=params)
+            return [model_class.new(**x) for x in response['result']]
+        except RemoteProcedureCallError as error:
+            self.bus_mixin.logger.error(
+                '{}: Unable to get multiple {} records: {}'.format(
+                    self.bus_mixin.__class__.__name__,
+                    model_class.__name__, error))
+            raise error
+
     def save(self, model_instance):
         """
         Issues a "storage.save" request over the bus using data from
@@ -89,6 +126,46 @@ class StorageClient:
                     model_instance.primary_key, error))
             raise error
 
+    def save_many(self, list_of_model_instances):
+        """
+        Similar to StorageClient.save(), but takes a list of model instances
+        and returns a list of model instances.  The models must be of the same
+        type or else the function throws a TypeError.
+
+        :param list_of_model_instances: List of model instances with data to
+                                        save
+        :type list_of_model_instances: [commissaire.models.Model, ...]
+        :returns: List of new model instances with all saved fields
+        :rtype: [commissaire.models.Model, ...]
+        :raises: TypeError, commissaire.bus.RemoteProcedureCallError,
+                 commissaire.models.ValidationError
+        """
+        # Handle the trivial case immediately
+        if len(list_of_model_instances) == 0:
+            return []
+
+        set_of_types = set([type(x) for x in list_of_model_instances])
+        if len(set_of_types) > 1:
+            raise TypeError('Model instances must be of identical type')
+        model_class = set_of_types.pop()
+
+        try:
+            for model_instance in list_of_model_instances:
+                model_instance._validate()
+            model_json_data = [x.to_dict() for x in list_of_model_instances]
+            params = {
+                'model_type_name': model_class.__name__,
+                'model_json_data': model_json_data
+            }
+            response = self.bus_mixin.request('storage.save', params=params)
+            return [model_class.new(**x) for x in response['result']]
+        except (RemoteProcedureCallError, models.ValidationError) as error:
+            self.bus_mixin.logger.error(
+                '{}: Unable to save multiple {} records: {}'.format(
+                    self.bus_mixin.__class__.__name__,
+                    model_class.__name__, error))
+            raise error
+
     def delete(self, model_instance):
         """
         Issues a "storage.delete" request over the bus using identifying
@@ -110,6 +187,40 @@ class StorageClient:
                     self.bus_mixin.__class__.__name__,
                     model_instance.__class__.__name__,
                     model_instance.primary_key, error))
+            raise error
+
+    def delete_many(self, list_of_model_instances):
+        """
+        Similar to StorageClient.delete(), but takes a list of model instances.
+        The models must be of the same type or else the function throws a
+        TypeError.
+
+        :param list_of_model_instances: List of model instances with
+                                        identifying data
+        :type list_of_model_instances: [commissaire.models.Model, ...]
+        :raises: TypeError, commissaire.bus.RemoteProcedureCallError
+        """
+        # Handle the trivial case immediately
+        if len(list_of_model_instances) == 0:
+            return
+
+        set_of_types = set([type(x) for x in list_of_model_instances])
+        if len(set_of_types) > 1:
+            raise TypeError('Model instances must be of identical type')
+        model_class = set_of_types.pop()
+
+        try:
+            model_json_data = [x.to_dict() for x in list_of_model_instances]
+            params = {
+                'model_type_name': model_class.__name__,
+                'model_json_data': model_json_data
+            }
+            self.bus_mixin.request('storage.delete', params=params)
+        except RemoteProcedureCallError as error:
+            self.bus_mixin.logger.error(
+                '{}: Unable to delete multiple {} records: {}'.format(
+                    self.bus_mixin.__class__.__name__,
+                    model_class.__name__, error))
             raise error
 
     def list(self, model_class):

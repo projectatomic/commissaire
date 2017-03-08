@@ -24,7 +24,7 @@ from unittest import mock
 from . import TestCase
 
 from commissaire.bus import BusMixin, RemoteProcedureCallError
-from commissaire.models import Host, Hosts, ValidationError
+from commissaire.models import Host, Hosts, Cluster, ValidationError
 from commissaire.storage.client import StorageClient
 
 #: Message ID
@@ -48,6 +48,13 @@ FULL_HOST_DICT = {
 }
 #: Full host instance
 FULL_HOST = Host.new(**FULL_HOST_DICT)
+
+#: Minimal cluster dictionary
+MINI_CLUSTER_DICT = {
+    'name': 'honeynut'
+}
+#: Minimal cluster instance
+MINI_CLUSTER = Cluster.new(**MINI_CLUSTER_DICT)
 
 
 class TestCommissaireStorageClient(TestCase):
@@ -88,6 +95,51 @@ class TestCommissaireStorageClient(TestCase):
             'storage.get', params={
                 'model_type_name': MINI_HOST.__class__.__name__,
                 'model_json_data': MINI_HOST.to_dict()
+            }
+        )
+
+    def test_get_many(self):
+        """
+        Verify StorageClient.get_many works as expected
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+
+        self.assertEqual(storage.get_many([]), [])
+        storage.bus_mixin.request.assert_not_called()
+
+        self.assertRaises(TypeError, storage.get_many, [MINI_HOST, MINI_CLUSTER])
+        storage.bus_mixin.request.assert_not_called()
+
+        storage.bus_mixin.request.return_value = {
+            'jsonrpc': '2.0',
+            'id': ID,
+            'result': [FULL_HOST_DICT, FULL_HOST_DICT]
+        }
+        input_list = [MINI_HOST, MINI_HOST]
+        output_list = storage.get_many(input_list)
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.get', params={
+                'model_type_name': MINI_HOST.__class__.__name__,
+                'model_json_data': [x.to_dict() for x in input_list]
+            }
+        )
+        self.assertEqual(
+            [x.to_dict_safe() for x in output_list],
+            [FULL_HOST_DICT, FULL_HOST_DICT])
+
+    def test_get_many_rpc_error(self):
+        """
+        Verify StorageClient.get_many re-raises RemoteProcedureCallError
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+        storage.bus_mixin.request.side_effect = RemoteProcedureCallError('test')
+        self.assertRaises(RemoteProcedureCallError, storage.get_many, [MINI_HOST])
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.get', params={
+                'model_type_name': MINI_HOST.__class__.__name__,
+                'model_json_data': [MINI_HOST.to_dict()]
             }
         )
 
@@ -139,6 +191,63 @@ class TestCommissaireStorageClient(TestCase):
         self.assertRaises(ValidationError, storage.save, bad_host)
         storage.bus_mixin.request.assert_not_called()
 
+    def test_save_many(self):
+        """
+        Verify StorageClient.save_many works as expected
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+
+        self.assertEqual(storage.save_many([]), [])
+        storage.bus_mixin.request.assert_not_called()
+
+        self.assertRaises(TypeError, storage.save_many, [MINI_HOST, MINI_CLUSTER])
+        storage.bus_mixin.request.assert_not_called()
+
+        storage.bus_mixin.request.return_value = {
+            'jsonrpc': '2.0',
+            'id': ID,
+            'result': [FULL_HOST_DICT, FULL_HOST_DICT]
+        }
+        input_list = [MINI_HOST, MINI_HOST]
+        output_list = storage.save_many(input_list)
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.save', params={
+                'model_type_name': MINI_HOST.__class__.__name__,
+                'model_json_data': [x.to_dict() for x in input_list]
+            }
+        )
+        self.assertEqual(
+            [x.to_dict_safe() for x in output_list],
+            [FULL_HOST_DICT, FULL_HOST_DICT])
+
+    def test_save_many_rpc_error(self):
+        """
+        Verify StorageClient.save_many re-raises RemoteProcedureCallError
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+        storage.bus_mixin.request.side_effect = RemoteProcedureCallError('test')
+        self.assertRaises(RemoteProcedureCallError, storage.save_many, [FULL_HOST])
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.save', params={
+                'model_type_name': FULL_HOST.__class__.__name__,
+                'model_json_data': [FULL_HOST.to_dict()]
+            }
+        )
+
+    def test_save_many_invalid(self):
+        """
+        Verify StorageClient.save_many rejects an invalid model
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+        storage.bus_mixin.request.side_effect = ValidationError('test')
+        bad_host = Host.new(**FULL_HOST_DICT)
+        bad_host.address = None
+        self.assertRaises(ValidationError, storage.save_many, [bad_host])
+        storage.bus_mixin.request.assert_not_called()
+
     def test_delete(self):
         """
         Verify StorageClient.delete with a valid model.
@@ -165,6 +274,43 @@ class TestCommissaireStorageClient(TestCase):
             'storage.delete', params={
                 'model_type_name': MINI_HOST.__class__.__name__,
                 'model_json_data': MINI_HOST.to_dict()
+            }
+        )
+
+    def test_delete_many(self):
+        """
+        Verify StorageClient.delete_many works as expected
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+
+        storage.delete_many([])
+        storage.bus_mixin.request.assert_not_called()
+
+        self.assertRaises(TypeError, storage.delete_many, [MINI_HOST, MINI_CLUSTER])
+        storage.bus_mixin.request.assert_not_called()
+
+        input_list = [MINI_HOST, MINI_HOST]
+        storage.delete_many(input_list)
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.delete', params={
+                'model_type_name': MINI_HOST.__class__.__name__,
+                'model_json_data': [x.to_dict() for x in input_list]
+            }
+        )
+
+    def test_delete_many_rpc_error(self):
+        """
+        Verify StorageClient.delete_many re-raises RemoteProcedureCallError
+        """
+        storage = StorageClient(mock.MagicMock())
+        storage.bus_mixin.logger = mock.MagicMock()
+        storage.bus_mixin.request.side_effect = RemoteProcedureCallError('test')
+        self.assertRaises(RemoteProcedureCallError, storage.delete_many, [MINI_HOST])
+        storage.bus_mixin.request.assert_called_once_with(
+            'storage.delete', params={
+                'model_type_name': MINI_HOST.__class__.__name__,
+                'model_json_data': [MINI_HOST.to_dict()]
             }
         )
 
