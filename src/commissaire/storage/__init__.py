@@ -19,6 +19,7 @@ Storage related module for Commissaire.
 import logging
 
 from commissaire.errors import CommissaireError
+from commissaire.models import Model
 
 
 class ConfigurationError(CommissaireError):
@@ -111,3 +112,22 @@ class StoreHandlerBase(object):
         :rtype: list
         """
         raise NotImplementedError('_list must be overriden.')
+
+
+def get_uniform_model_type(list_of_model_instances):
+    """
+    Returns the model type if the models are of the same type.
+
+    :param list_of_model_instances: List of model instances with data to save
+    :type list_of_model_instances: [commissaire.models.Model, ...]
+    :returns: The model unifrom type
+    :rtype: commissaire.models.Model
+    :raises: TypeError
+    """
+    set_of_types = set([type(x) for x in list_of_model_instances])
+    if len(set_of_types) > 1:
+        raise TypeError('Model instances must be of identical type')
+    first_type = set_of_types.pop()
+    if not issubclass(first_type, Model):
+        raise TypeError('Type must be a Model')
+    return first_type

@@ -16,6 +16,7 @@
 import commissaire.models as models
 
 from commissaire.bus import RemoteProcedureCallError
+from commissaire.storage import get_uniform_model_type
 
 
 class StorageClient:
@@ -76,10 +77,7 @@ class StorageClient:
         if len(list_of_model_instances) == 0:
             return []
 
-        set_of_types = set([type(x) for x in list_of_model_instances])
-        if len(set_of_types) > 1:
-            raise TypeError('Model instances must be of identical type')
-        model_class = set_of_types.pop()
+        model_class = get_uniform_model_type(list_of_model_instances)
 
         try:
             model_json_data = [x.to_dict() for x in list_of_model_instances]
@@ -144,10 +142,7 @@ class StorageClient:
         if len(list_of_model_instances) == 0:
             return []
 
-        set_of_types = set([type(x) for x in list_of_model_instances])
-        if len(set_of_types) > 1:
-            raise TypeError('Model instances must be of identical type')
-        model_class = set_of_types.pop()
+        model_class = get_uniform_model_type(list_of_model_instances)
 
         try:
             for model_instance in list_of_model_instances:
@@ -204,10 +199,7 @@ class StorageClient:
         if len(list_of_model_instances) == 0:
             return
 
-        set_of_types = set([type(x) for x in list_of_model_instances])
-        if len(set_of_types) > 1:
-            raise TypeError('Model instances must be of identical type')
-        model_class = set_of_types.pop()
+        model_class = get_uniform_model_type(list_of_model_instances)
 
         try:
             model_json_data = [x.to_dict() for x in list_of_model_instances]
