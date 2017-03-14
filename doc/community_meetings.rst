@@ -13,7 +13,7 @@ fourth Tuesday of each month in the
 Timezone     Time
 ============ ========
 UTC          12:30 PM
-EST (US)     7:30 AM
+EDT (US)     8:30 AM
 IST (India)  6:00 PM
 CST (China)  8:30 PM
 AEST         10:30 PM
