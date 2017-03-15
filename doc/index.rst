@@ -13,6 +13,7 @@ Contents:
    :glob:
 
    overview
+   releases
    configuration/*
    operations
    commctl
