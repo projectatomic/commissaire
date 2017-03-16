@@ -54,6 +54,7 @@ CLUSTER_STATUS_FAILED = 'failed'
 # Host Statuses
 HOST_STATUS_INVESTIGATING = 'investigating'
 HOST_STATUS_BOOTSTRAPPING = 'bootstrapping'
+HOST_STATUS_DISASSOCIATED = 'disassociated'
 HOST_STATUS_ACTIVE = 'active'
 HOST_STATUS_FAILED = 'failed'
 
