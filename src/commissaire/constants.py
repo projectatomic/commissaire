@@ -51,6 +51,12 @@ CLUSTER_STATUS_OK = 'ok'
 CLUSTER_STATUS_DEGRADED = 'degraded'
 CLUSTER_STATUS_FAILED = 'failed'
 
+# Host Statuses
+HOST_STATUS_INVESTIGATING = 'investigating'
+HOST_STATUS_BOOTSTRAPPING = 'bootstrapping'
+HOST_STATUS_ACTIVE = 'active'
+HOST_STATUS_FAILED = 'failed'
+
 # JSONRPC error codes
 JSONRPC_ERRORS = {
     'INVALID_JSON': -32700,
