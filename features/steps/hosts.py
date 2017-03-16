@@ -19,6 +19,8 @@ import requests
 
 from behave import *
 
+from commissaire import constants as C
+
 from steps import (
     assert_status_code,
     VALID_USERNAME, VALID_PASSWORD)
@@ -56,7 +58,9 @@ def impl(context, host):
     # Poll until the host is finished bootstrapping.
     # We can't watch an etcd key because the host record
     # is only written to etcd after a successful bootstrap.
-    busy_states = ('investigating', 'bootstrapping')
+    busy_states = (
+        C.HOST_STATUS_INVESTIGATING,
+        C.HOST_STATUS_BOOTSTRAPPING)
     status_is_busy = True
     while status_is_busy:
         time.sleep(1)
@@ -67,7 +71,8 @@ def impl(context, host):
         data = request.json()
         status_is_busy = data['status'] in busy_states
 
-    assert data['status'] in ('active', 'disassociated'), \
+    assert data['status'] in (
+        C.HOST_STATUS_ACTIVE, C.HOST_STATUS_DISASSOCIATED), \
         'Host failed to bootstrap (status: {})'.format(data['status'])
 
 

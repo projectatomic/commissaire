@@ -44,7 +44,7 @@ import time
 
 from urllib.parse import urlparse
 
-from commissaire.constants import DEFAULT_CLUSTER_NETWORK_JSON
+from commissaire import constants as C
 
 # Fill in with context.ETCD after start_etcd().
 STORAGE_CONF_TEMPLATE = """
@@ -335,7 +335,7 @@ def before_all(context):
         except etcd.EtcdNotFile:
             pass
     context.etcd.write(
-        '/commissaire/networks/default', DEFAULT_CLUSTER_NETWORK_JSON)
+        '/commissaire/networks/default', C.DEFAULT_CLUSTER_NETWORK_JSON)
 
     context.etcd.write('/commissaire/config/kubetoken', 'test')
 
@@ -391,7 +391,7 @@ def before_scenario(context, scenario):
     context.HOST_DATA = {
         'address': '',
         'remote_user': 'vagrant',
-        'status': 'active',
+        'status': C.HOST_STATUS_ACTIVE,
         'os': 'fedora',
         'cpus': 1,
         'memory': 1234,
@@ -433,7 +433,9 @@ def after_scenario(context, scenario):
     Runs after every scenario.
     """
     # Wait for investigator processes to finish.
-    busy_states = ('investigating', 'bootstrapping')
+    busy_states = (
+        C.HOST_STATUS_INVESTIGATING,
+        C.HOST_STATUS_BOOTSTRAPPING)
     try:
         etcd_resp = context.etcd.read('/commissaire/hosts', recursive=True)
         for child in etcd_resp._children:
