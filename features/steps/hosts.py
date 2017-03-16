@@ -67,6 +67,9 @@ def impl(context, host):
         data = request.json()
         status_is_busy = data['status'] in busy_states
 
+    assert data['status'] in ('active', 'disassociated'), \
+        'Host failed to bootstrap (status: {})'.format(data['status'])
+
 
 @given('we have deleted host {host}')
 def impl(context, host):
