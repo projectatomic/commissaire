@@ -9,6 +9,13 @@ Subpackages
     commissaire.containermgr.kubernetes
     commissaire.containermgr.openshift
 
+Submodules
+----------
+
+.. toctree::
+
+   commissaire.containermgr.trivial
+
 Module contents
 ---------------
 
