@@ -536,7 +536,8 @@ Retrieve a specific host record.
        "cpus": int,             // The number of CPUs on the cluster host
        "memory": int,           // The memory of the cluster host in kilobytes
        "space": int,            // The diskspace on the cluster host
-       "last_check": string     // ISO date format the cluster host was last checked
+       "last_check": string,    // ISO date format the cluster host was last checked
+       "source": string         // (optional) External source for host information
    }
 
 .. note::
@@ -545,8 +546,15 @@ Retrieve a specific host record.
 .. note::
    See :ref:`host-os` for a list and description of host statuses.
 
+The ``source`` value, if defined, names a storage plugin which can provide
+information for this particular ``Host`` record.  If omitted, host information
+is obtained from the default storage plugin defined by Commissaire's storage
+configuration.
+
 Example
 ~~~~~~~
+
+A host owned by Commissaire.
 
 .. code-block:: javascript
 
@@ -557,7 +565,23 @@ Example
        "cpus": 4,
        "memory": 11989228,
        "space": 487652,
-       "last_check": "2015-12-17T15:48:18.710454"
+       "last_check": "2015-12-17T15:48:18.710454",
+       "source": ""
+   }
+
+A host owned by an external provider (note the ``"source"`` field).
+
+.. code-block:: javascript
+
+   {
+       "address": "192.168.100.50",
+       "status": "active",
+       "os": "fedora",
+       "cpus": 4,
+       "memory": 2048,
+       "space": 51475068,
+       "last_check": "2016-11-28T22:10:11.851787",
+       "source": "cloudforms"
    }
 
 PUT
