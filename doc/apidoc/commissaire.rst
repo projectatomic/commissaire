@@ -18,6 +18,7 @@ Submodules
 .. toctree::
 
    commissaire.constants
+   commissaire.errors
 
 Module contents
 ---------------
