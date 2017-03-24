@@ -220,17 +220,15 @@ class StorageClient:
         Issues a "storage.list" request over the bus for the given model
         class, and returns a new model instance from the response data.
 
-        :param model_class: A concrete model class with a valid _list_class
-                            attribute
-        :type model_class: commissaire.models.Model
+        :param model_class: A concrete list model class
+        :type model_class: commissaire.models.ListModel
         :returns: A new model instance
         :rtype: model_class
         :raises: commissaire.bus.RemoteProcedureCallError,
                  commissaire.models.ValidationError
         """
         try:
-            assert model_class._list_attr is not None
-            assert model_class._list_class is not None
+            assert issubclass(model_class, models.ListModel)
             params = {
                 'model_type_name': model_class.__name__
             }

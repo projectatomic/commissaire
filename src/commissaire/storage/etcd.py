@@ -23,7 +23,6 @@ import etcd
 from urllib.parse import urlparse
 
 from commissaire.bus import StorageLookupError
-from commissaire.models import ListModel
 from commissaire.storage import StoreHandlerBase, ConfigurationError
 
 #: Maps ModelClassName to a key pattern
@@ -157,18 +156,13 @@ class EtcdStoreHandler(StoreHandlerBase):
         Lists data at a location in a store and returns back model instances.
 
         :param model_instance: Model instance to search for and list
-        :type model_instance: commissaire.model.Model
+        :type model_instance: commissaire.model.ListModel
         :returns: A list of models
         :rtype: list
         """
         key = self._format_key(model_instance)
-        # The default class used is the same as the model_instance
-        model_cls = model_instance.__class__
+        model_cls = model_instance._list_class
         results = []
-
-        # If this is a list then snag the configured class for use
-        if isinstance(model_instance, ListModel):
-            model_cls = model_instance._list_class
 
         # populate the results
         for item in self._store.read(key, recursive=True).children:
@@ -181,13 +175,9 @@ class EtcdStoreHandler(StoreHandlerBase):
                     'Etcd returned unserializable data. Skipping the record.'
                     'TypeError: {}'.format(error))
 
-        # If this is a list then fill the list container with the results
-        # and return the model
-        if isinstance(model_instance, ListModel):
-            setattr(
-                model_instance,
-                model_instance._list_attr,
-                results)
+        # Fill the list container with the results and return the model.
+        setattr(model_instance, model_instance._list_attr, results)
+
         return model_instance
 
 
