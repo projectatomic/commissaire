@@ -51,7 +51,7 @@ STORAGE_CONF_TEMPLATE = """
 {{
   "storage_handlers": [
     {{
-      "name": "commissaire.storage.etcd",
+      "type": "commissaire.storage.etcd",
       "server_url": "{}",
       "models": ["*"]
     }}
