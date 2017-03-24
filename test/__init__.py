@@ -55,7 +55,6 @@ class TestModel(Model):
     """
     Simple model type for use in test cases.
     """
-    _json_type = dict
     _attribute_map = {
         'foo': {'type': str}
     }

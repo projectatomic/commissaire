@@ -23,6 +23,7 @@ import etcd
 from urllib.parse import urlparse
 
 from commissaire.bus import StorageLookupError
+from commissaire.models import ListModel
 from commissaire.storage import StoreHandlerBase, ConfigurationError
 
 #: Maps ModelClassName to a key pattern
@@ -166,7 +167,7 @@ class EtcdStoreHandler(StoreHandlerBase):
         results = []
 
         # If this is a list then snag the configured class for use
-        if model_instance._json_type is list:
+        if isinstance(model_instance, ListModel):
             model_cls = model_instance._list_class
 
         # populate the results
@@ -182,7 +183,7 @@ class EtcdStoreHandler(StoreHandlerBase):
 
         # If this is a list then fill the list container with the results
         # and return the model
-        if model_instance._json_type is list:
+        if isinstance(model_instance, ListModel):
             setattr(
                 model_instance,
                 model_instance._list_attr,

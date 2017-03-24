@@ -52,7 +52,6 @@ class Model(object):
     Parent class for models.
     """
 
-    _json_type = None
     #: Dict of attribute_name->{type, regex}. Regex is optional.
     _attribute_map = {}
     #: Attributes which should only be shown if the render is 'secure'
@@ -61,10 +60,6 @@ class Model(object):
     _primary_key = None
     #: Defaults to use for attributes when calling new()
     _attribute_defaults = {}
-    #: The attribute name which stores items if this is a list type
-    _list_attr = None
-    #: The class for items which will be stored in the list attribute
-    _list_class = None
 
     def __init__(self, **kwargs):
         """
@@ -107,11 +102,8 @@ class Model(object):
         :rtype: str
         """
         readable = '<{}'.format(self.__class__.__name__)
-        if self._json_type == 'dict':
-            for k, v in self.to_dict_safe().items():
-                readable += ' {}={},'.format(k, v or '<Empty>')
-        elif self._json_type == 'list':
-            readable += ','.join(self.to_list_safe())
+        for k, v in self.to_dict_safe().items():
+            readable += ' {}={},'.format(k, v or '<Empty>')
         return readable + '...>'
 
     @property
@@ -132,33 +124,6 @@ class Model(object):
         :type secure: bool
         :returns: A dict or list depending
         :rtype: dict or list
-        """
-        if self._json_type is dict:
-            return self._dict_for_json(secure)
-        elif self._json_type is list:
-            return self._list_for_json(secure)
-
-    def _list_for_json(self, secure):
-        """
-        Returns a list structure of the data.
-
-        :param secure: If the structure needs to respect _hidden_attributes.
-        :type secure: bool
-        :returns: A list of the data.
-        :rtype: list
-        """
-        if len(self._attribute_map.keys()) == 1:
-            data = getattr(self, list(self._attribute_map.keys())[0])
-        return data
-
-    def _dict_for_json(self, secure):
-        """
-        Returns a dict structure of the data.
-
-        :param secure: If the structure needs to respect _hidden_attributes.
-        :type secure: bool
-        :returns: A dict of the data.
-        :rtype: dict
         """
         data = {}
         for key in list(self._attribute_map.keys()):
@@ -291,6 +256,41 @@ class Model(object):
                     len(errors), errors))
 
 
+class ListModel(Model):
+    """
+    Base class for models representing a list of models.
+    """
+
+    #: The attribute name which stores items
+    _list_attr = None
+    #: The class for items which will be stored in the list
+    _list_class = None
+
+    def __str__(self):  # pragma: no cover
+        """
+        Returns a string representation of the instance.
+
+        :returns: String representation of this instance.
+        :rtype: str
+        """
+        return '<{} {}...>'.format(
+            self.__class__.__name__,
+            ','.join(self.to_list_safe()))
+
+    def _struct_for_json(self, secure=False):
+        """
+        Returns the proper structure for a model to be used in JSON.
+
+        :param secure: If the structure needs to respect _hidden_attributes.
+        :type secure: bool
+        :returns: A dict or list depending
+        :rtype: dict or list
+        """
+        if len(self._attribute_map.keys()) == 1:
+            data = getattr(self, list(self._attribute_map.keys())[0])
+        return [x._struct_for_json(secure) for x in data]
+
+
 class Network(Model):
     """
     Representation of a network.
@@ -299,7 +299,6 @@ class Network(Model):
 
        This model is similar to ContainerManagerConfig.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'type': {'type': str},
@@ -323,11 +322,10 @@ class Network(Model):
         super()._validate(errors)
 
 
-class Networks(Model):
+class Networks(ListModel):
     """
     Representation of a group of one or more Networks.
     """
-    _json_type = list
     _attribute_map = {
         'networks': {'type': list},
     }
@@ -340,7 +338,6 @@ class Cluster(Model):
     """
     Representation of a Cluster.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'status': {'type': str},
@@ -407,7 +404,6 @@ class ClusterDeploy(Model):
     """
     Representation of a Cluster deploy operation.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'status': {'type': str},
@@ -438,7 +434,6 @@ class ClusterRestart(Model):
     """
     Representation of a Cluster restart operation.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'status': {'type': str},
@@ -467,7 +462,6 @@ class ClusterUpgrade(Model):
     """
     Representation of a Cluster upgrade operation.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'status': {'type': str},
@@ -492,11 +486,10 @@ class ClusterUpgrade(Model):
         super()._validate(errors)
 
 
-class Clusters(Model):
+class Clusters(ListModel):
     """
     Representation of a group of one or more Clusters.
     """
-    _json_type = list
     _attribute_map = {
         'clusters': {'type': list},
     }
@@ -509,7 +502,6 @@ class Host(Model):
     """
     Representation of a Host.
     """
-    _json_type = dict
     _attribute_map = {
         'address': {'type': str},
         'status': {'type': str},
@@ -534,7 +526,6 @@ class HostStatus(Model):
     """
     Representation of Host status.
     """
-    _json_type = dict
     _attribute_map = {
         'type': {'type': str},
         'host': {'type': dict},
@@ -547,11 +538,10 @@ class HostStatus(Model):
     }
 
 
-class Hosts(Model):
+class Hosts(ListModel):
     """
     Representation of a group of one or more Hosts.
     """
-    _json_type = list
     _attribute_map = {
         'hosts': {'type': list},
     }
@@ -564,7 +554,6 @@ class WatcherRecord(Model):
     """
     Representation of a single record in a watcher queue.
     """
-    _json_type = dict
     _attribute_map = {
         'address': {'type': str},
         'last_check': {'type': str},
@@ -596,7 +585,6 @@ class ContainerManagerConfig(Model):
        This model is similar to Network. The options attribute holds
        configuration items used to create a ContainerManager instance.
     """
-    _json_type = dict
     _attribute_map = {
         'name': {'type': str},
         'type': {'type': str},
@@ -620,11 +608,10 @@ class ContainerManagerConfig(Model):
         super()._validate(errors)
 
 
-class ContainerManagerConfigs(Model):
+class ContainerManagerConfigs(ListModel):
     """
     Representation of a group of one or more ContainerManagers.
     """
-    _json_type = list
     _attribute_map = {
         'container_managers': {'type': list},
     }
