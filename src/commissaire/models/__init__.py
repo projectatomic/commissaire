@@ -275,7 +275,7 @@ class ListModel(Model):
         """
         return '<{} {}...>'.format(
             self.__class__.__name__,
-            ','.join(self.to_list_safe()))
+            self.to_json_safe())
 
     def _struct_for_json(self, secure=False):
         """
