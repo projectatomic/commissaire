@@ -371,21 +371,6 @@ class Cluster(Model):
                       'available': 0,
                       'unavailable': 0}
 
-    def to_dict_with_hosts(self, secure=False):  # pragma: no cover
-        """
-        Returns a dict representation of this model with host data.
-        This is different than using __dict__ as the returned data
-        will be model specific only.
-
-        :param secure: Include _hidden attributes in the return value.
-        :type secure: bool
-        :returns: the dict representation.
-        :rtype: dict
-        """
-        # Instead of reimplementing the logic take the performance hit of
-        # of going between native and json
-        return json.loads(self.to_json(expose=['hosts']))
-
 
 class ClusterDeploy(Model):
     """
