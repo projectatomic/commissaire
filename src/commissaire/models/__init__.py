@@ -369,21 +369,6 @@ class Cluster(Model):
                       'available': 0,
                       'unavailable': 0}
 
-    # TODO: Remove in > 0.0.3
-    def to_json_with_hosts(self, secure=False):
-        """
-        Returns a JSON representation of this model with host data.
-
-        .. deprecated:: 0.0.3
-           Use :func:`to_json` with the **expose** parameter instead.
-
-        :param secure: Include _hidden attributes in the return value.
-        :type secure: bool
-        :returns: The JSON representation.
-        :rtype: str
-        """
-        return self.to_json(expose=['hosts'])
-
     def to_dict_with_hosts(self, secure=False):  # pragma: no cover
         """
         Returns a dict representation of this model with host data.
@@ -397,7 +382,7 @@ class Cluster(Model):
         """
         # Instead of reimplementing the logic take the performance hit of
         # of going between native and json
-        return json.loads(self.to_json_with_hosts(secure))
+        return json.loads(self.to_json(expose=['hosts']))
 
 
 class ClusterDeploy(Model):
