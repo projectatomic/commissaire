@@ -1,3 +1,40 @@
+# commissaire v0.0.3
+```
+* db92fb8: doc: Fix cluster DELETE header.
+* 88849c6: models: to_list_safe() called but does not exist.
+* 5b03fa5: storage: Clarify the list() method is only for ListModels.
+* e735f92: models: Add ListModel.
+* 1f6ec9c: doc: Added apidocs for errors and containermgr.trivial
+* 819414c: e2e: Update STORAGE_CONF_TEMPLATE.
+* ce2e047: doc: Document Host.source field.
+* a20aed9: docs: Commit generated docs for commissaire.containermgr.Trivial.
+* 66f7191: docs: Commit generated docs for commissaire.errors.
+* 92b4735: e2e: Use new host status constants.
+* 993bb41: e2e: Verify host status after waiting for bootstrap.
+* 03bc051: e2e: Test host status with a container manager.
+* af35ee7: e2e: Distinguish clusters with no container manager.
+* 23cc340: containermgr: Add TrivialContainerManager for testing.
+* dae5c10: constants: Add HOST_STATUS_DISASSOCIATED.
+* 4e3f8b1: constants: Added host statuses.
+* d0e69d4: doc: Removed inactive from enums
+* 433bd39: doc: Added website to README
+* 3605213: doc: Added release information
+* afe5a32: doc: Update community meeting time for DST in US
+* b919bf3: Add 'METHOD_NOT_ALLOWED' to JSONRPC_ERRORS.
+* 348e9dc: storage: Added get_uniform_model_type
+* d5508c3: StorageClient: Add get_many(), save_many(), delete_many().
+* e017998: models: to_json* now can expose internal attributes
+* 96dcbf0: String formats now using implicit reference
+* f845b4f: models: Primary key attribute should not have default.
+* cbb29b7: container: Dockerfile now using COPY rather than ADD
+* 44ceb6f: bus: Remove old formatting style in exception
+* c35c51e: errors: Exceptions bound by a hierarchy.
+* 486b502: doc: Updated bdd examples.
+* 095017a: Make ContainerManagerError inherit from RemoteProcedureCallError.
+* 39c6e52: Simplify super() calls.
+* a72da6d: Post-release version bump.
+```
+
 # commissaire v0.0.2
 ```
 * d92fafd: tools: Added script to generate changelog
