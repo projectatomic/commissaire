@@ -137,7 +137,7 @@ class Model(object):
         """
         Returns a JSON representation of this model.
 
-        :param expose: List of non exposed attributes to include in result.
+        :param expose: List of non-exposed attributes to include in result.
         :type expose: list
         :returns: The JSON representation.
         :rtype: str
@@ -154,7 +154,7 @@ class Model(object):
         Returns a JSON representation of this model, omitting all hidden
         attributes.  Use this when preparing data for display to users.
 
-        :param expose: List of non exposed attributes to include in result.
+        :param expose: List of non-exposed attributes to include in result.
         :type expose: list
         :returns: The JSON representation.
         :rtype: str
@@ -166,33 +166,35 @@ class Model(object):
                 struct[key] = value
         return json.dumps(struct)
 
-    def to_dict(self):
+    def to_dict(self, expose=[]):
         """
         Returns a dict representation of this model. This is different than
         using __dict__ as the returned data will be model specific only.
 
-        :param secure: Include _hidden attributes in the return value.
-        :type secure: bool
+        :param expose: List of non-exposed attributes to include in result.
+        :type expose: list
         :returns: the dict representation.
         :rtype: dict
         """
         # Instead of reimplementing the logic take the performance hit of
         # going between native and json
-        return json.loads(self.to_json())
+        return json.loads(self.to_json(expose))
 
-    def to_dict_safe(self):
+    def to_dict_safe(self, expose=[]):
         """
         Returns a dict representation of this model, omitting all hidden
         attributes.  This is different than using __dict__ as the returned
         data will be model specific only.  Use this when preparing data for
         display to users.
 
+        :param expose: List of non-exposed attributes to include in result.
+        :type expose: list
         :returns: the dict representation.
         :rtype: dict
         """
         # Instead of reimplementing the logic take the performance hit of
         # going between native and json
-        return json.loads(self.to_json_safe())
+        return json.loads(self.to_json_safe(expose))
 
     def _validate(self, errors=[]):
         """

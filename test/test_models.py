@@ -90,6 +90,15 @@ class TestModel(TestCase):
             'ssh_priv_key',
             instance.to_dict())
 
+    def test_to_dict_with_expose(self):
+        """
+        Verify to_dict returns additional exposed items in the dictionary
+        """
+        instance = models.Cluster.new(name='test')
+        self.assertIn(
+            'hosts',
+            instance.to_dict(expose=['hosts']))
+
     def test_to_dict_safe(self):
         """
         Verify to_dict_safe returns a sanitized dict.
@@ -100,6 +109,15 @@ class TestModel(TestCase):
         self.assertNotIn(
             'ssh_priv_key',
             instance.to_dict_safe())
+
+    def test_to_dict_safe_with_expose(self):
+        """
+        Verify to_dict_safe returns additional exposed items in the dictionary
+        """
+        instance = models.Cluster.new(name='test')
+        self.assertIn(
+            'hosts',
+            instance.to_dict_safe(expose=['hosts']))
 
     def test__coerce(self):
         """
