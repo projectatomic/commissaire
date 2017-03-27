@@ -86,7 +86,7 @@ Example
    }
 
 
-Delete
+DELETE
 ``````
 Deletes an existing cluster.
 
