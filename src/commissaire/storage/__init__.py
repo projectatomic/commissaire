@@ -20,6 +20,7 @@ import logging
 
 from commissaire.errors import CommissaireError
 from commissaire.models import Model
+from commissaire.storage.notify import StorageNotify
 
 
 class ConfigurationError(CommissaireError):
@@ -29,7 +30,7 @@ class ConfigurationError(CommissaireError):
     pass
 
 
-class StoreHandlerBase(object):
+class StoreHandlerBase(object):  # pragma: no cover
     """
     Base class for all StoreHandler classes.
     """
@@ -58,6 +59,7 @@ class StoreHandlerBase(object):
         self._config = config
         self._store = None
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.notify = StorageNotify()
 
     def _get_connection(self):
         """

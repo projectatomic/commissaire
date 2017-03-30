@@ -116,8 +116,16 @@ class EtcdStoreHandler(StoreHandlerBase):
         :rtype: commissaire.model.Model
         """
         key = self._format_key(model_instance)
-        self._store.write(key, model_instance.to_json())
-        # TODO: Check if we need to update the data in the instance
+        etcd_resp = self._store.write(key, model_instance.to_json())
+
+        model_type = type(model_instance)
+        model_dict = json.loads(etcd_resp.value)
+        model_instance = model_type.new(**model_dict)
+        if etcd_resp.newKey:
+            self.notify.created(model_instance)
+        else:
+            self.notify.updated(model_instance)
+
         return model_instance
 
     def _get(self, model_instance):
@@ -147,7 +155,12 @@ class EtcdStoreHandler(StoreHandlerBase):
         """
         try:
             key = self._format_key(model_instance)
-            self._store.delete(key)
+            etcd_resp = self._store.delete(key)
+
+            model_type = type(model_instance)
+            model_dict = json.loads(etcd_resp._prev_node.value)
+            model_instance = model_type.new(**model_dict)
+            self.notify.deleted(model_instance)
         except etcd.EtcdKeyNotFound as error:
             raise StorageLookupError(str(error), model_instance)
 
