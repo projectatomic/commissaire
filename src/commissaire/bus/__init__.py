@@ -129,8 +129,7 @@ class BusMixin:
         """
         id = self.create_id()
         response_queue_name = 'response-{}'.format(id)
-        self.logger.debug('Creating response queue "{}"'.format(
-            response_queue_name))
+        self.logger.debug('Creating response queue "%s"', response_queue_name)
         queue_opts = {
             'auto_delete': True,
             'durable': False,
@@ -138,7 +137,7 @@ class BusMixin:
         if kwargs.get('queue_opts'):
             queue_opts.update(kwargs.pop('queue_opts'))
 
-        self.logger.debug('Response queue arguments: {}'.format(kwargs))
+        self.logger.debug('Response queue arguments: %s', kwargs)
 
         response_queue = self.connection.SimpleQueue(
             response_queue_name,
@@ -153,8 +152,8 @@ class BusMixin:
             'method': method,
             'params': params,
         }
-        self.logger.debug('jsonrpc message for id "{}": "{}"'.format(
-            id, jsonrpc_msg))
+        self.logger.debug(
+            'jsonrpc message for id "%s": "%s"', id, jsonrpc_msg)
 
         self.producer.publish(
             jsonrpc_msg,
@@ -163,8 +162,8 @@ class BusMixin:
             reply_to=response_queue_name)
 
         self.logger.debug(
-            'Sent message id "{}" to "{}". Waiting on response...'.format(
-                id, response_queue_name))
+            'Sent message id "%s" to "%s". Waiting on response...',
+            id, response_queue_name)
 
         result = response_queue.get(block=True, timeout=10)
         result.ack()
@@ -174,15 +173,15 @@ class BusMixin:
             payload = json.loads(payload)
 
         self.logger.debug(
-            'Result retrieved from response queue "{}": result="{}"'.format(
-                response_queue_name, result))
-        self.logger.debug('Closing queue {}'.format(response_queue_name))
+            'Result retrieved from response queue "%s": result="%s"',
+            response_queue_name, result)
+        self.logger.debug('Closing queue %s', response_queue_name)
         response_queue.close()
 
         if 'error' in payload:
             error_data = payload['error']
             self.logger.warn(
-                'Message "{}" contains error: {}'.format(id, error_data))
+                'Message "%s" contains error: %s', id, error_data)
             message = error_data.get('message', 'Internal error')
             code = error_data.get('code', C.JSONRPC_ERRORS['INTERNAL_ERROR'])
             data = error_data.get('data', {})
@@ -210,7 +209,7 @@ class BusMixin:
             'params': params,
         }
         self.logger.debug(
-            'jsonrpc notification for id: {}"'.format(jsonrpc_msg))
+            'jsonrpc notification for id: %s"', jsonrpc_msg)
 
         self.producer.publish(
             jsonrpc_msg,
@@ -218,4 +217,4 @@ class BusMixin:
             declare=[self._exchange])
 
         self.logger.debug(
-            'Sent notification to topic "{}".'.format(routing_key))
+            'Sent notification to topic "%s".', routing_key)

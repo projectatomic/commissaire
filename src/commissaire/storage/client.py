@@ -54,10 +54,11 @@ class StorageClient:
             return model_instance.__class__.new(**response['result'])
         except RemoteProcedureCallError as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to get {} "{}": {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_instance.__class__.__name__,
-                    model_instance.primary_key, error))
+                '%s: Unable to get %s "%s": %s',
+                self.bus_mixin.__class__.__name__,
+                model_instance.__class__.__name__,
+                model_instance.primary_key,
+                error)
             raise error
 
     def get_many(self, list_of_model_instances):
@@ -89,9 +90,10 @@ class StorageClient:
             return [model_class.new(**x) for x in response['result']]
         except RemoteProcedureCallError as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to get multiple {} records: {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_class.__name__, error))
+                '%s: Unable to get multiple %s records: %s',
+                self.bus_mixin.__class__.__name__,
+                model_class.__name__,
+                error)
             raise error
 
     def save(self, model_instance):
@@ -118,10 +120,11 @@ class StorageClient:
             return model_instance.__class__.new(**response['result'])
         except (RemoteProcedureCallError, models.ValidationError) as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to save {} "{}": {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_instance.__class__.__name__,
-                    model_instance.primary_key, error))
+                '%s: Unable to save %s "%s": %s',
+                self.bus_mixin.__class__.__name__,
+                model_instance.__class__.__name__,
+                model_instance.primary_key,
+                error)
             raise error
 
     def save_many(self, list_of_model_instances):
@@ -156,9 +159,10 @@ class StorageClient:
             return [model_class.new(**x) for x in response['result']]
         except (RemoteProcedureCallError, models.ValidationError) as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to save multiple {} records: {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_class.__name__, error))
+                '%s: Unable to save multiple %s records: %s',
+                self.bus_mixin.__class__.__name__,
+                model_class.__name__,
+                error)
             raise error
 
     def delete(self, model_instance):
@@ -178,10 +182,11 @@ class StorageClient:
             self.bus_mixin.request('storage.delete', params=params)
         except RemoteProcedureCallError as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to delete {} "{}": {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_instance.__class__.__name__,
-                    model_instance.primary_key, error))
+                '%s: Unable to delete %s "%s": %s',
+                self.bus_mixin.__class__.__name__,
+                model_instance.__class__.__name__,
+                model_instance.primary_key,
+                error)
             raise error
 
     def delete_many(self, list_of_model_instances):
@@ -210,9 +215,10 @@ class StorageClient:
             self.bus_mixin.request('storage.delete', params=params)
         except RemoteProcedureCallError as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to delete multiple {} records: {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_class.__name__, error))
+                '%s: Unable to delete multiple %s records: %s',
+                self.bus_mixin.__class__.__name__,
+                model_class.__name__,
+                error)
             raise error
 
     def list(self, model_class):
@@ -244,9 +250,10 @@ class StorageClient:
             return model_instance
         except (RemoteProcedureCallError, models.ValidationError) as error:
             self.bus_mixin.logger.error(
-                '{}: Unable to list {}s: {}'.format(
-                    self.bus_mixin.__class__.__name__,
-                    model_class.__name__, error))
+                '%s: Unable to list %ss: %s',
+                self.bus_mixin.__class__.__name__,
+                model_class.__name__,
+                error)
             raise error
 
     # -----------------------------------------------------------------------

@@ -82,6 +82,7 @@ class Test_TemporarySSHKey(TestCase):
             key.remove()
             self.assertTrue(os.path.isfile(key.path))
             # We should have a warning in the log
-            mock_logger.warn.assert_called_once_with(mock.ANY)
+            mock_logger.warn.assert_called_once_with(
+                mock.ANY, mock.ANY, mock.ANY)
         # Clean up the file
         key.remove()

@@ -173,7 +173,7 @@ class EtcdStoreHandler(StoreHandlerBase):
                 #      possible that bad data could trigger a response.
                 self.logger.warn(
                     'Etcd returned unserializable data. Skipping the record.'
-                    'TypeError: {}'.format(error))
+                    'TypeError: %s', error)
 
         # Fill the list container with the results and return the model.
         setattr(model_instance, model_instance._list_attr, results)

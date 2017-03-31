@@ -45,24 +45,24 @@ class KubeContainerManager(ContainerManagerBase):
         if token:
             self.con.headers['Authorization'] = 'Bearer {}'.format(token)
             self.logger.info('Using bearer token')
-            self.logger.debug('Bearer token: {}'.format(token))
+            self.logger.debug('Bearer token: %s', token)
 
         certificate_path = config.get('certificate_path')
         certificate_key_path = config.get('certificate_key_path')
         if certificate_path and certificate_key_path:
             self.con.cert = (certificate_path, certificate_key_path)
             self.logger.info(
-                'Using client side certificate. Certificate path: {} '
-                'Certificate Key Path: {}'.format(
-                    certificate_path, certificate_key_path))
+                'Using client side certificate. Certificate path: %s '
+                'Certificate Key Path: %s',
+                certificate_path, certificate_key_path)
 
         # TODO: Verify TLS!!!
         self.con.verify = False
         self.base_uri = urljoin(config['server_url'], '/api/v1')
-        self.logger.info('Kubernetes Container Manager created: {}'.format(
-            self.base_uri))
+        self.logger.info(
+            'Kubernetes Container Manager created: %s', self.base_uri)
         self.logger.debug(
-            'Kubernetes Container Manager: {}'.format(self.__dict__))
+            'Kubernetes Container Manager: %s', self.__dict__)
 
     @classmethod
     def check_config(cls, config):
@@ -124,11 +124,11 @@ class KubeContainerManager(ContainerManagerBase):
         :returns: requests.Response
         """
         part = self._fix_part(part)
-        self.logger.debug('Executing GET for {}'.format(part))
+        self.logger.debug('Executing GET for %s', part)
         resp = self.con.get(
             '{}{}'.format(self.base_uri, part), *args, **kwargs)
-        self.logger.debug('Response for {}. Status: {}'.format(
-            part, resp.status_code))
+        self.logger.debug(
+            'Response for %s. Status: %s', part, resp.status_code)
         return resp
 
     def _delete(self, part, *args, **kwargs):
@@ -146,11 +146,11 @@ class KubeContainerManager(ContainerManagerBase):
         :returns: requests.Response
         """
         part = self._fix_part(part)
-        self.logger.debug('Executing DELETE for {}.'.format(part))
+        self.logger.debug('Executing DELETE for %s.', part)
         resp = self.con.delete(
             '{}{}'.format(self.base_uri, part), *args, **kwargs)
-        self.logger.debug('Response for {}. Status: {}'.format(
-            part, resp.status_code))
+        self.logger.debug(
+            'Response for %s. Status: %s', part, resp.status_code)
         return resp
 
     def _put(self, part, payload, *args, **kwargs):
@@ -169,13 +169,13 @@ class KubeContainerManager(ContainerManagerBase):
         """
         part = self._fix_part(part)
         payload_str = json.dumps(payload)
-        self.logger.debug('Executing PUT for {}. Payload={}'.format(
-            part, payload_str))
+        self.logger.debug(
+            'Executing PUT for %s. Payload=%s', part, payload_str)
         resp = self.con.put(
             '{}{}'.format(self.base_uri, part),
             data=payload_str, *args, **kwargs)
-        self.logger.debug('Response for {}. Status: {}'.format(
-            part, resp.status_code))
+        self.logger.debug(
+            'Response for %s. Status: %s', part, resp.status_code)
         return resp
 
     def _post(self, part, payload, *args, **kwargs):
@@ -194,13 +194,13 @@ class KubeContainerManager(ContainerManagerBase):
         """
         part = self._fix_part(part)
         payload_str = json.dumps(payload)
-        self.logger.debug('Executing POST for {}. Payload={}'.format(
-            part, payload_str))
+        self.logger.debug(
+            'Executing POST for %s. Payload=%s', part, payload_str)
         resp = self.con.post(
             '{}{}'.format(self.base_uri, part),
             data=payload_str, *args, **kwargs)
-        self.logger.debug('Response for {}. Status: {}'.format(
-            part, resp.status_code))
+        self.logger.debug(
+            'Response for %s. Status: %s', part, resp.status_code)
         return resp
 
     def register_node(self, name):

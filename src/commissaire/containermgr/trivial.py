@@ -61,7 +61,7 @@ class TrivialContainerManager(ContainerManagerBase):  # pragma: no cover
         """
         # This method is idempotent.
         self.nodes.add(address)
-        self.logger.debug('Registered node {}'.format(address))
+        self.logger.debug('Registered node %s', address)
 
     def remove_node(self, address):
         """
@@ -74,7 +74,7 @@ class TrivialContainerManager(ContainerManagerBase):  # pragma: no cover
         """
         # This method is idempotent.
         self.nodes.discard(address)
-        self.logger.debug('Removed node {}'.format(address))
+        self.logger.debug('Removed node %s', address)
 
     def remove_all_nodes(self):
         """
@@ -101,7 +101,7 @@ class TrivialContainerManager(ContainerManagerBase):  # pragma: no cover
         """
         if address in self.nodes:
             status = {'node': address, 'status': 'ok'}
-            self.logger.debug('Node status: {}'.format(status))
+            self.logger.debug('Node status: %s', status)
             return status
         else:
             message = 'Node {} is not registered'.format(address)
