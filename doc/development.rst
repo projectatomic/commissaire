@@ -8,7 +8,7 @@ https://github.com/projectatomic/commissaire.
 
 Development Setup
 -----------------
-See `DEVEL.rst <https://github.com/projectatomic/commissaire-http/blob/master/DEVEL.rst>`_
+See `DEVEL.rst <https://github.com/projectatomic/commissaire/blob/master/DEVEL.rst>`_
 
 Vagrant
 -------
