@@ -68,6 +68,11 @@ In the ``commissaire-projects`` directory you previously created
 Continue executing the following commands in the virtualenv you just created.
 
 
+**NOTE**: For ``zsh`` users, you may need to run the ``rehash`` shell
+builtin after you ``pip install`` each project so that the commands
+are available in your ``$PATH``.
+
+
 Install Commissaire
 ===================
 
