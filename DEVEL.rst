@@ -27,8 +27,8 @@ Next enable the ``etcd`` and ``redis`` services:
 
 .. code-block:: shell
 
-   $ systemctl enable etcd redis
-   $ systemctl start etcd redis
+   $ sudo systemctl enable etcd redis
+   $ sudo systemctl start etcd redis
 
 
 
@@ -56,10 +56,13 @@ environment.
 Create VirtualEnv
 -----------------
 
+In the ``commissaire-projects`` directory you previously created
+(*Pull Repositories*, above) create the ``devel`` virtualenv:
+
 .. code-block::
 
    $ virtualenv-3.5 devel
-   $ . devel/bin/activate
+   $ . ./devel/bin/activate
 
 
 Continue executing the following commands in the virtualenv you just created.
@@ -72,7 +75,7 @@ Install Commissaire
 
    $ cd commissaire
    $ pip install -e .
-   $ popd
+   $ cd ..
 
 
 Install Commissaire Service
@@ -82,7 +85,7 @@ Install Commissaire Service
 
    $ cd commissaire-service
    $ pip install -e .
-   $ tools/etcd_init.sh
+   $ ../commissaire/tools/etcd_init.sh
 
 
 Edit your storage configuration to point to your etcd instance:
@@ -100,7 +103,7 @@ Start the service
 .. code-block::
 
    $ commissaire-storage-service -c mystorage.conf &
-   $ popd
+   $ cd ..
 
 
 Install Commissaire Server
@@ -125,7 +128,7 @@ Start the service:
 .. code-block::
 
    $ commissaire-server -c config.conf &
-   $ popd
+   $ cd ..
 
 
 Run testcases for Commissaire Server
@@ -166,9 +169,9 @@ Using ``commctl``
 
 .. code-block::
 
-   cd commctl
-   pip install -e .
-   popd
+   $ cd commctl
+   $ pip install -e .
+   $ cd ..
 
 
 Edit the configuration:
