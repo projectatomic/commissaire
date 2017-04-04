@@ -81,3 +81,6 @@ JSONRPC_ERRORS = {
 
 #: Expected date format (isoformat)
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+
+#: Default configuration file
+DEFAULT_CONFIGURATION_FILE = '/etc/commissaire/commissaire.conf'

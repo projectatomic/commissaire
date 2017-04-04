@@ -21,6 +21,7 @@ import json
 import logging
 import sys
 
+from commissaire import constants as C
 from commissaire.errors import CommissaireError
 from commissaire.util.logging import setup_logging
 
@@ -50,7 +51,7 @@ def _normalize_member_names(json_object):
     return normalized
 
 
-def read_config_file(path=None, default='/etc/commissaire/commissaire.conf'):
+def read_config_file(path=None, default=C.DEFAULT_CONFIGURATION_FILE):
     """
     Attempts to parse a configuration file, formatted as a JSON object.
 
