@@ -258,7 +258,7 @@ create
 ``create`` requires two positional arguments:
 
 * ``address``: The domain or address of the host to access and add
-* ``ssh_priv_key``: The full path to the hosts ssh_private_key for access
+* ``ssh_priv_key``: The full path to the **hosts** ssh private key for access
 
 .. code-block:: shell
 

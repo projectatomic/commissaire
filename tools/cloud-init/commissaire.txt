@@ -1,8 +1,8 @@
 {
   "endpoint": "https://master.example.com:8000",
-  "username": "user",                                  # Optional
-  "password": "12345",                                 # Optional
-  "cluster": "mycluster",                              # Optional
+  "username": "user",                                  # Recommended: Username for Commissaire Access
+  "password": "12345",                                 # Recommended: Password for Commissaire Access
+  "cluster": "mycluster",                              # Recommended: Cluster to join
   "remote_user": "root",                               # Optional
   "ssh_key_path": "/root/.ssh/id_rsa",                 # Optional
   "authorized_keys_path": "/root/.ssh/authorized_keys" # Optional
