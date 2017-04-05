@@ -15,6 +15,7 @@ Contents:
    overview
    releases
    configuration/*
+   walkthrough
    operations
    commctl
    components

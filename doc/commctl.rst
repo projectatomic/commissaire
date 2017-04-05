@@ -258,15 +258,14 @@ create
 ``create`` requires two positional arguments:
 
 * ``address``: The domain or address of the host to access and add
-* ``ssh_priv_key``: The full path to the **hosts** ssh private key for access
+* ``ssh_priv_key``: The full path to the **remote hosts** ssh private key for initial access
 
-.. code-block:: shell
 
-   $ commctl host create --cluster my_cluster 192.168.152.110 /path/to/host/priv/ssh_key
+.. literalinclude:: examples/commctl_host_create.rst
 
 .. note::
 
-    When creating a new host record the host will need to have an ssh key already generated
+    When creating a new host record the remote host will need to have an ssh key already generated
     and available for commissaire. The host also will need to have ssh running and the ``python``
     command must be available. If you want to bootstrap new hosts please see our :ref:`cloud_init`
     documentation.
