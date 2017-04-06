@@ -17,7 +17,6 @@ body {
   background: #fff;
 }
 
-
 /* CUSTOMIZE THE NAVBAR
 -------------------------------------------------- */
 
@@ -60,7 +59,7 @@ body {
 /* Declare heights because of positioning of img element */
 .carousel .item {
   height: 400px;
-  background-color: #0055A4;
+  background-color: #e0b449;
 }
 
 .carousel-inner > .item > img {
