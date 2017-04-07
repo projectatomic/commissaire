@@ -13,10 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import kombu
+
 import commissaire.models as models
 
 from commissaire.bus import RemoteProcedureCallError
 from commissaire.storage import get_uniform_model_type
+
+
+NOTIFY_EVENT_CREATED = 'created'
+NOTIFY_EVENT_DELETED = 'deleted'
+NOTIFY_EVENT_CHANGED = 'changed'
+NOTIFY_EVENT_ANY = '*'
 
 
 class StorageClient:
@@ -32,6 +40,31 @@ class StorageClient:
         :type bus_mixin: commissaire.bus.BusMixin
         """
         self.bus_mixin = bus_mixin
+        self.notify_callbacks = {}
+
+    def register_callback(self, callback,
+                          model_type=None,
+                          event=NOTIFY_EVENT_ANY):
+        """
+        Registers a callback to be invoked on receipt of a change notification
+        from the storage service whose routing key matches the given model type
+        and event name.  Pass None for the model_type, and/or NOTIFY_EVENT_ANY
+        for the event to use wildcards in routing key pattern to match.
+
+        The signature of the callback must take two arguments: (body, message),
+        which is the decoded message body and the Message instance.
+
+        :param callback: A callable to invoke.
+        :type callback: callable
+        :param model_type: A model type to filter on, or None.
+        :type model_type: Type or None
+        :param event: An event name to filter on, or NOTIFY_EVENT_ANY.
+        :type event: str
+        """
+        type_name = '*' if model_type is None else model_type.__name__
+        routing_key = 'notify.storage.{}.{}'.format(type_name, event)
+        callback_list = self.notify_callbacks.setdefault(routing_key, [])
+        callback_list.append(callback)
 
     def get(self, model_instance):
         """

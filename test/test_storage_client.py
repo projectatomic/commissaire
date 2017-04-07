@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Red Hat, Inc
+# Copyright (C) 2017  Red Hat, Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ from . import TestCase
 
 from commissaire.bus import BusMixin, RemoteProcedureCallError
 from commissaire.models import Host, Hosts, Cluster, ValidationError
-from commissaire.storage.client import StorageClient
+from commissaire.storage.client import StorageClient, NOTIFY_EVENT_CREATED
 
 #: Message ID
 ID = '123'
@@ -61,6 +61,29 @@ class TestCommissaireStorageClient(TestCase):
     """
     Tests for the StorageClient class.
     """
+
+    def test_register_callback(self):
+        """
+        Verify StorageClient.register_callback routing keys.
+        """
+        storage = StorageClient(mock.MagicMock())
+
+        # Verify entry per unique routing key.
+        storage.register_callback(mock.MagicMock(), Host, NOTIFY_EVENT_CREATED)
+        storage.register_callback(mock.MagicMock(), model_type=Host)
+        storage.register_callback(mock.MagicMock(), event=NOTIFY_EVENT_CREATED)
+        storage.register_callback(mock.MagicMock())
+        self.assertIn('notify.storage.Host.created', storage.notify_callbacks)
+        self.assertIn('notify.storage.Host.*',       storage.notify_callbacks)
+        self.assertIn('notify.storage.*.created',    storage.notify_callbacks)
+        self.assertIn('notify.storage.*.*',          storage.notify_callbacks)
+        self.assertEquals(len(storage.notify_callbacks), 4)
+
+        # Verify callbacks with identical routing keys are queued.
+        storage.register_callback(mock.MagicMock())
+        self.assertEquals(len(storage.notify_callbacks), 4)
+        callbacks = storage.notify_callbacks['notify.storage.*.*']
+        self.assertEquals(len(callbacks), 2)
 
     def test_get(self):
         """
