@@ -34,13 +34,17 @@ The following optional arguments can be provided via "-D name=value":
 import base64
 import etcd
 import json
+import kombu
 import logging
 import os
 import random
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
+
+import steps
 
 from urllib.parse import urlparse
 
@@ -382,6 +386,20 @@ def before_all(context):
                     'commissaire_http.authentication.httpbasicauth:'
                     'filepath=../commissaire-http/conf/users.json'])
 
+    # Set up a Kombu queue to receive notifications.
+    context.BUS_CONNECTION = kombu.Connection(context.BUS_URI)
+    channel = context.BUS_CONNECTION.default_channel
+    exchange = kombu.Exchange(
+        name='commissaire',
+        type='topic',
+        channel=channel)
+    context.NOTIFY_QUEUE = kombu.Queue(
+        name='behave-tests',
+        exchange=exchange,
+        routing_key='notify.storage.*.*',
+        channel=channel)
+    context.NOTIFY_QUEUE.declare()
+
 
 def before_scenario(context, scenario):
     """
@@ -415,7 +433,8 @@ def before_scenario(context, scenario):
                    '/commissaire/cluster',
                    '/commissaire/clusters',
                    '/commissaire/networks',
-                   '/commissaire/status']
+                   '/commissaire/status',
+                   '/commissaire/container_managers']
     for key in delete_dirs:
         try:
             context.etcd.delete(key, recursive=True)
@@ -426,6 +445,22 @@ def before_scenario(context, scenario):
     context.etcd.write(
         '/commissaire/networks/default',
         '{"name": "default", "type": "flannel_etcd", "options": {}}')
+
+    # Delete any unread messages from previous scenarios.
+    context.NOTIFY_QUEUE.purge()
+
+
+def after_step(context, step):
+    """
+    Runs after every step.
+    """
+    try:
+        # Check for unacknowledged storage notifications.
+        steps.verify_storage_notify_last(context)
+    except Exception:
+        # XXX Behave doesn't provide a clean way to indicate failure from
+        #     environmental functions.  Until that gets fixed, terminate.
+        sys.exit(1)
 
 
 def after_scenario(context, scenario):
@@ -453,6 +488,9 @@ def after_all(context):
     """
     Run after everything finishes.
     """
+    context.NOTIFY_QUEUE.delete()
+    context.BUS_CONNECTION.release()
+
     # Stop all processes
     for name, process in context.PROCESSES.items():
         stop_process(context, process)

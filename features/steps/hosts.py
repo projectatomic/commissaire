@@ -23,6 +23,7 @@ from commissaire import constants as C
 
 from steps import (
     assert_status_code,
+    verify_storage_notify,
     VALID_USERNAME, VALID_PASSWORD)
 
 
@@ -40,9 +41,10 @@ def impl(context, cluster):
 def impl(context, host):
     data = dict(context.HOST_DATA)
     data['address'] = host
-    print(context.etcd.set(
+    context.etcd.set(
         '/commissaire/hosts/{}'.format(host),
-        json.dumps(data)))
+        json.dumps(data))
+    context.host_exists = True
 
 
 @given('we have a host at {host}')
@@ -54,6 +56,10 @@ def impl(context, host):
         auth=(VALID_USERNAME, VALID_PASSWORD),
         data=json.dumps(data))
     assert_status_code(request.status_code, 201)
+    args = [('created', 'Host')]
+    if 'cluster' in data:
+        args.append(('updated', 'Cluster'))
+    verify_storage_notify(context, *args)
 
     # Poll until the host is finished bootstrapping.
     # We can't watch an etcd key because the host record
@@ -75,6 +81,9 @@ def impl(context, host):
         C.HOST_STATUS_ACTIVE, C.HOST_STATUS_DISASSOCIATED), \
         'Host failed to bootstrap (status: {})'.format(data['status'])
 
+    # Purge notifications for interim state changes.
+    context.NOTIFY_QUEUE.purge()
+
 
 @given('we have deleted host {host}')
 def impl(context, host):
@@ -82,6 +91,10 @@ def impl(context, host):
         context.SERVER_HTTP + '/api/v0/host/{}'.format(host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
+    args = [('deleted', 'Host')]
+    if 'host_in_cluster' in context:
+        args.append(('updated', 'Cluster'))
+    verify_storage_notify(context, *args)
 
 
 @when('we list all hosts')
@@ -112,10 +125,14 @@ def impl(context, operation, host):
             context.SERVER_HTTP + '/api/v0/host/{}'.format(context.host),
             data=json.dumps(context.HOST_DATA),
             auth=context.auth)
+        if context.request.status_code == 201 and 'host_exists' not in context:
+            verify_storage_notify(context, ('created', 'Host'))
     elif operation == 'delete':
         context.request = requests.delete(
             context.SERVER_HTTP + '/api/v0/host/{}'.format(context.host),
             auth=context.auth)
+        if context.request.status_code == 200:
+            verify_storage_notify(context, ('deleted', 'Host'))
 
 
 @when('we get host credentials for {host}')

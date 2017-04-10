@@ -21,6 +21,7 @@ from behave import *
 
 from steps import (
     assert_status_code,
+    verify_storage_notify,
     VALID_USERNAME, VALID_PASSWORD)
 
 
@@ -32,6 +33,7 @@ def impl(context):
         auth=(VALID_USERNAME, VALID_PASSWORD),
         data=json.dumps(data))
     assert_status_code(request.status_code, 201)
+    verify_storage_notify(context, ('created', 'ContainerManagerConfig'))
 
 @then('the host status will include container manager details')
 def impl(context):

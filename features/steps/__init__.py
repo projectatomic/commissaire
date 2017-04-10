@@ -16,6 +16,7 @@
 import json
 import os
 import requests
+import sys
 
 from behave import *
 
@@ -27,6 +28,43 @@ VALID_PASSWORD = 'a'
 def assert_status_code(actual, expected):
     assert actual == expected, \
         'Expected status code {}, got {}'.format(expected, actual)
+
+
+def verify_storage_notify(context, *args):
+    new_messages = {}
+    while True:
+        message = context.NOTIFY_QUEUE.get()
+        if message is None:
+            break
+        decoded = message.decode()
+        key = (decoded['event'], decoded['class'])
+        new_messages[key] = decoded
+        message.ack()
+
+    for event, klass in args:
+        del new_messages[(event, klass)]
+
+    unexpected = list(new_messages.values())
+    if unexpected:
+        pretty_json = json.dumps(unexpected, sort_keys=True, indent=2)
+        print('Unexpected storage notifications:', file=sys.stderr)
+        print(pretty_json, file=sys.stderr)
+        raise Exception()
+
+def verify_storage_notify_last(context):
+    unacked = []
+    while True:
+        message = context.NOTIFY_QUEUE.get()
+        if message is None:
+            break
+        else:
+            unacked.append(message.decode())
+            message.ack()
+    if unacked:
+        pretty_json = json.dumps(unacked, sort_keys=True, indent=2)
+        print('Unacknowledged storage notifications:', file=sys.stderr)
+        print(pretty_json, file=sys.stderr)
+        raise Exception()
 
 
 @given('we are anonymous')

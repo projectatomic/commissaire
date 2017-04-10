@@ -23,6 +23,7 @@ from commissaire import constants as C
 
 from steps import (
     assert_status_code,
+    verify_storage_notify,
     VALID_USERNAME, VALID_PASSWORD)
 
 
@@ -33,6 +34,7 @@ def impl(context, cluster):
         auth=(VALID_USERNAME, VALID_PASSWORD),
         data=json.dumps({'container_manager': 'trivial'}))
     assert_status_code(request.status_code, 201)
+    verify_storage_notify(context, ('created', 'Cluster'))
 
 @given('we have an unmanaged cluster named {cluster}')
 def impl(context, cluster):
@@ -42,7 +44,7 @@ def impl(context, cluster):
         auth=(VALID_USERNAME, VALID_PASSWORD),
         data={})
     assert_status_code(request.status_code, 201)
-
+    verify_storage_notify(context, ('created', 'Cluster'))
 
 @given('we have added host {host} to cluster {cluster}')
 def impl(context, host, cluster):
@@ -50,6 +52,11 @@ def impl(context, host, cluster):
         context.SERVER_HTTP + '/api/v0/cluster/{}/hosts/{}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
+    verify_storage_notify(
+        context,
+        ('updated', 'Cluster'),
+        ('updated', 'Host'))  # host.status
+    context.host_in_cluster = True
 
 
 @given('we have removed host {host} from cluster {cluster}')
@@ -58,6 +65,7 @@ def impl(context, host, cluster):
         context.SERVER_HTTP + '/api/v0/cluster/{}/hosts/{}'.format(cluster, host),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(request.status_code, 200)
+    verify_storage_notify(context, ('updated', 'Cluster'))
 
 
 @when('we check for host {host} in the cluster {cluster}')
@@ -75,6 +83,11 @@ def impl(context, host, cluster):
     context.request = requests.put(
         context.SERVER_HTTP + '/api/v0/cluster/{}/hosts/{}'.format(cluster, host),
         auth=context.auth)
+    if context.request.status_code == 200:
+        verify_storage_notify(
+            context,
+            ('updated', 'Cluster'),
+            ('updated', 'Host'))  # host.status
 
 
 @when('we remove host {host} from the cluster {cluster}')
@@ -83,6 +96,8 @@ def impl(context, host, cluster):
     context.request = requests.delete(
         context.SERVER_HTTP + '/api/v0/cluster/{}/hosts/{}'.format(cluster, host),
         auth=context.auth)
+    if context.request.status_code == 200:
+        verify_storage_notify(context, ('updated', 'Cluster'))
 
 
 @when('we set the host list for cluster {cluster} to {json}')
@@ -92,6 +107,11 @@ def impl(context, cluster, json):
         context.SERVER_HTTP + '/api/v0/cluster/{}/hosts'.format(cluster),
         json=eval(json),
         auth=context.auth)
+    if context.request.status_code == 200:
+        verify_storage_notify(
+            context,
+            ('updated', 'Cluster'),
+            ('updated', 'Host'))  # Host.status
 
 
 @when('we create a cluster without type named {cluster}')
@@ -100,6 +120,7 @@ def impl(context, cluster):
         context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),
         auth=(VALID_USERNAME, VALID_PASSWORD))
     assert_status_code(context.request.status_code, 201)
+    verify_storage_notify(context, ('created', 'Cluster'))
 
 
 @when('we {operation} the cluster {cluster}')
@@ -114,10 +135,14 @@ def impl(context, operation, cluster):
             context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),
             auth=context.auth,
             data={})
+        if context.request.status_code == 201:
+            verify_storage_notify(context, ('created', 'Cluster'))
     elif operation == 'delete':
         context.request = requests.delete(
             context.SERVER_HTTP + '/api/v0/cluster/{}'.format(cluster),
             auth=context.auth)
+        if context.request.status_code == 200:
+            verify_storage_notify(context, ('deleted', 'Cluster'))
     elif operation == 'get hosts in':
         context.request = requests.get(
             context.SERVER_HTTP + '/api/v0/cluster/{}/hosts'.format(cluster),
@@ -133,15 +158,21 @@ def impl(context, async_operation, cluster):
         context.request = requests.put(
             context.SERVER_HTTP + '/api/v0/cluster/{}/upgrade'.format(cluster),
             auth=context.auth)
+        if context.request.status_code == 201:
+            verify_storage_notify(context, ('created', 'ClusterUpgrade'))
     elif async_operation == 'a restart':
         context.request = requests.put(
             context.SERVER_HTTP + '/api/v0/cluster/{}/restart'.format(cluster),
             auth=context.auth)
+        if context.request.status_code == 201:
+            verify_storage_notify(context, ('created', 'ClusterRestart'))
     elif async_operation == 'a tree deployment':
         context.request = requests.put(
             context.SERVER_HTTP + '/api/v0/cluster/{}/deploy'.format(cluster),
             auth=context.auth,
             data=json.dumps({'version': '1.2.3'}))
+        if context.request.status_code == 201:
+            verify_storage_notify(context, ('created', 'ClusterDeploy'))
     else:
         raise NotImplementedError
 
