@@ -20,4 +20,8 @@ else
   echo "Skipping commissaire-http apidoc regeneration due to missing repository..."
 fi
 
+# Generate help command output
+python ../../commctl/src/commctl/client_script.py user-data --help > examples/commctl-user-data-help.txt
+sed -i 's|client_script.py|commctl|g' examples/commctl-user-data-help.txt
+
 sphinx-build -b html . _build
