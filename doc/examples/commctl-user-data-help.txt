@@ -1,0 +1,27 @@
+usage: commctl user-data [-h] -e ENDPOINT [-c CLUSTER] [-u USERNAME]
+                                  [-p] [-r REMOTE_USER] [-s SSH_KEY_PATH]
+                                  [-a AUTHORIZED_KEYS_PATH] [-C CLOUD_INIT]
+                                  [-o OUTFILE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e ENDPOINT, --endpoint ENDPOINT
+                        Commissaire endpoint to use during bootstrapping
+  -c CLUSTER, --cluster CLUSTER
+                        Name of the cluster for new hosts to join
+  -u USERNAME, --username USERNAME
+                        Commissaire user to use when bootstrapping
+  -p, --password        Prompts for a Commissaire password to use when
+                        bootstrapping
+  -r REMOTE_USER, --remote-user REMOTE_USER
+                        Remote user to provide to Commissaire for ssh access
+  -s SSH_KEY_PATH, --ssh-key-path SSH_KEY_PATH
+                        Path to the private key of the remote user
+  -a AUTHORIZED_KEYS_PATH, --authorized-keys-path AUTHORIZED_KEYS_PATH
+                        Path to the authorized_keys file of the remote user
+  -C CLOUD_INIT, --cloud-init CLOUD_INIT
+                        cloud-init.txt file to use
+  -o OUTFILE, --outfile OUTFILE
+                        Output file. If omitted STDOUT is used
+
+Example: commctl user-data -p -c my_cluster -o cluster.userdata

@@ -56,44 +56,11 @@ Adding new hosts to Commissaire comes in two forms. Automatic registration and m
 Automatic Registration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+First, you must create the ``user-data`` file. ``commctl`` provides a command, named ``user-data``, which helps
+generate this file for you. Here is an example:
 
-    This will be streamlined next release.
+.. include:: examples/commctl-user-data.rst
 
-This is the preferred way to deal with new hosts. This method allows Commissaire and, if configured, the
-ContainerManager, to be ready to use the host.
-
-Before we start you will need `make-mime.py`_ script from cloud-init's ``tools`` directory.
-
-First, you will need to create a configuration file for ``cloud-config``. Generally you'll do this once
-and then change the ``cluster`` key for different clusters. Here is an example:
-
-.. literalinclude:: ../tools/cloud-init/commissaire.txt
-   :language: shell
-
-Next, you will need a ``cloud-config`` text file. Unless you have a custom one created already
-the following will work:
-
-.. literalinclude:: ../tools/cloud-init/cloud-config.txt
-   :language: yaml
-
-Now copy ``tools/cloud-init/part-handler.py`` into the same directory as``commissaire.txt`` and ``cloud-config.txt``.
-
-Then, use `make-mime.py`_ to put it all together into a ``user-data`` file we can use in cloud providers.
-
-.. _make-mime.py: http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/tools/make-mime.py
-
-.. note::
-
-    You may see "text/x-commissaire-host' for attachment 3 may be incorrect!". Don't worry! This is OK. It is correct.
-
-.. code-block:: shell
-
-   $ python make-mime.py \
-            --attach cloud-config.txt:cloud-config \
-            --attach part-handler.py:part-handler \
-            --attach commissaire.txt:x-commissaire-host \
-            > user-data
 
 Now provide the new ``user-data`` file when provisioning new hosts in your cloud provider. When the new host starts
 it will automatically register into Commissaire.
