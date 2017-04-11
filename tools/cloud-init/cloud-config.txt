@@ -1,3 +1,0 @@
-#cloud-config
-
-final_message: "Finished booting"
