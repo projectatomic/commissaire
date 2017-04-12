@@ -39,6 +39,24 @@ class TestModel(TestCase):
         for key, value in models.Cluster._attribute_defaults.items():
             self.assertEquals(value, getattr(instance, key))
 
+    def test__must_be_in_good(self):
+        """
+        Verify _must_be_in doesn't appends to errors if attribute is present.
+        """
+        errors = []
+        instance = models.Cluster.new(name='honeynut')
+        instance._must_be_in('name', ['honeynut'], errors)
+        self.assertEquals(0, len(errors))
+
+    def test__must_be_in_error(self):
+        """
+        Verify _must_be_in appends to errors if attribute is not in the list.
+        """
+        errors = []
+        instance = models.Cluster.new(name='honeynut')
+        instance._must_be_in('name', ['frosted'], errors)
+        self.assertEquals(1, len(errors))
+
     def test_to_json(self):
         """
         Verify to_json returns a complete json string.

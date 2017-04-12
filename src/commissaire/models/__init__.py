@@ -230,6 +230,24 @@ class Model(object):
                 '{} instance is invalid due to {} errors.'.format(
                     self.__class__.__name__, len(all_errors)), all_errors)
 
+    def _must_be_in(self, attribute, allowed_types, errors):
+        """
+        Used to ensure an attribute is of one of the allowed types.
+
+        :param attribute: The name of the attribute to check.
+        :type attribute: str
+        :param allowed_types: List of allowed types
+        :param errors: Error list used in validation
+        :type errors: list
+        :returns: The updated error list.
+        :rtype: list
+        """
+        if getattr(self, attribute) not in allowed_types:
+            errors.append(
+                'Container {} must be one of the following: {}'.format(
+                    attribute, ', '.join(allowed_types)))
+        return errors
+
     def _coerce(self):
         """
         Attempts to force the typing set forth in _attribute_map.
@@ -317,10 +335,7 @@ class Network(Model):
         Extra validation to ensure the type is valid.
         """
         errors = []
-        if self.type not in C.NETWORK_TYPES:
-            errors.append(
-                'Network type must be one of the following: {}'.format(
-                    ', '.join(C.NETWORK_TYPES)))
+        self._must_be_in('type', C.NETWORK_TYPES, errors)
         super()._validate(errors)
 
 
@@ -573,10 +588,7 @@ class ContainerManagerConfig(Model):
         Extra validation for ContainerManager.
         """
         errors = []
-        if self.type not in C.CONTAINER_MANAGER_TYPES:
-            errors.append(
-                'ContainerManager type must be one of the '
-                'following: {}'.format(', '.join(C.CONTAINER_MANAGER_TYPES)))
+        self._must_be_in('type', C.CONTAINER_MANAGER_TYPES, errors)
         super()._validate(errors)
 
 
