@@ -276,6 +276,13 @@ class Model(object):
                     len(errors), errors))
 
 
+class SecretModel(Model):
+    """
+    Parent class for all models which must be stored in the secrets store.
+    """
+    pass
+
+
 class ListModel(Model):
     """
     Base class for models representing a list of models.
@@ -497,15 +504,28 @@ class Host(Model):
         'memory': {'type': int},
         'space': {'type': int},
         'last_check': {'type': str},
-        'ssh_priv_key': {'type': str},
-        'remote_user': {'type': str},
         'source': {'type': str},
     }
     _attribute_defaults = {
         'status': '', 'os': '', 'cpus': 0,
-        'memory': 0, 'space': 0, 'last_check': '', 'ssh_priv_key': '',
-        'remote_user': 'root', 'source': ''}
-    _hidden_attributes = ('ssh_priv_key', 'remote_user')
+        'memory': 0, 'space': 0, 'last_check': '', 'source': ''}
+    _primary_key = 'address'
+
+
+class HostCreds(SecretModel):
+    """
+    Representation of Host credentials.
+    """
+    _json_type = dict
+    _attribute_map = {
+        'address': {'type': str},
+        'ssh_priv_key': {'type': str},
+        'remote_user': {'type': str},
+    }
+    _attribute_defaults = {
+        'ssh_priv_key': '',
+        'remote_user': 'root',
+    }
     _primary_key = 'address'
 
 
