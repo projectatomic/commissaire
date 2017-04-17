@@ -19,7 +19,7 @@ Configuration File
 Via CLI
 -------
 
-.. include:: ../examples/commissaire-server-cli.rst
+.. literalinclude:: ../examples/commissaire-server-cli.rst
 
 
 Example

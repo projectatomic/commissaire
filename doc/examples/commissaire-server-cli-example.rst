@@ -6,4 +6,5 @@
        --bus-exchange commissaire \
        --tls-pemfile /path/to/server.pem \
        --listen-interface 8000 \
-       --authentication-plugin commissaire_http.authentication.httpbasicauth:filepath=conf/users.json
+       --authentication-plugin commissaire_http.authentication.httpbasicauth:filepath=conf/users.json \
+       --self-auth /api/v0/secrets

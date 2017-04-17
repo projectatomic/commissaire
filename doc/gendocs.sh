@@ -24,4 +24,7 @@ fi
 python ../../commctl/src/commctl/client_script.py user-data --help > examples/commctl-user-data-help.txt
 sed -i 's|client_script.py|commctl|g' examples/commctl-user-data-help.txt
 
+python ../../commissaire-http/src/commissaire_http/server/cli.py --help > examples/commissaire-server-cli.rst
+sed -i 's|client_script.py|commissaire-server|g' examples/commissaire-server-cli.rst
+
 sphinx-build -b html . _build

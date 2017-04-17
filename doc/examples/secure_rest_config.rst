@@ -9,5 +9,6 @@
      "authentication-plugins": [{
        "name": "commissaire_http.authentication.httpbasicauth",
        "filepath": "conf/users.json"
-     }]
+     }],
+    "self-auths": ["/api/v0/secrets"]
    }
