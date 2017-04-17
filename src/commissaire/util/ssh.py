@@ -27,16 +27,16 @@ class TemporarySSHKey:
     An abstraction for temporary ssh keys.
     """
 
-    def __init__(self, host, logger):
+    def __init__(self, host_creds, logger):
         """
         Initializes an instance of the TemporarySSHKey class.
 
-        :param host: Host to grab key data from.
-        :type host: commissaire.handlers.models.Host
+        :param host_creds: HostCreds instance which stores the key data.
+        :type host_creds: commissaire.handlers.models.HostCreds
         :param logger: Logger to utilize.
         :type logger: logging.Logger
         """
-        self._host = host
+        self._host_creds = host_creds
         self.logger = logger
         self.path = None
 
@@ -48,11 +48,11 @@ class TemporarySSHKey:
             self.path = f.name
             self.logger.debug(
                 'Using %s as the temporary key location for %s',
-                self.path, self._host.address)
-            input_bytes = bytes(self._host.ssh_priv_key, 'utf8')
+                self.path, self._host_creds.address)
+            input_bytes = bytes(self._host_creds.ssh_priv_key, 'utf8')
             f.write(base64.decodestring(input_bytes))
             f.flush()
-            self.logger.info('Wrote key for %s', self._host.address)
+            self.logger.info('Wrote key for %s', self._host_creds.address)
 
     def remove(self):
         """

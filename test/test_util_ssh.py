@@ -22,11 +22,11 @@ import os
 from unittest import mock
 
 from . import TestCase
-from .constants import HOST, make_new
+from .constants import HOST_CREDS, make_new
 from commissaire.util.ssh import TemporarySSHKey
 
 
-TEST_HOST = make_new(HOST)
+TEST_HOST_CREDS = make_new(HOST_CREDS)
 
 
 class Test_TemporarySSHKey(TestCase):
@@ -38,7 +38,7 @@ class Test_TemporarySSHKey(TestCase):
         """
         Verify init of TemporarySSHKey sets up the instances.
         """
-        key = TemporarySSHKey(TEST_HOST, logging.getLogger())
+        key = TemporarySSHKey(TEST_HOST_CREDS, logging.getLogger())
         # There should be no path yet
         self.assertEquals(None, key.path)
 
@@ -46,7 +46,7 @@ class Test_TemporarySSHKey(TestCase):
         """
         Verify create of TemporarySSHKey creates a new key.
         """
-        key = TemporarySSHKey(TEST_HOST, logging.getLogger())
+        key = TemporarySSHKey(TEST_HOST_CREDS, logging.getLogger())
         key.create()
         self.assertTrue(os.path.isfile(key.path))
         os.unlink(key.path)
@@ -55,7 +55,7 @@ class Test_TemporarySSHKey(TestCase):
         """
         Verify TemporarySSHKey.remove successfully removes keys.
         """
-        key = TemporarySSHKey(TEST_HOST, logging.getLogger())
+        key = TemporarySSHKey(TEST_HOST_CREDS, logging.getLogger())
         key.create()
         self.assertTrue(os.path.isfile(key.path))
         key.remove()
@@ -65,7 +65,7 @@ class Test_TemporarySSHKey(TestCase):
         """
         Verify TemporarySSHKey can be used as a context manager.
         """
-        with TemporarySSHKey(TEST_HOST, logging.getLogger()) as key:
+        with TemporarySSHKey(TEST_HOST_CREDS, logging.getLogger()) as key:
             self.assertTrue(os.path.isfile(key.path))
         self.assertFalse(os.path.isfile(key.path))
 
@@ -74,7 +74,7 @@ class Test_TemporarySSHKey(TestCase):
         Verify TemporarySSHKey.remove reacts properly to failure.
         """
         mock_logger = mock.MagicMock(logging.Logger('test'))
-        key = TemporarySSHKey(TEST_HOST, mock_logger)
+        key = TemporarySSHKey(TEST_HOST_CREDS, mock_logger)
         key.create()
         with mock.patch('os.unlink') as _unlink:
             _unlink.side_effect = Exception

@@ -19,7 +19,7 @@ Constants for test cases.
 import copy
 import json
 
-from commissaire.models import Host
+from commissaire.models import Host, HostCreds
 
 
 def make_new(instance):
@@ -29,14 +29,18 @@ def make_new(instance):
     return copy.deepcopy(instance)
 
 
-# Response JSON for a single host
+#: Response JSON for a single host
 HOST_JSON = (
     '{"address": "10.2.0.2",'
     ' "status": "available", "os": "fedora",'
     ' "cpus": 2, "memory": 11989228, "space": 487652,'
     ' "last_check": "2015-12-17T15:48:18.710454"}')
-# Host model for most tests
+#: Host model for most tests
 HOST = Host.new(
-    ssh_priv_key='dGVzdAo=',
-    remote_user='root',
     **json.loads(HOST_JSON))
+#: HostCreds model for most tests
+HOST_CREDS = HostCreds.new(
+    address=HOST.address,
+    ssh_priv_key='dGVzdAo=',
+    remote_user='root'
+)
