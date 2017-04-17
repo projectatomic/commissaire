@@ -5,7 +5,7 @@ Metadata
 --------
 
 * CPD Version: 1
-* Status: Open
+* Status: Accepted
 
 Description
 -----------
