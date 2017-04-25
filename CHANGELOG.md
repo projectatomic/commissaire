@@ -1,3 +1,27 @@
+# commissaire v0.0.4
+```
+* 1bc1444: docs: Add Tuomas Kuosmanen to CONTRIBUTORS
+* 29123b3: doc: Add self-auth example
+* 972affd: doc: Marking cpd-101 as accepted
+* 0683116: doc: Added CPD-101 documentation
+* 7413a93: doc: Fix CPD-61 version.
+* cf6cc73: doc: Update for commctl user-data command
+* 774686a: tools: Remove cloud-init files
+* 959865e: doc: Add generation of user-data help file
+* c6581c5: doc: Added walkthrough
+* 0002687: doc: Minor clarifications
+* 6dd6561: constants: Add DEFAULT_CONFIGURATION_FILE.
+* c534d64: Note for ZSH users
+* 7c2c1a7: Fix up some small mistakes
+* 62ff811: Update devel instructions formatting
+* ea7e9df: Fix link to DEVEL instructions in RTD sources.
+* d3f91ca: logging: Switch to lazy string formatting
+* c5482df: models: Remove to_dict_with_hosts().
+* e05ca2b: models: Add expose arg to to_dict(), to_dict_safe().
+* 505d629: models: Remove to_json_with_hosts().
+* 23e84f9: Post-release version bump.
+```
+
 # commissaire v0.0.3
 ```
 * db92fb8: doc: Fix cluster DELETE header.
