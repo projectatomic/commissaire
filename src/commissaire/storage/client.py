@@ -66,6 +66,33 @@ class StorageClient:
         callback_list = self.notify_callbacks.setdefault(routing_key, [])
         callback_list.append(callback)
 
+    def get_consumers(self, Consumer, channel):
+        """
+        Returns a list of kombu.Consumer instances to service all registered
+        notification callbacks.
+
+        If using the kombu.mixin.ConsumerMixin mixin class, these instances
+        should be included in its get_consumers() method.
+
+        :param Consumer: Message consumer class.
+        :type Consumer: class
+        :param channel: An open channel.
+        :type channel: kombu.transport.*.Channel
+        :returns: A list of consumer instances
+        :rtype: [kombu.Consumer, ....]
+        """
+        consumer_list = []
+        exchange = self.bus_mixin.producer.exchange
+        for routing_key, callbacks in self.notify_callbacks.items():
+            queue = kombu.Queue(
+                exchange=exchange, routing_key=routing_key)
+            consumer = Consumer(
+                queues=queue, callbacks=callbacks)
+            consumer_list.append(consumer)
+            self.bus_mixin.logger.info(
+                'Listening for "%s" notifications', routing_key)
+        return consumer_list
+
     def get(self, model_instance):
         """
         Issues a "storage.get" request over the bus using identifying
