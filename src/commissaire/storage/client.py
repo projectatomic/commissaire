@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import kombu
+import logging
 
 import commissaire.models as models
 
@@ -25,6 +26,61 @@ NOTIFY_EVENT_CREATED = 'created'
 NOTIFY_EVENT_DELETED = 'deleted'
 NOTIFY_EVENT_CHANGED = 'changed'
 NOTIFY_EVENT_ANY = '*'
+
+
+def NotifyCallback(func):
+    """
+    Decorator for notification callback methods.
+
+    This is for methods passed to StorageClient.register_callback().
+
+    The modified call signature for notification callbacks with this
+    decorator is (event, model, message), where 'event' is guaranteed to be
+    one of 'created', 'deleted' or 'updated'; and 'model' is an instance of
+    some class from commissaire.models.
+
+    The decorator also logs an informational message about the notification,
+    and a warning message if the notification body fails to meet the above
+    criteria (the callback is not invoked in that case).
+
+    :param func: Notification callback function
+    :type func: callable
+    """
+    def inner(self, body, message):
+        # Try to extract a logger from the instance.
+        logger = getattr(self, 'logger', logging)
+
+        logger.info('Notification: %s', body)
+
+        event_name = body.get('event', '')
+        class_name = body.get('class', '')
+        model_data = body.get('model', {})
+
+        if event_name not in (NOTIFY_EVENT_CREATED,
+                              NOTIFY_EVENT_DELETED,
+                              NOTIFY_EVENT_CHANGED):
+            logger.warn(
+                'Invalid event "%s" in notification', event_name)
+            return
+
+        # Pick a default that will fail the issubclass() test.
+        model_type = getattr(models, class_name, object)
+        if not issubclass(model_type, models.Model):
+            logger.warn(
+                'Invalid class "%s" in notification', class_name)
+            return
+
+        try:
+            model_instance = model_type.new(**model_data)
+        except TypeError as error:
+            logger.warn(
+                'Invalid "%s" model in notification: %s',
+                class_name, error.args[0])
+            return
+
+        func(self, event_name, model_instance, message)
+
+    return inner
 
 
 class StorageClient:
