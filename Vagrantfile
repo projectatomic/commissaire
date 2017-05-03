@@ -148,6 +148,7 @@ Vagrant.configure(2) do |config|
       sudo cp /vagrant/commissaire-http/conf/commissaire.conf /etc/commissaire/commissaire.conf
       sudo sed -i 's|"listen-interface": "127.0.0.1"|"listen-interface": "0.0.0.0"|g' /etc/commissaire/commissaire.conf
       sudo sed -i 's|"bus-uri": "redis://127.0.0.1:6379/"|"bus-uri": "redis://192.168.152.101:6379/"|g' /etc/commissaire/commissaire.conf
+      sudo sed -i 's|"self-auths": .*,|"self-auths": [],|g' /etc/commissaire/commissaire.conf
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-server -c /etc/commissaire/commissaire.conf"|' /etc/systemd/system/commissaire-server.service
       sudo sed -i 's|Type=simple|\&\\nWorkingDirectory=/vagrant|' /etc/systemd/system/commissaire-server.service
 
