@@ -1,13 +1,6 @@
 commissaire_service.storage package
 ===================================
 
-Submodules
-----------
-
-.. toctree::
-
-   commissaire_service.storage.storehandlermanager
-
 Module contents
 ---------------
 
