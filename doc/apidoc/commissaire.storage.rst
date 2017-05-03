@@ -8,6 +8,7 @@ Submodules
 
    commissaire.storage.client
    commissaire.storage.etcd
+   commissaire.storage.notify
 
 Module contents
 ---------------

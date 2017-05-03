@@ -31,7 +31,7 @@ All Commissaire Services must subclass (or reimplement the functionality of...)
         pass
 
 
-Define Exposed methods
+Define Exposed Methods
 ``````````````````````
 
 ``CommissaireService`` uses the ``on_{{ method }}`` convention for exposing methods
@@ -68,6 +68,73 @@ to the message bus and passed to the caller.
         Exposed as fail. Takes no bus arguments.
         """
         raise NotImplementedError('I was never created')
+
+
+Storage Integration
+-------------------
+
+Most services will want to interact with Commissaire's ``Storage`` service
+in some way; perhaps to read or update records in permanent storage or just
+be notified of changes. This is such a common case that Commissaire provides
+a convenience class named ``StorageClient`` to easily interact with the
+``Storage`` service.
+
+The ``StorageClient`` API uses ``Model`` instances as inputs and outputs,
+and handles all the JSON encoding and decoding for you.
+
+.. code-block:: python
+
+    from commissaire import models
+    from commissaire.storage import client
+
+
+    class MyService(CommissaireService):
+        """
+        This demonstrates how to use StorageClient.
+        """
+
+        def __init__(self, exchange_name, connection_url, config_file=None):
+            ...
+            # Chain up to CommissaireService.__init__()
+            ...
+
+            # StorageClient requires a BusMixin interface, which
+            # our parent class -- CommissaireService -- provides.
+            self.storage = client.StorageClient(self)
+
+            # Invoke a method when a new Host record is created.
+            #
+            # Can also listen for: client.NOTIFY_EVENT_DELETED
+            #                      client.NOTIFY_EVENT_UPDATED
+            #                      client.NOTIFY_EVENT_ANY
+            self.storage.register_callback(
+                self.host_created_cb, models.Host,
+                client.NOTIFY_EVENT_CREATED)
+
+        @client.NotifyCallback
+        def host_created_cb(self, event, model, message):
+            # "event" will always be "created" since we specified
+            # client.NOTIFY_EVENT_CREATED when registering this
+            # callback (see above).
+            #
+            # "model" will always be a models.Host instance since
+            # we specified it when registering this callback (see
+            # above). We could have also passed None to catch the
+            # creation of any type of record in permanent storage.
+            pass
+
+        def on_do_something_cool(self, message, host):
+            # Fetch a cluster for some reason.  storage.get_cluster()
+            # returns a models.Cluster instance instead of a bunch of
+            # JSON to decode.
+            cluster = self.storage.get_cluster('my_cluster')
+            ...
+            # Do something cool with the requested host.
+            ...
+
+            # Say we updated the state of the models.Host instance.
+            # This writes the updated state back to permanent storage.
+            self.storage.save(host)
 
 
 Running the Service

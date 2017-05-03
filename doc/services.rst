@@ -50,6 +50,11 @@ Commissaire Storage
 Commissaire's ``Storage`` is a set of long running processes which broker
 storage and retrieval requests of persistent data.
 
+Additionally, this service publishes notifications on the bus when creating,
+updating or deleting stored records. Other services can listen for and react
+to these notifications to automatically update internal state or kick off a
+long-running operation.
+
 Configuration in ``/etc/commissaire/storage.conf``
 
 
