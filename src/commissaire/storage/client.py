@@ -24,7 +24,7 @@ from commissaire.storage import get_uniform_model_type
 
 NOTIFY_EVENT_CREATED = 'created'
 NOTIFY_EVENT_DELETED = 'deleted'
-NOTIFY_EVENT_CHANGED = 'changed'
+NOTIFY_EVENT_UPDATED = 'updated'
 NOTIFY_EVENT_ANY = '*'
 
 
@@ -58,7 +58,7 @@ def NotifyCallback(func):
 
         if event_name not in (NOTIFY_EVENT_CREATED,
                               NOTIFY_EVENT_DELETED,
-                              NOTIFY_EVENT_CHANGED):
+                              NOTIFY_EVENT_UPDATED):
             logger.warn(
                 'Invalid event "%s" in notification', event_name)
             return
