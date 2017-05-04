@@ -3,12 +3,14 @@
 -------------------------------------------------- */
 
 .navbar.navbar-custom {
-  background: #FFF;
+  background: transparent;
   color: #5a5a5a;
+  font-weight: bold;
+  padding-top: 1px;
 }
 
 .navbar.navbar-custom a {
-  color: #5a5a5a;
+  color: #ffffff;
 }
 
 body {
@@ -37,9 +39,31 @@ body {
 .navbar-wrapper .navbar {
   padding-right: 15px;
   padding-left: 15px;
+  margin-bottom: 10px;
 }
 .navbar-wrapper .navbar .container {
   width: auto;
+}
+
+/* LOGO and navbar placement and tweaks  */
+
+.navbar-wrapper {
+  background: #444;
+  padding-top: 16px;
+  font-size: 18px;
+}
+
+.navbar-wrapper .logo {
+  height: 64px;
+  margin: 0;
+}
+
+.navbar-wrapper .nav {
+  margin-top: 8px;
+}
+
+#myCarousel {
+  margin-top: 90px;
 }
 
 
@@ -108,9 +132,6 @@ body {
 
 @media (min-width: 768px) {
   /* Navbar positioning foo */
-  .navbar-wrapper {
-    margin-top: 20px;
-  }
   .navbar-wrapper .container {
     padding-right: 15px;
     padding-left: 15px;
