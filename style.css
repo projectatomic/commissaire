@@ -7,10 +7,7 @@
   color: #5a5a5a;
   font-weight: bold;
   padding-top: 1px;
-}
-
-.navbar.navbar-custom a {
-  color: #ffffff;
+  border: 0;
 }
 
 body {
