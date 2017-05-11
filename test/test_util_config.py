@@ -18,6 +18,8 @@ Test cases for the commissaire.script module.
 
 import json
 
+import etcd
+
 from unittest import mock
 
 from . import TestCase
@@ -118,6 +120,62 @@ class Test_ConfigFile(TestCase):
         with mock.patch('builtins.open',
                 mock.mock_open(read_data=json.dumps(data))) as _open:
             self.assertRaises(ValueError, config.read_config_file)
+
+    def test_read_etcd_config_key(self):
+        """
+        Verify _read_etcd_config_key handles ETCD environment variables.
+        """
+        environ = {
+            'ETCD_MACHINES': 'http://localhost:4001,'
+                             'http://etcd.example.com:4001',
+            'ETCD_TLSKEY': '/path/to/cert.key',
+            'ETCD_TLSPEM': '/path/to/cert.pem',
+            'ETCD_CACERT': '/path/to/cacert.pem',
+            'ETCD_USERNAME': 'neo',
+            'ETCD_PASSWORD': 'theone'
+        }
+
+        with mock.patch.dict('os.environ', environ) as environ:
+            with mock.patch('etcd.Client') as client_class:
+                client = client_class.return_value
+                client.read.return_value = '{}'
+                config._read_etcd_config_key('test', {})
+                client_class.assert_called_with(
+                    host=(('localhost', 4001), ('etcd.example.com', 4001)),
+                    cert=('/path/to/cert.pem', '/path/to/cert.key'),
+                    ca_cert='/path/to/cacert.pem',
+                    username='neo',
+                    password='theone',
+                    protocol='http',
+                    allow_reconnect=True)
+
+            # Verify various exceptions are caught.
+
+            with mock.patch('etcd.Client') as client_class:
+                client_class.side_effect = etcd.EtcdConnectionFailed
+                config._read_etcd_config_key('test', {})
+
+            with mock.patch('etcd.Client') as client_class:
+                client = client_class.return_value
+                client.get.side_effect = etcd.EtcdKeyNotFound
+                config._read_etcd_config_key('test', {})
+                client.get.assert_called_once_with(mock.ANY)
+
+            with mock.patch('etcd.Client') as client_class:
+                client = client_class.return_value
+                client.get.return_value = mock.MagicMock()
+                # Make json.loads throw a json.JSONDecodeError
+                client.get.return_value.value = '{invalid json}'
+                config._read_etcd_config_key('test', {})
+                client.get.assert_called_once_with(mock.ANY)
+
+            with mock.patch('etcd.Client') as client_class:
+                client = client_class.return_value
+                client.get.return_value = mock.MagicMock()
+                # Make dict.update throw a TypeError
+                client.get.return_value.value = '[1, 2, 3]'
+                config._read_etcd_config_key('test', {})
+                client.get.assert_called_once_with(mock.ANY)
 
     def test_import_plugin_with_invalid_module_name(self):
         """
