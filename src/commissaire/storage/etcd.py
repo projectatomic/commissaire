@@ -23,6 +23,7 @@ import etcd
 from urllib.parse import urlparse
 
 from commissaire.bus import StorageLookupError
+from commissaire.util.config import etcd_client_args
 from commissaire.storage import StoreHandlerBase, ConfigurationError
 
 #: Maps ModelClassName to a key pattern
@@ -75,19 +76,33 @@ class EtcdStoreHandler(StoreHandlerBase):
         :type config: dict
         """
         super().__init__(config)
-        url = urlparse(config.get('server_url', self.DEFAULT_SERVER_URL))
-        client_args = {
-            'host': url.hostname,
-            'protocol': url.scheme
-        }
-        if url.port is not None:
-            client_args['port'] = url.port
-        if config.get('certificate_path'):
+
+        # Seed the configuration with environment variables.
+        client_args = etcd_client_args()
+
+        # The server_url in the JSON config overrides environment
+        # variables.  If neither are specified, use a default URL.
+        if 'server_url' in config:
+            url = urlparse(config['server_url'])
+        elif 'host' not in client_args:
+            url = urlparse(self.DEFAULT_SERVER_URL)
+        else:
+            url = None
+
+        if url:
+            client_args = {
+                'host': url.hostname,
+                'protocol': url.scheme
+            }
+            if url.port is not None:
+                client_args['port'] = url.port
+
+        if 'certificate_path' in config:
             client_args['cert'] = (
                 config['certificate_path'],
                 config['certificate_key_path'])
-        if config.get('certificate_ca_path'):
-                client_args['ca_cert'] = config['certificate_ca_path']
+        if 'certificate_ca_path' in config:
+            client_args['ca_cert'] = config['certificate_ca_path']
         self._store = etcd.Client(**client_args)
         self._etcd_namespace = '/commissaire'
 
