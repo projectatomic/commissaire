@@ -13,6 +13,20 @@ service looks for ``/etc/commissaire/storage.conf``.  The default location
 can be overridden with the ``-c/--config`` command-line option for any of
 the services.
 
+For easier deployment on cloud services, each Commissaire service will also
+look to etcd_ for configuration if certain environment variables are defined,
+particularly ``ETCD_MACHINES``.
+
+Recognized environment variables for retrieving configuration from ``etcd``
+are:
+
+- ``ETCD_MACHINES`` : Comma-separated list of ``etcd`` service URLs
+- ``ETCD_TLSPEM`` : Optional path to local TLS client certificate public key file
+- ``ETCD_TLSKEY`` : Optional path to local TLS client certificate private key file
+- ``ETCD_CACERT`` : Optional path to local TLS certificate authority public key file
+- ``ETCD_USERNAME`` : Optional username used for basic auth
+- ``ETCD_PASSWORD`` : Optional password used for basic auth
+
 
 Example Use Cases
 -----------------
@@ -22,28 +36,32 @@ Commissaire Clusterexec
 Commissaire's ``Cluster Execution`` service is a set of long running processes
 which handle rolling operations over hosts in a cluster.
 
-Configuration in ``/etc/commissaire/clusterexec.conf``
+- Local configuration in file ``/etc/commissaire/clusterexec.conf``
+- Remote configuration in ``etcd`` key ``/commissaire/config/clusterexec``
 
 Commissaire Container Manager
 ``````````````````````````````
 Commissaire's ``Container Manager`` service is a set of long running processes
 which provide a consistant API to work with container managers.
 
-Configuration in ``/etc/commissaire/containermgr.conf``
+- Local configuration in file ``/etc/commissaire/containermgr.conf``
+- Remote configuration in ``etcd`` key ``/commissaire/config/containermgr``
 
 Commissaire Investigator
 ````````````````````````
 Commissaire's ``Investigator`` is a set of long running processes which
 connect to and bootstrap new hosts wanting to be managed by Commissaire.
 
-Configuration in ``/etc/commissaire/investigator.conf``
+- Local configuration in file ``/etc/commissaire/investigator.conf``
+- Remote configuration in ``etcd`` key ``/commissaire/config/investigator``
 
 Commissaire Watcher
 ```````````````````
 Commissaire's ``Watcher`` is a set of long running processes which periodically
 connects to hosts that have already been bootstrapped and checks their status.
 
-Configuration in ``/etc/commissaire/watcher.conf``
+- Local configuration in file ``/etc/commissaire/watcher.conf``
+- Remote configuration in ``etcd`` key ``/commissaire/config/watcher``
 
 Commissaire Storage
 ```````````````````
@@ -55,12 +73,12 @@ updating or deleting stored records. Other services can listen for and react
 to these notifications to automatically update internal state or kick off a
 long-running operation.
 
-Configuration in ``/etc/commissaire/storage.conf``
-
-
+- Local configuration in file ``/etc/commissaire/storage.conf``
+- Remote configuration in ``etcd`` key ``/commissaire/config/storage``
 
 
 Writing a Service
 -----------------
 See :ref:`Developing Services <services_devel>`
 
+.. _etcd: https://github.com/coreos/etcd
