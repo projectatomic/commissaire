@@ -27,9 +27,9 @@ Vagrant.configure(2) do |config|
         echo "===> Starting etcd"
         sudo systemctl enable etcd
         sudo systemctl start etcd
-        echo "===> Set flannel network"
-        sudo etcdctl --endpoint=http://192.168.152.101:2379 set '/atomic01/network/config' '{"Network": "172.16.0.0/12", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
-        echo "===> Configure redis"
+        echo "===> Setting flannel network"
+        sudo etcdctl set '/atomic01/network/config' '{"Network": "172.16.0.0/12", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+        echo "===> Configuring redis"
         sudo sed -i "s/127.0.0.1/0.0.0.0/g" /etc/redis.conf
         sudo systemctl enable redis
         sudo systemctl start redis
@@ -122,15 +122,19 @@ Vagrant.configure(2) do |config|
     config.vm.synced_folder ".", "/vagrant/commissaire", type: "sshfs"
     config.vm.synced_folder "../commissaire-http", "/vagrant/commissaire-http",  type: "sshfs"
     config.vm.synced_folder "../commissaire-service", "/vagrant/commissaire-service", type: "sshfs"
-    commissaire.vm.provision "shell", inline: <<-SHELL
-      echo "==> Setting hostname"
+    commissaire.vm.provision "shell", env:
+      {"ETCD_SERVER" => "192.168.152.101", "ETCD_PORT" => "2379"}, inline: <<-SHELL
+      echo "===> Setting hostname"
       sudo hostnamectl set-hostname commissaire
+
       echo "===> Updating the system"
       sudo dnf update -y
+
       echo "===> Installing OS dependencies"
       sudo dnf install -y --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-virtualenv gcc libffi-devel openssl-devel git nfs-utils etcd
       echo "===> Setting up virtualenv"
       virtualenv-3 commissaire_env
+
       echo "===> Installing commissaire"
       . commissaire_env/bin/activate && pip install -U -r /vagrant/commissaire/test-requirements.txt
       . commissaire_env/bin/activate && pip install -e /vagrant/commissaire/
@@ -153,12 +157,12 @@ Vagrant.configure(2) do |config|
       sudo sed -i 's|Type=simple|\&\\nWorkingDirectory=/vagrant|' /etc/systemd/system/commissaire-server.service
 
       echo "===> Populating ETCD storage"
-      . commissaire_env/bin/activate && export ETCDCTL_ENDPOINTS="http://192.168.152.101:2379" && bash /vagrant/commissaire/tools/etcd_init.sh
+      . commissaire_env/bin/activate && export ETCDCTL_ENDPOINTS="http://${ETCD_SERVER}:${ETCD_PORT}" && bash /vagrant/commissaire/tools/etcd_init.sh
 
       echo "===> Setting up commissaire-storage service to autostart"
       sudo cp /vagrant/commissaire-service/conf/storage.conf /etc/commissaire/storage.conf
       sudo cp /vagrant/commissaire-service/conf/systemd/commissaire-storage.service /etc/systemd/system/commissaire-storage.service
-      sudo sed -i 's|"server_url": "http://127.0.0.1:2379"|"server_url": "http://192.168.152.101:2379"|g' /etc/commissaire/storage.conf
+      sudo sed -i "s|\\"server_url\\": \\"http://127.0.0.1:2379\\"|\\"server_url\\": \\"http://${ETCD_SERVER}:${ETCD_PORT}\\"|g" /etc/commissaire/storage.conf
       sudo sed -i 's|^ExecStart=.*|ExecStart=/bin/bash -c ". /home/vagrant/commissaire_env/bin/activate \\&\\& commissaire-storage-service -c /etc/commissaire/storage.conf --bus-uri redis://192.168.152.101:6379"|' /etc/systemd/system/commissaire-storage.service
 
       echo "===> Setting up commissaire-clusterexec service to autostart"
