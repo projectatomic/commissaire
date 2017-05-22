@@ -15,6 +15,7 @@ Vagrant.configure(2) do |config|
       end
       servers.vm.network "private_network", ip: "192.168.152.101"
       config.vm.synced_folder ".", "/vagrant", disabled: true
+      config.vm.synced_folder ".", "/vagrant/commissaire", type: "sshfs"
       servers.vm.provision "shell", inline: <<-SHELL
         echo "==> Setting hostname"
         sudo hostnamectl set-hostname servers
@@ -29,6 +30,9 @@ Vagrant.configure(2) do |config|
         sudo systemctl start etcd
         echo "===> Setting flannel network"
         sudo etcdctl set '/atomic01/network/config' '{"Network": "172.16.0.0/12", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+        echo "===> Setting custodia authentication key"
+        sudo etcdctl mkdir '/commissaire/custodia/auth'
+        cat /vagrant/commissaire/vagrant/custodia/auth.key | sudo etcdctl set '/commissaire/custodia/auth/key'
         echo "===> Configuring redis"
         sudo sed -i "s/127.0.0.1/0.0.0.0/g" /etc/redis.conf
         sudo systemctl enable redis
@@ -127,11 +131,26 @@ Vagrant.configure(2) do |config|
       echo "===> Setting hostname"
       sudo hostnamectl set-hostname commissaire
 
+      echo "===> Setting SELinux to Permissive mode (for custodia.socket)"
+      sudo setenforce Permissive
+
       echo "===> Updating the system"
       sudo dnf update -y
 
       echo "===> Installing OS dependencies"
       sudo dnf install -y --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-virtualenv gcc libffi-devel openssl-devel git nfs-utils etcd
+
+      echo "===> Installing custodia (with etcd module) from f26"
+      sudo dnf install -y --setopt=tsflags=nodocs --releasever=26 custodia python2-custodia-extra
+      sudo cat /vagrant/commissaire/vagrant/custodia/custodia.conf |
+           sed -e "s|{{ etcd_server }}|${ETCD_SERVER}|g" \
+               -e "s|{{ etcd_port }}|${ETCD_PORT}|g" \
+           > /etc/custodia/custodia.conf
+      sudo cp /vagrant/commissaire/vagrant/custodia/master.key /var/lib/custodia
+      sudo systemctl enable custodia.service
+      sudo systemctl enable custodia.socket
+      sudo systemctl start custodia.socket
+
       echo "===> Setting up virtualenv"
       virtualenv-3 commissaire_env
 
