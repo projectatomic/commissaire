@@ -140,19 +140,24 @@ Vagrant.configure(2) do |config|
       echo "===> Installing OS dependencies"
       sudo dnf install -y --setopt=tsflags=nodocs rsync openssh-clients redhat-rpm-config python3-virtualenv gcc libffi-devel openssl-devel git nfs-utils etcd
 
-      echo "===> Installing custodia (with etcd module) from f26"
-      sudo dnf install -y --setopt=tsflags=nodocs --releasever=26 custodia python2-custodia-extra
+      echo "===> Setting up virtualenv"
+      virtualenv-3 commissaire_env
+
+      echo "===> Installing custodia"
+      . commissaire_env/bin/activate && pip install custodia
+      sudo mkdir --parents /etc/custodia
       sudo cat /vagrant/commissaire/vagrant/custodia/custodia.conf |
            sed -e "s|{{ etcd_server }}|${ETCD_SERVER}|g" \
                -e "s|{{ etcd_port }}|${ETCD_PORT}|g" \
            > /etc/custodia/custodia.conf
-      sudo cp /vagrant/commissaire/vagrant/custodia/master.key /var/lib/custodia
+      sudo mkdir --parents --mode 700 /var/lib/custodia
+      sudo mkdir --parents --mode 700 /var/log/custodia
+      sudo mkdir --parents --mode 700 /var/run/custodia
+      sudo cp /vagrant/commissaire/vagrant/custodia/master.key /var/lib/custodia/master.key
+      sudo cp /vagrant/commissaire/vagrant/custodia/custodia.service /etc/systemd/system/custodia.service
+      sudo chmod 644 /etc/systemd/system/custodia.service
       sudo systemctl enable custodia.service
-      sudo systemctl enable custodia.socket
-      sudo systemctl start custodia.socket
-
-      echo "===> Setting up virtualenv"
-      virtualenv-3 commissaire_env
+      sudo systemctl start custodia.service
 
       echo "===> Installing commissaire"
       . commissaire_env/bin/activate && pip install -U -r /vagrant/commissaire/test-requirements.txt
@@ -219,6 +224,16 @@ Vagrant.configure(2) do |config|
       sudo systemctl enable commissaire-containermgr
       sudo systemctl start commissaire-containermgr
 
+    SHELL
+    # Work around issue of services starting before vagrant shared folder
+    # is mounted.  This part always runs, regardless of --provision option.
+    commissaire.vm.provision "shell", run: "always", inline: <<-SHELL
+      sudo systemctl restart custodia
+      sudo systemctl restart commissaire-server
+      sudo systemctl restart commissaire-storage
+      sudo systemctl restart commissaire-clusterexec
+      sudo systemctl restart commissaire-investigator
+      sudo systemctl restart commissaire-containermgr
     SHELL
   # End commissaire
   end
