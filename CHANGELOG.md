@@ -1,3 +1,23 @@
+# commissaire v0.0.5
+```
+* b94e6f7: doc: Update community meeting time.
+* c1ba64b: doc: Document how to fetch configuration from etcd.
+* 33e5a40: etcd: Use environment variables as a default config.
+* fdc4fe8: util: Support reading configuration from etcd.
+* cad1c86: test: Add tests for NotifyCallback.
+* f28bf4a: Vagrantfile: Disable "self-auths" in commissaire-server.
+* 00018f4: storage: The notification event is 'updated', not 'changed'.
+* 2febdc3: doc: Talk about StorageClient and notifications.
+* 30f18ec: doc: Remove docs for StoreHandlerManager.
+* fa45a0c: Vagrantfile: Disable watcher service.
+* 9c1bfd9: e2e: Verify storage notifications in steps.
+* 6c5ff90: storage: Add NotifyCallback decorator.
+* 4e53b46: storage: Add StorageClient.get_consumers().
+* ab65248: storage: Add StorageClient.register_callback().
+* 0436064: storage: Add StorageNotify class.
+* 4b315ff: Post-release version bump.
+```
+
 # commissaire v0.0.4
 ```
 * 1bc1444: docs: Add Tuomas Kuosmanen to CONTRIBUTORS
