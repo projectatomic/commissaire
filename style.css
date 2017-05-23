@@ -51,6 +51,7 @@ body {
 }
 
 .navbar-wrapper .logo {
+  width: 550px;
   height: 64px;
   margin: 0;
 }
