@@ -5,18 +5,18 @@ The Commissaire Community Meeting is intended to bring all those who
 are interested in, currently working on, or using Commissaire together
 to discuss the project as a group.
 
-The meeting starts at 12:30 PM UTC and is held the second and
+The meeting starts at 3:00 PM UTC and is held the second and
 fourth Tuesday of each month in the
 ``#atomic`` `Freenode <https://freenode.net/>`_ IRC channel.
 
 ============ ========
 Timezone     Time
 ============ ========
-UTC          12:30 PM
-EDT (US)     8:30 AM
-IST (India)  6:00 PM
-CST (China)  8:30 PM
-AEST         10:30 PM
+UTC           3:00 PM
+EDT (US)     11:00 AM
+IST (India)   8:30 PM
+CST (China)  11:00 PM
+AEST          1:00 AM
 ============ ========
 
 Rules
