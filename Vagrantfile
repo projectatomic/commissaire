@@ -78,7 +78,7 @@ Vagrant.configure(2) do |config|
         sudo hostnamectl set-hostname fedora-cloud
         echo "===> Installing SSH keys"
         mkdir --parents /home/vagrant/.ssh
-        cp /vagrant/features/id_rsa{,.pub} /home/vagrant/.ssh
+        cp /vagrant/vagrant/id_rsa{,.pub} /home/vagrant/.ssh
         cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
         echo "===> Updating the system"
         sudo dnf update --setopt=tsflags=nodocs -y
@@ -103,7 +103,7 @@ Vagrant.configure(2) do |config|
         sudo hostnamectl set-hostname fedora-atomic
         echo "===> Installing SSH keys"
         mkdir --parents /home/vagrant/.ssh
-        cp /home/vagrant/sync/features/id_rsa{,.pub} /home/vagrant/.ssh
+        cp /home/vagrant/sync/vagrant/id_rsa{,.pub} /home/vagrant/.ssh
         cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
       SHELL
     # End fedora-atomic

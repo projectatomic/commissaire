@@ -310,7 +310,7 @@ def before_all(context):
         context.USE_VAGRANT = True
 
     # Read and encode SSH key
-    with open('features/id_rsa', 'rb') as f:
+    with open('vagrant/id_rsa', 'rb') as f:
         b64_bytes = base64.b64encode(f.read())
         context.SSH_PRIV_KEY = b64_bytes.decode()
 
