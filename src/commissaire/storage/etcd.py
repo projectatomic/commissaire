@@ -22,6 +22,8 @@ import etcd
 
 from urllib.parse import urlparse
 
+import commissaire.models as models
+
 from commissaire.bus import StorageLookupError
 from commissaire.util.config import etcd_client_args
 from commissaire.storage import StoreHandlerBase, ConfigurationError
@@ -36,6 +38,7 @@ _etcd_mapper = {
     'ContainerManagerConfig': '/container_managers/{}',
     'ContainerManagerConfigs': '/container_managers/',
     'Host': '/hosts/{}',
+    'HostCreds': '/hosts/{}',  # XXX Temporary hack
     'Hosts': '/hosts',
     'Network': '/networks/{}',
     'Networks': '/networks',
@@ -131,15 +134,30 @@ class EtcdStoreHandler(StoreHandlerBase):
         :rtype: commissaire.model.Model
         """
         key = self._format_key(model_instance)
-        etcd_resp = self._store.write(key, model_instance.to_json())
+        json_string = model_instance.to_json()
+        # XXX Temporary hack to merge Host and HostCreds models
+        #     to the same etcd key.
+        if (isinstance(model_instance, models.HostCreds) or
+                isinstance(model_instance, models.Host)):
+            try:
+                merge_dict = json.loads(self._store.get(key).value)
+                final_dict = json.loads(json_string)
+                final_dict.update(merge_dict)
+                json_string = json.dumps(final_dict)
+            except etcd.EtcdKeyNotFound:
+                pass
+        etcd_resp = self._store.write(key, json_string)
 
-        model_type = type(model_instance)
-        model_dict = json.loads(etcd_resp.value)
-        model_instance = model_type.new(**model_dict)
-        if etcd_resp.newKey:
-            self.notify.created(model_instance)
-        else:
-            self.notify.updated(model_instance)
+        # XXX For HostCreds just return what was passed in, with no
+        #     notifications.
+        if not isinstance(model_instance, models.HostCreds):
+            model_type = type(model_instance)
+            model_dict = json.loads(etcd_resp.value)
+            model_instance = model_type.new(**model_dict)
+            if etcd_resp.newKey:
+                self.notify.created(model_instance)
+            else:
+                self.notify.updated(model_instance)
 
         return model_instance
 
@@ -156,7 +174,17 @@ class EtcdStoreHandler(StoreHandlerBase):
         try:
             key = self._format_key(model_instance)
             etcd_resp = self._store.get(key)
-            return model_instance.new(**json.loads(etcd_resp.value))
+            json_value = json.loads(etcd_resp.value)
+            # XXX Temporary hack to create Host and HostCreds models
+            #     from the same etcd key.
+            if isinstance(model_instance, models.HostCreds):
+                new_json_value = {'address': json_value.get('address')}
+                if 'ssh_priv_key' in json_value:
+                    new_json_value['ssh_priv_key'] = json_value['ssh_priv_key']
+                if 'remote_user' in json_value:
+                    new_json_value['remote_user'] = json_value['remote_user']
+                json_value = new_json_value
+            return model_instance.new(**json_value)
         except etcd.EtcdKeyNotFound as error:
             raise StorageLookupError(str(error), model_instance)
 
