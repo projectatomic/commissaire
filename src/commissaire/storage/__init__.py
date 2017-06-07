@@ -61,16 +61,6 @@ class StoreHandlerBase(object):  # pragma: no cover
         self.logger = logging.getLogger(self.__class__.__name__)
         self.notify = StorageNotify()
 
-    def _get_connection(self):
-        """
-        Returns an instance of the store. If one has not been created this call
-        will also create the client using the self.config.
-
-        :returns: The store instance.
-        :rtype: Store Instance
-        """
-        raise NotImplementedError('_get_connection must be overriden.')
-
     def _save(self, model_instance):
         """
         Saves data to a store and returns back a saved model.
