@@ -280,7 +280,8 @@ class SecretModel(Model):
     """
     Parent class for all models which must be stored in the secrets store.
     """
-    pass
+    #: Custodia key container name
+    _key_container = None
 
 
 class ListModel(Model):
@@ -527,6 +528,7 @@ class HostCreds(SecretModel):
         'remote_user': 'root',
     }
     _primary_key = 'address'
+    _key_container = 'hosts'
 
 
 class HostStatus(Model):
