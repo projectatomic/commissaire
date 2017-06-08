@@ -31,6 +31,45 @@ class TestModel(TestCase):
     Tests for the commissaire.models.Model using a subclass.
     """
 
+    def test_class_attributes(self):
+        """
+        Verify all model types comply with class attribute invariants
+        """
+        abstract_model_types = (
+            models.Model,
+            models.ListModel,
+            models.SecretModel)
+        model_types = [mt for mt in models.__dict__.values()
+                       if isinstance(mt, type) and
+                       issubclass(mt, models.Model) and
+                       mt not in abstract_model_types]
+
+        for mt in model_types:
+            name = mt.__name__
+
+            # All model types must populate _attribute_map.
+            self.assertTrue(
+                mt._attribute_map,
+                'Class "{}" must specify an attribute map'.format(name))
+
+            # ListModel types must populate _list_attr and _list_class.
+            if issubclass(mt, models.ListModel):
+                self.assertIsNotNone(
+                    mt._list_attr,
+                    'Class "{}" must specify the list attribute'.format(name))
+                self.assertIsNotNone(
+                    mt._list_class,
+                    'Class "{}" must specify a list item class'.format(name))
+
+            # SecretModel types must populate _key_container and _primary_key.
+            if issubclass(mt, models.SecretModel):
+                self.assertIsNotNone(
+                    mt._key_container,
+                    'Class "{}" must specify a key container'.format(name))
+                self.assertIsNotNone(
+                    mt._primary_key,
+                    'Class "{}" must specify a primary key'.format(name))
+
     def test_new(self):
         """
         Verify using new on a model creates a default instance.
