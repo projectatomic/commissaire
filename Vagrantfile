@@ -30,9 +30,6 @@ Vagrant.configure(2) do |config|
         sudo systemctl start etcd
         echo "===> Setting flannel network"
         sudo etcdctl set '/atomic01/network/config' '{"Network": "172.16.0.0/12", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
-        echo "===> Setting custodia authentication key"
-        sudo etcdctl mkdir '/commissaire/custodia/auth'
-        cat /vagrant/commissaire/vagrant/custodia/auth.key | sudo etcdctl set '/commissaire/custodia/auth/key'
         echo "===> Configuring redis"
         sudo sed -i "s/127.0.0.1/0.0.0.0/g" /etc/redis.conf
         sudo systemctl enable redis
