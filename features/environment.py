@@ -432,6 +432,7 @@ def before_scenario(context, scenario):
     delete_dirs = ['/commissaire/hosts',
                    '/commissaire/cluster',
                    '/commissaire/clusters',
+                   '/commissaire/custodia',
                    '/commissaire/networks',
                    '/commissaire/status',
                    '/commissaire/container_managers']

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 echo "+ Creating Commissaire keyspaces..."
-for x in clusters cluster hosts networks status; do
+for x in clusters cluster custodia hosts networks status; do
   etcd_path="/commissaire/"$x
   echo "++ Creating $etcd_path"
   etcdctl mkdir $etcd_path || true
