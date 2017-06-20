@@ -147,10 +147,6 @@ Vagrant.configure(2) do |config|
            sed -e "s|{{ etcd_server }}|${ETCD_SERVER}|g" \
                -e "s|{{ etcd_port }}|${ETCD_PORT}|g" \
            > /etc/custodia/custodia.conf
-      sudo mkdir --parents --mode 700 /var/lib/custodia
-      sudo mkdir --parents --mode 700 /var/log/custodia
-      sudo mkdir --parents --mode 700 /var/run/custodia
-      sudo cp /vagrant/commissaire/vagrant/custodia/master.key /var/lib/custodia/master.key
       sudo cp /vagrant/commissaire/vagrant/custodia/custodia.service /etc/systemd/system/custodia.service
       sudo chmod 644 /etc/systemd/system/custodia.service
       sudo systemctl enable custodia.service

@@ -23,6 +23,7 @@ The following optional arguments can be provided via "-D name=value":
 - use-vagrant: If vagrant is in use. Ignores start-* items.
 - start-all-servers: Starts everything (like setting all start-* items).
 - start-etcd: If etcd should be started.
+- start-custodia: If custodia should be started.
 - start-redis: If redis should be started. Also sets BUS_URI.
 - start-storage-service: If commissaire-storage-service should start.
 - start-investigator-service: If commissaire-investigator-service should start.
@@ -38,6 +39,7 @@ import kombu
 import logging
 import os
 import random
+import requests
 import shutil
 import subprocess
 import sys
@@ -46,9 +48,10 @@ import time
 
 import steps
 
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from commissaire import constants as C
+from commissaire.util.unixadapter import UnixAdapter
 
 # Fill in with context.ETCD after start_etcd().
 STORAGE_CONF_TEMPLATE = """
@@ -61,6 +64,45 @@ STORAGE_CONF_TEMPLATE = """
     }}
   ]
 }}
+"""
+
+# Perform variable substitution.
+# .format(tmpdir= , etcd_server= , etcd_port= )
+CUSTODIA_CONF_TEMPLATE = """
+[DEFAULT]
+libdir = {tmpdir}/lib
+logdir = {tmpdir}/log
+rundir = {tmpdir}/run
+socketdir = ${{rundir}}
+
+[global]
+makedirs = True
+
+[store:etcd]
+handler = EtcdStore
+etcd_server = {etcd_server}
+etcd_port = {etcd_port}
+namespace = commissaire/custodia
+
+[store:encrypted_etcd]
+handler = EncryptedOverlay
+backing_store = etcd
+master_key = ${{libdir}}/master.key
+autogen_master_key = True
+
+[auth:header]
+handler = SimpleHeaderAuth
+
+[authz:paths]
+handler = SimplePathAuthz
+paths = / /secrets/
+
+[/]
+handler = Root
+
+[/secrets]
+handler = Secrets
+store = encrypted_etcd
 """
 
 
@@ -202,6 +244,39 @@ def start_etcd(context, args):
         return context.PROCESSES['etcd']
 
 
+def config_custodia(context, socket_dir=None):
+    """Sets context attributes for Custodia's socket path and URL."""
+    if socket_dir is None:
+        context.CUSTODIA_TMPDIR = tempfile.TemporaryDirectory()
+        socket_dir = os.path.join(context.CUSTODIA_TMPDIR.name, 'run')
+    socket_path = os.path.join(socket_dir, 'custodia.sock')
+    socket_url = 'http+unix://' + quote(socket_path, safe='')
+    context.CUSTODIA_SOCKET_PATH = socket_path
+    context.CUSTODIA_SOCKET_URL = socket_url
+
+
+def start_custodia(context, args):
+    """Starts a Custodia instance."""
+    conffile = os.path.join(context.CUSTODIA_TMPDIR.name, 'custodia.conf')
+    print('Writing {}'.format(conffile))
+
+    with open(conffile, 'w') as outfile:
+        etcd_url = urlparse(context.ETCD)
+        outfile.write(
+            CUSTODIA_CONF_TEMPLATE.format(
+                tmpdir=context.CUSTODIA_TMPDIR.name,
+                etcd_server=etcd_url.hostname,
+                etcd_port=etcd_url.port))
+
+    context.PROCESSES['custodia'] = subprocess.Popen(['custodia', conffile])
+    time.sleep(1)
+    context.PROCESSES['custodia'].poll()
+
+    # If the returncode is not set then Custodia is running
+    if context.PROCESSES['custodia'].returncode is None:
+        return context.PROCESSES['custodia']
+
+
 def start_commissaire_service(context, args, **kwargs):
     """Starts a commissaire service."""
     process = subprocess.Popen(
@@ -278,6 +353,7 @@ def before_all(context):
     # start-all-servers sets all start-*'s to True
     if context.config.userdata.get('start-all-servers'):
         context.config.userdata['start-etcd'] = True
+        context.config.userdata['start-custodia'] = True
         context.config.userdata['start-redis'] = True
         context.config.userdata['start-storage-service'] = True
         context.config.userdata['start-investigator-service'] = True
@@ -345,7 +421,23 @@ def before_all(context):
 
     if context.USE_VAGRANT:
         print('Using vagrant. Skipping any requested starts ...')
+
+        # Start a local custodia instance for test preconditions,
+        # using the same master.key as that on the Vagrant box.
+        config_custodia(context)
+        libdir = os.path.join(context.CUSTODIA_TMPDIR.name, 'lib')
+        os.mkdir(libdir, mode=0o700)
+        os.symlink(
+            os.path.abspath('vagrant/custodia/master.key'),
+            os.path.join(libdir, 'master.key'))
+        try_start(start_custodia, 'custodia', context)
     else:
+        if context.config.userdata.get('start-custodia'):
+            config_custodia(context)
+            try_start(start_custodia, 'custodia', context)
+        else:
+            config_custodia(context, '/var/run/custodia')
+
         if context.config.userdata.get('start-redis'):
             try_start(start_redis, 'redis', context)
 
@@ -359,7 +451,16 @@ def before_all(context):
                 stdin=subprocess.PIPE,
                 universal_newlines=True)
             context.PROCESSES['commissaire-storage-service'] = process
-            process.stdin.write(STORAGE_CONF_TEMPLATE.format(context.ETCD))
+            storage_conf = STORAGE_CONF_TEMPLATE.format(context.ETCD)
+
+            # If this is absent, leave it unspecified in the config
+            # so the storage service uses its own socket path default.
+            if hasattr(context, 'CUSTODIA_SOCKET_PATH'):
+                storage_json = json.loads(storage_conf)
+                storage_json['custodia_socket_path'] = context.CUSTODIA_SOCKET_PATH
+                storage_conf = json.dumps(storage_json)
+
+            process.stdin.write(storage_conf)
             process.stdin.close()
 
         if context.config.userdata.get('start-investigator-service'):
@@ -447,6 +548,10 @@ def before_scenario(context, scenario):
         '/commissaire/networks/default',
         '{"name": "default", "type": "flannel_etcd", "options": {}}')
 
+    # requests.Session() with UNIX domain socket support.
+    context.session = requests.Session()
+    context.session.mount('http+unix://', UnixAdapter())
+
     # Delete any unread messages from previous scenarios.
     context.NOTIFY_QUEUE.purge()
 
@@ -499,3 +604,7 @@ def after_all(context):
     # Clean up the CERT_DIR if it exists
     if getattr(context, 'CERT_DIR'):
         shutil.rmtree(context.CERT_DIR)
+
+    # Clean up the CUSTODIA_TMPDIR if it exists
+    if hasattr(context, 'CUSTODIA_TMPDIR'):
+        context.CUSTODIA_TMPDIR.cleanup()

@@ -39,11 +39,30 @@ def impl(context, cluster):
 
 @given('a host already exists at {host}')
 def impl(context, host):
-    data = dict(context.HOST_DATA)
-    data['address'] = host
+    host_dict = dict(context.HOST_DATA)
+    host_dict['address'] = host
+    secret_dict = {
+        'address': host,
+        'remote_user': host_dict.pop('remote_user'),
+        'ssh_priv_key': host_dict.pop('ssh_priv_key')
+    }
+
     context.etcd.set(
         '/commissaire/hosts/{}'.format(host),
-        json.dumps(data))
+        json.dumps(host_dict))
+
+    url = context.CUSTODIA_SOCKET_URL + '/secrets/hosts/'
+    headers = {'REMOTE_USER': 'commissaire'}
+    response = context.session.post(url, headers=headers)
+    response.raise_for_status()
+
+    url += host
+    data = json.dumps(secret_dict)
+    headers['Content-Type'] = 'application/octet-stream'
+    headers['Content-Length'] = str(len(data))
+    response = context.session.put(url, headers=headers, data=data)
+    response.raise_for_status()
+
     context.host_exists = True
 
 
