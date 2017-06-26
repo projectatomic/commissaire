@@ -1,3 +1,27 @@
+# commissaire v0.0.6
+```
+* de14431: tox.ini: Fix command for "bdd" test environment.
+* 9cf24e5: bdd-requirements.txt: Remove disabled lines.
+* 5c4d859: Don't require commctl in test environments.
+* 5117b9c: tox.ini: Add "-D start-custodia" to behave command.
+* af38936: e2e: Update for Custodia integration.
+* 1e6fe49: Deal with custodia directory in etcd.
+* f461ee2: Vagrantfile: Simplify custodia authentication.
+* 57401a3: Vagrantfile: Use the custodia pip package instead of rpm.
+* 1d277f8: Test model class attribute invariants.
+* 2109ba4: models: Add SecretModel._key_container attribute.
+* f1d34e3: storage: Remove unused StoreHandlerBase._get_connection().
+* 378d671: util: Add UnixAdapter from requests-unixsocket.
+* 329c9e1: storage: Merge Host and HostCreds models into same etcd key.
+* f695855: Vagrantfile: Install custodia on commissaire host.
+* e3550e5: Vagrantfile: Readability cleanups.
+* bf8b8ad: Move vagrant data files to their own subdir.
+* 87eb249: util: TemporarySSHKey now uses HostCreds
+* 963f6fa: models: Add secret model per cpd-101
+* efe8c42: models: Add _must_be_in for validation
+* 9f1d83c: Post-release version bump.
+```
+
 # commissaire v0.0.5
 ```
 * b94e6f7: doc: Update community meeting time.
