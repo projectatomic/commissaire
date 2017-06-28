@@ -10,6 +10,7 @@ Submodules
    commissaire_http.authentication.httpbasicauth
    commissaire_http.authentication.keystonepasswordauth
    commissaire_http.authentication.keystonetokenauth
+   commissaire_http.authentication.openshiftbearertokenauth
 
 Module contents
 ---------------

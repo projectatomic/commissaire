@@ -10,6 +10,7 @@ Submodules
    commissaire.util.date
    commissaire.util.logging
    commissaire.util.ssh
+   commissaire.util.unixadapter
 
 Module contents
 ---------------
